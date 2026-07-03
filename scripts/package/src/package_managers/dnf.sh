@@ -70,6 +70,7 @@ dnf::update_apps() {
 
 dnf::outdated_app() {
   ! dnf::is_available && return 1
+  dnf check-update || true
   dnf check-update | awk '{print $1}'
 }
 
