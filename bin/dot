@@ -116,14 +116,7 @@ fzf_prompt() {
     fzf_scripts+=("${fzf_context} ${fzf_script}")
   done
 
-  script="$(
-    printf "%s\n" "${fzf_scripts[@]}" |
-      files::fzf \
-        --sloth-core \
-        --preview 'dot::fzf_view_doc {}' \
-        --height 100% \
-        --print0
-  )"
+  script="$(printf "%s\n" "${fzf_scripts[@]}" | files::fzf --sloth-core --preview 'dot::fzf_view_doc {}' --height 100%)"
 
   printf "%s" "$script"
   read -r args
