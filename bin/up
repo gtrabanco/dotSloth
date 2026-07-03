@@ -51,9 +51,5 @@ for package_manager in "${package_managers[@]}"; do
   fi
 done
 
-if command -v tmux > /dev/null 2>&1; then
-  pkill -f tmux || true
-fi
-
 output::empty_line
 log::success '👌 All your packages have been successfully updated'
