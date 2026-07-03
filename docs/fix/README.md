@@ -21,7 +21,7 @@ history lives in git log + closed issues.
 | | dnf check-update aborts with set -e | done | — | [#244](https://github.com/gtrabanco/dotSloth/issues/244) |
 | | Success message always shown despite failures | pending | — | [#245](https://github.com/gtrabanco/dotSloth/issues/245) |
 | | script::depends_on hangs in non-interactive contexts | pending | — | [#246](https://github.com/gtrabanco/dotSloth/issues/246) |
-| | pkill tmux destroys all system sessions | pending | — | [#247](https://github.com/gtrabanco/dotSloth/issues/247) |
+| 247-pkill-tmux-destroys-sessions | pkill tmux destroys all system sessions | done · [#257](https://github.com/gtrabanco/dotSloth/pull/257) | — | [#247](https://github.com/gtrabanco/dotSloth/issues/247) |
 || 248-mas-update-all-slow | mas::update_all() is slow and may hang | done · [#252](https://github.com/gtrabanco/dotSloth/pull/252) | — | [#248](https://github.com/gtrabanco/dotSloth/issues/248) |
 
 ## Conventions
