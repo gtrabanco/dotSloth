@@ -58,3 +58,8 @@ loader:
 uninstall:
 	@echo "Uninstalling .Sloth"
 	rm -rf ~/.bashrc ~/.bash_profile ~/.zshrc ~/.zshenv ~/.zimrc ~/.zlogin ~/.inputrc
+
+.PHONY: test
+test:
+	@command -v bats &>/dev/null || (echo "ERROR: bats-core not found. Install with:" >&2 && echo "  macOS: brew install bats-core" >&2 && echo "  Ubuntu: sudo apt-get install bats" >&2 && exit 1)
+	bats --recursive tests/
