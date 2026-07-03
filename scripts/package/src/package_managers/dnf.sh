@@ -71,7 +71,7 @@ dnf::update_apps() {
 dnf::outdated_app() {
   ! dnf::is_available && return 1
   local outdated
-  outdated="$(dnf check-update 2>/dev/null)" || true
+  outdated="$(dnf check-update 2> /dev/null)" || true
   echo "$outdated" | awk '{print $1}'
 }
 
