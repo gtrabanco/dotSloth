@@ -41,7 +41,7 @@ mas::update_all() {
   local -r list_cache
   list_cache="$(mas list 2> /dev/null)"
 
-  local -r outdated_output
+  local -r outdated_output # shellcheck disable=SC2034 — intentionally unused, reserved for future use
   readarray -t outdated < <(mas outdated 2> /dev/null)
 
   if [[ ${#outdated[@]} -eq 0 ]]; then
