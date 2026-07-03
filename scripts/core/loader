@@ -15,16 +15,16 @@ set -euo pipefail
 dot::load_library "templating.sh" "core"
 
 # Define DOTFILES_PATH and SLOTH_PATH values in .bashrc and .zshrc
-[[ -n "${DOTFILES_PATH:-}" ]] && DOTFILES_PATH_VALUE="${DOTFILES_PATH//$HOME/\${HOME\}}"
+[[ -n "${DOTFILES_PATH:-}" ]] && DOTFILES_PATH_VALUE="${DOTFILES_PATH//$HOME/\$\{HOME\}}"
 SLOTH_PATH="${SLOTH_PATH:-${DOTLY_PATH:-}}"
 
 # Standalone install with brew
 if [[ -n "${SLOTH_PATH:-}" && -d "${SLOTH_PATH}" ]]; then
   if [[ -n "${DOTFILES_PATH:-}" ]]; then
-    SLOTH_PATH_VALUE="${SLOTH_PATH//$DOTFILES_PATH/\${DOTFILES_PATH\}}"
-    SLOTH_PATH_VALUE="${SLOTH_PATH_VALUE//$HOME/\${HOME\}}"
+    SLOTH_PATH_VALUE="${SLOTH_PATH//$DOTFILES_PATH/\$\{DOTFILES_PATH\}}"
+    SLOTH_PATH_VALUE="${SLOTH_PATH_VALUE//$HOME/\$\{HOME\}}"
   else
-    SLOTH_PATH_VALUE="${SLOTH_PATH//$HOME/\${HOME\}}"
+    SLOTH_PATH_VALUE="${SLOTH_PATH//$HOME/\$\{HOME\}}"
   fi
 # Regular install as git repository in DOTFILES_PATH or standalone install from source
 elif [[ -d "${DOTFILES_PATH}/modules/sloth" ]]; then

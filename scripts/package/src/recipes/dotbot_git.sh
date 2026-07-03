@@ -121,7 +121,7 @@ dotbot_git::force_install() {
 # ONLY REQUIRED IF YOU WANT TO IMPLEMENT AUTO UPDATE WHEN USING `up` or `up registry`
 # Description, url and versions only be showed if defined
 dotbot_git::is_outdated() {
-  [[ "$(package::which_package_manager "dotbot")" != registry ]] && return # Use the package manager used to install
+  [[ "$(package::which_package_manager "dotbot")" != registry ]] && return 1
 
   [[ $(dotbot_git::get_local_lastest_commit_sha) != $(dotbot_git::get_remote_latest_commit_sha) ]]
 }
