@@ -37,28 +37,55 @@ mas::uninstall() {
 }
 
 mas::update_all() {
-  local outdated row app_id app_name app_new_version app_old_version app_url app_list_line
-  readarray -t outdated < <(mas outdated)
+  local -r upgrade_timeout="${MAS_UPGRADE_TIMEOUT:-30}"
+  local -r outdated_output
+  readarray -t outdated < <(mas outdated 2> /dev/null)
 
   if [[ ${#outdated[@]} -eq 0 ]]; then
     output::answer "Already up-to-date"
-  else
-    for row in "${outdated[@]}"; do
-      app_id="$(echo "$row" | awk '{print $1}')"
-      app_name="${row//$app_id /}"
-      app_list_line=$(mas list | awk '{print $1}' | grep -n "^$app_id$" | cut -d ':' -f 1)
-      app_old_version=$(mas list | head -n "$app_list_line" | tail -n 1 | awk '{print $NF}' | sed 's/[(|)]//g')
-      app_new_version=$(mas info "$app_id" | head -n 1 | awk 'NF{NF--};{print $NF}')
-
-      app_url=$(mas info "$app_id" | tail -n 1 | sed 's/From://g' | xargs)
-
-      output::write "🍎 $app_name"
-      output::write "├ $app_old_version -> $app_new_version"
-      output::write "└ $app_url"
-      output::empty_line
-      mas upgrade "$app_id" | log::file "Updating ${mas_title} app: ${app_name}"
-    done
+    return 0
   fi
+
+  # Cache mas list once — O(1) lookup instead of O(N) calls
+  local -r list_cache
+  list_cache="$(mas list 2> /dev/null)"
+
+  local row app_id app_name app_list_line app_old_version app_new_version app_url
+
+  for row in "${outdated[@]}"; do
+    app_id="$(echo "$row" | awk '{print $1}')"
+    app_name="${row//$app_id /}"
+
+    # Get old version from cached list (single call, not per-app)
+    app_list_line="$(echo "$list_cache" | grep -n "^$app_id " | head -1 | cut -d ':' -f 1)"
+    if [[ -n "${app_list_line:-}" ]]; then
+      app_old_version="$(echo "$list_cache" | sed -n "${app_list_line}p" | awk '{print $NF}' | sed 's/[(|)]//g')"
+    else
+      app_old_version="unknown"
+    fi
+
+    # Get new version and URL from mas info (once per app)
+    local info_output
+    info_output="$(mas info "$app_id" 2> /dev/null)"
+    app_new_version="$(echo "$info_output" | head -n 1 | awk 'NF{NF--};{print $NF}')"
+    app_url="$(echo "$info_output" | tail -n 1 | sed 's/From://g' | xargs)"
+
+    output::write "🍎 $app_name"
+    output::write "├ $app_old_version -> $app_new_version"
+    output::write "└ $app_url"
+    output::empty_line
+
+    # Upgrade with timeout to prevent hanging on Apple ID prompt
+    if ! timeout "$upgrade_timeout" mas upgrade "$app_id" 2> /dev/null | log::file "Updating ${mas_title} app: ${app_name}"; then
+      local exit_code=$?
+      if [[ $exit_code -eq 124 ]]; then
+        output::error "Timeout upgrading ${app_name} (${upgrade_timeout}s)"
+      else
+        output::error "Failed to upgrade ${app_name}"
+        log::error "mas upgrade failed for ${app_name}: exit code ${exit_code}"
+      fi
+    fi
+  done
 }
 
 mas::dump() {
