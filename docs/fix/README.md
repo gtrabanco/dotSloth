@@ -18,7 +18,7 @@ history lives in git log + closed issues.
 | | Restorer broken | pending | — | [#234](https://github.com/gtrabanco/dotSloth/issues/234) |
 | | up command fails to parse updates | pending | — | [#235](https://github.com/gtrabanco/dotSloth/issues/235) |
 | | pip::update_apps() double install typo | done | — | [#243](https://github.com/gtrabanco/dotSloth/issues/243) |
-| | dnf check-update aborts with set -e | pending | — | [#244](https://github.com/gtrabanco/dotSloth/issues/244) |
+| | dnf check-update aborts with set -e | done | — | [#244](https://github.com/gtrabanco/dotSloth/issues/244) |
 | | Success message always shown despite failures | pending | — | [#245](https://github.com/gtrabanco/dotSloth/issues/245) |
 | | script::depends_on hangs in non-interactive contexts | pending | — | [#246](https://github.com/gtrabanco/dotSloth/issues/246) |
 | | pkill tmux destroys all system sessions | pending | — | [#247](https://github.com/gtrabanco/dotSloth/issues/247) |
