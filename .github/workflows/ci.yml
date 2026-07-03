@@ -111,3 +111,26 @@ jobs:
             output::write "Apply patches by using \`dot core lint\`"
             exit 1
           }
+
+  test:
+    runs-on: ${{ matrix.os }}
+    name: 🧪 Tests
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - macos-latest
+          - ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install bats-core
+        run: |
+          if [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
+            sudo apt-get update && sudo apt-get install -y bats
+          else
+            brew install bats-core
+          fi
+
+      - name: Run bats tests
+        run: bats tests/

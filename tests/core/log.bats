@@ -3,7 +3,7 @@
 
 # Test for scripts/core/src/log.sh — logging functions
 
-load "setup"
+load "../helpers/setup"
 
 # ── Logging functions ─────────────────────────────────────────────────────
 

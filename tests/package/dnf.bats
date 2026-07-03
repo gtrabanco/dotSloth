@@ -3,7 +3,7 @@
 
 # Test for scripts/package/src/package_managers/dnf.sh — DNF package manager wrapper
 
-load "setup"
+load "../helpers/setup"
 
 # ── DNF wrapper functions ─────────────────────────────────────────────────
 

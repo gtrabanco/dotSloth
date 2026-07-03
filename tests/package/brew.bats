@@ -3,7 +3,7 @@
 
 # Test for scripts/package/src/package_managers/brew.sh — Homebrew package manager wrapper
 
-load "setup"
+load "../helpers/setup"
 
 # ── Brew wrapper functions ────────────────────────────────────────────────
 

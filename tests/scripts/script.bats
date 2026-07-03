@@ -3,7 +3,7 @@
 
 # Test for scripts/core/src/script.sh — script utility functions
 
-load "setup"
+load "../helpers/setup"
 
 # ── Script functions ──────────────────────────────────────────────────────
 

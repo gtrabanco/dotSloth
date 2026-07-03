@@ -3,7 +3,7 @@
 
 # Test for scripts/core/src/output.sh — output formatting functions
 
-load "setup"
+load "../helpers/setup"
 
 # ── Output functions ──────────────────────────────────────────────────────
 

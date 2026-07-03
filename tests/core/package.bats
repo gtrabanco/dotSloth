@@ -3,7 +3,7 @@
 
 # Test for scripts/core/src/package.sh — package management functions
 
-load "setup"
+load "../helpers/setup"
 
 # ── Package functions ─────────────────────────────────────────────────────
 

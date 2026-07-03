@@ -3,7 +3,7 @@
 
 # Test for bin/dot entry point — CLI interface behavior
 
-load "setup"
+load "../helpers/setup"
 
 setup() {
     DOT="${SLOTH_PATH}/bin/dot"

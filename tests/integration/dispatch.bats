@@ -3,7 +3,7 @@
 
 # Integration tests for dot command dispatch — end-to-end behavior
 
-load "setup"
+load "../helpers/setup"
 
 setup() {
     DOT="${SLOTH_PATH}/bin/dot"
