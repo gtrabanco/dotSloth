@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+# shellcheck disable=SC2034
 mas_title='🍎 App Store'
 
 mas::title() {
@@ -41,7 +42,8 @@ mas::update_all() {
   local -r list_cache
   list_cache="$(mas list 2> /dev/null)"
 
-  local -r outdated_output # shellcheck disable=SC2034 — intentionally unused, reserved for future use
+  # shellcheck disable=SC2034
+  local -r outdated_output
   readarray -t outdated < <(mas outdated 2> /dev/null)
 
   if [[ ${#outdated[@]} -eq 0 ]]; then
