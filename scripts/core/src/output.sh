@@ -6,7 +6,8 @@ bold_blue='\033[1m\033[34m'
 normal='\033[0m'
 
 _output::parse_code() {
-  local normal="\033[0m" style="$normal"
+  local normal="\033[0m"
+  local style="$normal"
   case "${1:-}" in
     --color | --style)
       style="$2"
