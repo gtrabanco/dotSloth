@@ -22,7 +22,7 @@ history lives in git log + closed issues.
 | | Success message always shown despite failures | pending | — | [#245](https://github.com/gtrabanco/dotSloth/issues/245) |
 | | script::depends_on hangs in non-interactive contexts | pending | — | [#246](https://github.com/gtrabanco/dotSloth/issues/246) |
 | | pkill tmux destroys all system sessions | pending | — | [#247](https://github.com/gtrabanco/dotSloth/issues/247) |
-|| 248-mas-update-all-slow | mas::update_all() is slow and may hang | done | — | [#248](https://github.com/gtrabanco/dotSloth/issues/248) |
+|| 248-mas-update-all-slow | mas::update_all() is slow and may hang | done · [#252](https://github.com/gtrabanco/dotSloth/pull/252) | — | [#248](https://github.com/gtrabanco/dotSloth/issues/248) |
 
 ## Conventions
 
