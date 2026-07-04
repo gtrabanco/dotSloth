@@ -1,6 +1,6 @@
 #compdef dot lazy=dot s=lazy sloth=dot
 
-. "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/src/_main.sh"
+. "${SLOTH_PATH:-}/scripts/core/src/_main.sh"
 
 _dot() {
   #setopt local_options xtrace
@@ -21,7 +21,7 @@ _dot() {
     _arguments "2:Script:($existing_scripts)"
     ;;
   args)
-    script_path="${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/${words[2]}/${words[3]}"
+    script_path="${SLOTH_PATH:-}/scripts/${words[2]}/${words[3]}"
     if [[ -r "$script_path" ]]; then
       existing_args="$(docs::parse_docopt_argument "$script_path" "${words[@]:4}")"
       if [[ -n "$existing_args" ]]; then

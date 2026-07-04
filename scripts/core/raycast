@@ -2,10 +2,10 @@
 
 set -euo pipefail
 
-[[ -z "${SLOTH_PATH:-${DOTLY_PATH:-}}" ]] && exit 1
+[[ -z "${SLOTH_PATH:-}" ]] && exit 1
 
 #shellcheck disable=SC1091
-. "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/src/output.sh"
+. "${SLOTH_PATH:-}/scripts/core/src/output.sh"
 
 ##? Link Raycast scripts for .Sloth in your raycastr directory path
 ##?
@@ -26,6 +26,6 @@ docs::parse "$@"
 output::write "This can not be done automatically"
 output::write "1. Open Raycast Preferences > Extensions"
 output::write "2. Click on the \`+\` icon button and choose \`Add Script Directory\`"
-output::write "3. Adds: \`${SLOTH_PATH:-${DOTLY_PATH:-}}/_raycast\`"
+output::write "3. Adds: \`${SLOTH_PATH:-}/_raycast\`"
 output::empty_line
 output::answer "🥳 🎉 Enjoy"

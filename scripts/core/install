@@ -13,7 +13,7 @@ if [[ -z "${SLOTH_PATH:-}" ]]; then
 fi
 
 #shellcheck disable=SC1091
-. "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/src/_main.sh"
+. "${SLOTH_PATH:-}/scripts/core/src/_main.sh"
 dot::load_library "install.sh"
 
 start_sudo() {
@@ -43,7 +43,7 @@ has_sudo() {
 }
 
 initilize_sloth_if_necessary() {
-  if ! git::is_in_repo -C "${SLOTH_PATH:-${DOTLY_PATH:-}}" > /dev/null 2>&1; then
+  if ! git::is_in_repo -C "${SLOTH_PATH:-}" > /dev/null 2>&1; then
     output::answer "Initilizing .Sloth as repository"
     sloth_update::sloth_repository_set_ready 2>&1 | log::file "Initilizing .Sloth as repository" || true
     output::empty_line
@@ -52,7 +52,7 @@ initilize_sloth_if_necessary() {
   fi
 
   output::answer "Updating .Sloth submodules"
-  git::git -C "${SLOTH_PATH:-${DOTLY_PATH:-}}" submodule update --init --recursive 2>&1 | log::file "Update .Sloth submodules" || true
+  git::git -C "${SLOTH_PATH:-}" submodule update --init --recursive 2>&1 | log::file "Update .Sloth submodules" || true
   output::empty_line
 }
 
@@ -279,7 +279,7 @@ fi
 
 if [[ -n "$DOTFILES_PATH" ]]; then
   output::answer "Creating dotfiles structure"
-  "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" dotfiles create "$DOTFILES_PATH" | log::file "Creating dotfiles structure" || exit 1
+  "${SLOTH_PATH:-}/bin/dot" dotfiles create "$DOTFILES_PATH" | log::file "Creating dotfiles structure" || exit 1
   output::empty_line
 else
   output::answer "Skipping dotfiles creation"
@@ -292,13 +292,13 @@ if ! ${ignore_symlinks:-false} && ! ${IGNORE_APPLY_SYMLINKS:-false}; then
   output::answer "Setting up symlinks"
   SYMLINKS_ARGS=(--interactive-backup)
   if [[ -z "${DOTFILES_PATH:-}" ]]; then
-    if "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" symlinks apply "${SYMLINKS_ARGS[@]}" --continue-on-error --after-core 2>&1 | log::file "Applying symlinks"; then
+    if "${SLOTH_PATH:-}/bin/dot" symlinks apply "${SYMLINKS_ARGS[@]}" --continue-on-error --after-core 2>&1 | log::file "Applying symlinks"; then
       output::solution "Symlinks applied"
     else
       output::error "All symlinks were applied with errors. Use \`dot self debug\` to see what's wrong"
     fi
   else
-    if "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" symlinks apply "${SYMLINKS_ARGS[@]}" --continue-on-error core 2>&1 | log::file "Applying symlinks"; then
+    if "${SLOTH_PATH:-}/bin/dot" symlinks apply "${SYMLINKS_ARGS[@]}" --continue-on-error core 2>&1 | log::file "Applying symlinks"; then
       output::solution "Symlinks applied"
     else
       output::error "All symlinks were applied with errors. Use \`dot self debug\` to see what's wrong"
@@ -339,7 +339,7 @@ unset SYMLINKS_ARGS bk
 if ! ${ignore_loader}; then
   # Adding .Sloth loader to bashrc and zshrc
   output::answer "Adding .Sloth loader to .bashrc and .zshrc"
-  "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" core loader --modify
+  "${SLOTH_PATH:-}/bin/dot" core loader --modify
 fi
 
 # ZSH as default shell if we are using zsh
@@ -376,7 +376,7 @@ if [[ "${DOTLY_ENV:-PROD}" != "CI" ]] && platform::command_exists zsh; then
   output::answer "Installing completions"
 
   {
-    zsh "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" shell zsh reload_completions > /dev/null 2>&1 &&
+    zsh "${SLOTH_PATH:-}/bin/dot" shell zsh reload_completions > /dev/null 2>&1 &&
       output::solution '✅ ZSH Completions realoaded'
   } || output::error '❌ Error reloading completions. Execute later \`dot shell zsh reload_completions\`'
 
@@ -388,7 +388,7 @@ if
     ! ${ignore_link:-false}
 then
   output::answer "Linking dot command for all users in \`${link_prefix}/bin\`"
-  ln -f -s "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" "${link_prefix}/bin/dot"
+  ln -f -s "${SLOTH_PATH:-}/bin/dot" "${link_prefix}/bin/dot"
   [[ -x "${link_prefix}/dot" ]] || output::error "\`dot\` command could not be linked"
   output::empty_line
 fi
@@ -415,17 +415,17 @@ output::answer '🥳 🎉 .Sloth installed sucessfully'
 output::empty_line
 
 output::answer "Trying to load .Sloth"
-if [[ -r "${SLOTH_PATH:-${DOTLY_PATH:-}}/shell/init-sloth.sh" ]]; then
+if [[ -r "${SLOTH_PATH:-}/shell/init-sloth.sh" ]]; then
   output::solution "Loading .Sloth"
   #shellcheck disable=SC1091
-  source "${SLOTH_PATH:-${DOTLY_PATH:-}}/shell/init-sloth.sh" | log::file ".Sloth initiliser" || output::error "Error while loading .Sloth"
+  source "${SLOTH_PATH:-}/shell/init-sloth.sh" | log::file ".Sloth initiliser" || output::error "Error while loading .Sloth"
 
   if [[ "${DOTLY_ENV:-PROD}" == "CI" ]]; then
     echo "$PATH" | tr ':' '\n' | log::file ".Sloth PATH's for Debugging"
 
-    if echo "$PATH" | grep -q "^${SLOTH_PATH:-${DOTLY_PATH:-}}/bin:"; then
-      output::error "You need to add ${SLOTH_PATH:-${DOTLY_PATH:-}}/bin to your PATH at the first place"
-      output::answer "\`export PATH=\"${SLOTH_PATH:-${DOTLY_PATH:-}}/bin:$PATH\"\`"
+    if echo "$PATH" | grep -q "^${SLOTH_PATH:-}/bin:"; then
+      output::error "You need to add ${SLOTH_PATH:-}/bin to your PATH at the first place"
+      output::answer "\`export PATH=\"${SLOTH_PATH:-}/bin:$PATH\"\`"
       exit 1
     fi
   fi
@@ -446,7 +446,7 @@ if ! ${IGNORE_UPDATE_PACKAGES:-false}; then
     output::answer "More info: https://www.gitmemory.com/issue/ruby/openssl/385/656744433"
     output::empty_line
   fi
-  "${SLOTH_PATH:-${DOTLY_PATH}}/bin/dot" package update_all | log::file "Updating all system packages"
+  "${SLOTH_PATH:-}/bin/dot" package update_all | log::file "Updating all system packages"
   output::empty_line
 elif ${IGNORE_UPDATE_PACKAGES:-false}; then
   output::answer "All system packages update aborted by the user"

@@ -20,7 +20,7 @@ if [[ -z "${SLOTH_PATH:-${DOTLY_PATH:-}}" || ! -d "${SLOTH_PATH:-${DOTLY_PATH:-}
     DOTLY_PATH="$SLOTH_PATH"
   fi
 
-  if [[ ! -d "${SLOTH_PATH:-${DOTLY_PATH:-}}" || ! -x "${SLOTH_PATH}/bin/dot" ]]; then
+  if [[ ! -d "${SLOTH_PATH:-}" || ! -x "${SLOTH_PATH}/bin/dot" ]]; then
     echo "Error: Could not find the .Sloth source code."
     exit 1
   fi
@@ -32,10 +32,10 @@ if [[ -z "${SLOTH_PATH:-${DOTLY_PATH:-}}" || ! -d "${SLOTH_PATH:-${DOTLY_PATH:-}
   export SLOTH_PATH DOTLY_PATH
 fi
 
-[[ -z "${SLOTH_PATH:-${DOTLY_PATH:-}}" ]] && echo "Error: Could not find where the .Sloth is installed." && exit 1
+[[ -z "${SLOTH_PATH:-}" ]] && echo "Error: Could not find where the .Sloth is installed." && exit 1
 
 #shellcheck disable=SC1091
-. "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/src/_main.sh"
+. "${SLOTH_PATH:-}/scripts/core/src/_main.sh"
 
 ##? Execute lazy scripts in your dotfiles
 ##?
@@ -86,22 +86,22 @@ elif [[ "${1:-}" == "-l" || "${1:-}" == "--latest" ]]; then
 
 # Self-update of .Sloth
 elif [[ "${1:-}" == "self-update" || "${1:-}" == "update" ]] && args::total_is 1 "$@"; then
-  "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" core update
+  "${SLOTH_PATH:-}/bin/dot" core update
   exit
 
 # Autoupdate (Async update)
 elif [[ "${1:-}" == "async-update" ]] && args::total_is 1 "$@"; then
-  "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" core update --async
+  "${SLOTH_PATH:-}/bin/dot" core update --async
   exit
 
 # Get PATH to .Sloth
 elif [[ "${1:-}" == "--prefix" ]] && args::total_is 1 "$@"; then
-  echo "${SLOTH_PATH:-${DOTLY_PATH:-}}"
+  echo "${SLOTH_PATH:-}"
   exit
 
 # Get Loader ready to use with
 elif [[ "${1:-}" == "shellenv" ]] && args::total_is 1 "$@"; then
-  "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" core loader shellenv
+  "${SLOTH_PATH:-}/bin/dot" core loader shellenv
   exit
 fi
 
@@ -121,7 +121,7 @@ fzf_prompt() {
   printf "%s" "$script"
   read -r args
 
-  "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" "${script}" "${args}"
+  "${SLOTH_PATH:-}/bin/dot" "${script}" "${args}"
 }
 
 script_exist() {
@@ -143,7 +143,7 @@ else
 
   script_path=""
   [[ -n "${DOTFILES_PATH:-}" ]] && script_exist "${DOTFILES_PATH}" "${context}" "${script}" && script_path="${DOTFILES_PATH}"
-  script_exist "${SLOTH_PATH:-${DOTLY_PATH:-}}" "$context" "$script" && script_path="${SLOTH_PATH:-${DOTLY_PATH:-}}"
+  script_exist "${SLOTH_PATH:-}" "$context" "$script" && script_path="${SLOTH_PATH:-}"
 
   if [[ -z "$script_path" ]]; then
     output::error "The script <$context / $script> doesn't exist"
@@ -176,7 +176,7 @@ else
       grep -q "/scripts/self/src/_main.sh" "${script_full_path}"
   then
     #shellcheck disable=SC2098,SC2097
-    SLOTH_PATH="$SLOTH_PATH" DOTLY_PATH="${SLOTH_PATH:-${DOTLY_PATH:-}}" DOTFILES_PATH="${DOTFILES_PATH:-}" "$script_full_path" "$@"
+    SLOTH_PATH="$SLOTH_PATH" DOTLY_PATH="${SLOTH_PATH:-}" DOTFILES_PATH="${DOTFILES_PATH:-}" "$script_full_path" "$@"
   else
     if ! grep -q "IGNORE_DOCOPT" "$script_full_path" || ! grep -q "IGNORE_DOCPARS" "$script_full_path"; then
       docs::parse "$script_full_path" "$@"
