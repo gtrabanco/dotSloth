@@ -2,7 +2,8 @@
 # zmodload zsh/zprof
 
 ###### .Sloth Loader ######
-if [[ -f "${SLOTH_PATH:-}/shell/init-sloth.sh" ]]; then
+if [[ -f "${SLOTH_PATH:-}/shell/init-sloth.sh" ]]
+then
   #shellcheck disable=SC1091
   . "${SLOTH_PATH:-}/shell/init-sloth.sh"
 else
