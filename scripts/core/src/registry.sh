@@ -6,7 +6,7 @@ DOTFILES_RECIPES_PATH="${DOTFILES_RECIPES_PATH:-${DOTFILES_PATH:-${HOME}/.dotfil
 export SLOTH_RECIPE_PATHS=(
   "${SLOTH_RECIPES_PATH[@]:-}"
   "${DOTFILES_PATH:-${HOME}/.dotfiles}/package/recipes"
-  "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/package/src/recipes"
+  "${SLOTH_PATH:-}/scripts/package/src/recipes"
 )
 
 #;

@@ -7,7 +7,7 @@ fi
 
 # PR annotation
 # If you change this folders you should also change them in init-dotly.sh
-SLOTH_INIT_SCRIPTS_PATH="${SLOTH_PATH:-${DOTLY_PATH:-}}/shell/init.scripts"
+SLOTH_INIT_SCRIPTS_PATH="${SLOTH_PATH:-}/shell/init.scripts"
 DOTFILES_INIT_SCRIPTS_PATH="${DOTFILES_INIT_SCRIPTS_PATH:-$DOTFILES_PATH/shell/init.scripts}"
 ENABLED_INIT_SCRIPTS_PATH="${ENABLED_INIT_SCRIPTS_PATH:-$DOTFILES_PATH/shell/init.scripts-enabled}"
 

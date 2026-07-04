@@ -79,12 +79,12 @@ files::fzf() {
 
         if [[ ${#preview_args[@]} -gt 0 ]]; then
           preview_args=(
-            ". \"${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/src/_main.sh\";"
+            ". \"${SLOTH_PATH:-}/scripts/core/src/_main.sh\";"
             "${preview_args[@]};"
           )
         else
           preview_args=(
-            ". \"${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/src/_main.sh\";"
+            ". \"${SLOTH_PATH:-}/scripts/core/src/_main.sh\";"
           )
         fi
         shift
@@ -101,7 +101,7 @@ files::fzf() {
         done
 
         preview_args=(
-          ". \"${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/src/_main.sh\";"
+          ". \"${SLOTH_PATH:-}/scripts/core/src/_main.sh\";"
           "${libraries_to_load[@]}"
           "${preview_args[@]}"
         )

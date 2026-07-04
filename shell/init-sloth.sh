@@ -37,12 +37,12 @@ function recent_dirs() {
 
 function dot::undot() {
   [[ -z "${DOTLY_PATH:-}" ]] && return 1
-  PATH="$(echo "$PATH" | sed -E "s|:${SLOTH_PATH:-${DOTLY_PATH:-}}/bin||g")"
+  PATH="$(echo "$PATH" | sed -E "s|:${SLOTH_PATH:-}/bin||g")"
   printf 'export PATH="%s"' "${PATH//::/:}"
 }
 
 function dot::dotback() {
-  printf 'export PATH="%s/bin:%s"' "${SLOTH_PATH:-${DOTLY_PATH:-}}" "${PATH//::/:}"
+  printf 'export PATH="%s/bin:%s"' "${SLOTH_PATH:-}" "${PATH//::/:}"
 }
 
 ##### Start of Homebrew Installation Patch #####
@@ -53,16 +53,16 @@ function dot::dotback() {
 # Advise no vars defines
 if [ -z "${DOTFILES_PATH:-}" ] ||
   [ ! -d "${DOTFILES_PATH:-}" ] ||
-  [ -z "${SLOTH_PATH:-${DOTLY_PATH:-}}" ] ||
-  [ ! -d "${SLOTH_PATH:-${DOTLY_PATH:-}}" ]; then
+  [ -z "${SLOTH_PATH:-}" ] ||
+  [ ! -d "${SLOTH_PATH:-}" ]; then
   if [[ -d "$HOME/.dotfiles" && -d "${HOME}/.dotfiles/modules/dotly" ]]; then
     DOTFILES_PATH="${HOME}/.dotfiles"
     SLOTH_PATH="${DOTFILES_PATH}/modules/dotly"
-    DOTLY_PATH="${SLOTH_PATH:-${DOTLY_PATH:-}}"
+    DOTLY_PATH="${SLOTH_PATH:-}"
   elif [[ -d "${HOME}/.dotfiles" && -d "${HOME}/.dotfiles/modules/sloth" ]]; then
     DOTFILES_PATH="${HOME}/.dotfiles"
     SLOTH_PATH="${DOTFILES_PATH}/modules/sloth"
-    DOTLY_PATH="${SLOTH_PATH:-${DOTLY_PATH:-}}"
+    DOTLY_PATH="${SLOTH_PATH:-}"
   elif ! ${HOMBREW_SLOTH:-false}; then
     echo -e "\033[0;31m\033[1mDOTFILES_PATH or SLOTH_PATH is not defined or is wrong, .Sloth will fail\033[0m"
   fi
@@ -78,9 +78,9 @@ SLOTH_PATH="${SLOTH_PATH:-${DOTLY_PATH:-}}"
 DOTLY_PATH="${DOTLY_PATH:-${SLOTH_PATH:-}}"
 
 # Sloth aliases and functions
-alias dotly='"${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot"'
-alias lazy='"${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot"'
-alias s='"${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot"'
+alias dotly='"${SLOTH_PATH:-}/bin/dot"'
+alias lazy='"${SLOTH_PATH:-}/bin/dot"'
+alias s='"${SLOTH_PATH:-}/bin/dot"'
 alias undot='eval "$(dot::undot)"'
 alias dotback='eval "$(dot::dotback)"'
 
@@ -255,8 +255,8 @@ path+=($(command -p getconf PATH | command -p tr ':' '\n'))
 { [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && echo ".Sloth initializer: End PATHs"; } || true
 ###### END OF PATHS ######
 ###### Load dotly core for your current BASH ######
-if [[ -n "$SLOTH_SHELL" && -r "${SLOTH_PATH:-${DOTLY_PATH:-}}/shell/${SLOTH_SHELL}/init.sh" ]]; then
-  . "${SLOTH_PATH:-${DOTLY_PATH:-}}/shell/${SLOTH_SHELL}/init.sh" || echo ".Sloth initializer: SHELL ($SLOTH_SHELL) initializer failed"
+if [[ -n "$SLOTH_SHELL" && -r "${SLOTH_PATH:-}/shell/${SLOTH_SHELL}/init.sh" ]]; then
+  . "${SLOTH_PATH:-}/shell/${SLOTH_SHELL}/init.sh" || echo ".Sloth initializer: SHELL ($SLOTH_SHELL) initializer failed"
 else
   printf "\033[0;31m\033[1mDOTLY Could not be loaded: Initializer not found for \`%s\`\033[0m\n" "${SLOTH_SHELL}"
 fi
@@ -277,7 +277,7 @@ fi
 ###### End of load nix package manager if available ######
 
 ###### .Sloth bin path first & Remove duplicated PATHs ######
-PATH="${SLOTH_PATH:-${DOTLY_PATH:-}}/bin:$PATH"
+PATH="${SLOTH_PATH:-}/bin:$PATH"
 
 # Remove duplicated PATH's
 #shellcheck disable=SC2016
