@@ -29,7 +29,7 @@ elif [[ "$firstarg" == "-v" || "$firstarg" == "--version" ]]; then
   exit
 elif [[ ! -x "$script_full_path" ]]; then
   #shellcheck disable=SC2097,SC2098
-  SLOTH_PATH="$SLOTH_PATH" DOTLY_PATH="${SLOTH_PATH:-${DOTLY_PATH:-}}" DOTFILES_PATH="${DOTFILES_PATH:-}" "${SLOTH_PATH}/bin/dot" "$@"
+  SLOTH_PATH="$SLOTH_PATH" DOTLY_PATH="${SLOTH_PATH:-}" DOTFILES_PATH="${DOTFILES_PATH:-}" "${SLOTH_PATH}/bin/dot" "$@"
   exit $?
 fi
 

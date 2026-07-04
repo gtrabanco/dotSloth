@@ -46,11 +46,11 @@ if ${core:-false}; then
   output::error "WARNING! You will create the package manager in .Sloth core path"
   ! output::yesno "Are you sure you want to continue" && exit 1
 
-  [[ ! -d "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/package/src/package_managers/" ]] &&
+  [[ ! -d "${SLOTH_PATH:-}/scripts/package/src/package_managers/" ]] &&
     output::error "The package manager path for core .Sloth could not be found" &&
     exit 1
 
-  package_manager_full_path="${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/package/src/package_managers/${package_manager_name}.sh"
+  package_manager_full_path="${SLOTH_PATH:-}/scripts/package/src/package_managers/${package_manager_name}.sh"
 else
   package_manager_full_path="${DOTFILES_PACKAGE_MANAGERS_PATH}/${package_manager_name}.sh"
 fi

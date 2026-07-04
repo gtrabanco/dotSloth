@@ -29,7 +29,7 @@ This is not a layered architecture in the traditional sense; it's a command-disp
 - **Context scripts must source `_main.sh` first** before using any core library function. The standard header is:
   ```bash
   #shellcheck disable=SC1091
-  . "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/src/_main.sh"
+  . "${SLOTH_PATH:-}/scripts/core/src/_main.sh"
   ```
 - **The `installer` and `restorer` scripts must be self-contained** — they run before dotSloth is installed and must not depend on `scripts/core/src/` or any `SLOTH_PATH` resolution.
 - **Package manager wrappers** (`scripts/package/src/package_managers/*.sh`) must implement the standard interface: `dump`, `install`, `update_all`, `cleanup`, `which` (where applicable). New wrappers must follow the `brew.sh` pattern.

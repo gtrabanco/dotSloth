@@ -28,7 +28,7 @@ if ${split:-false}; then
   script::depends_on tmux
   SESSION_NAME="${SESSION_NAME:-$(date +%s)}"
   #shellcheck disable=SC2016
-  tmux new-session -s "$SESSION_NAME" "SESSION_NAME='${SESSION_NAME}' '${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot' package update_all ${package_managers[*]:-}" \; split-window -h 'tail -f ${HOME}/dotly.log' \; || true
+  tmux new-session -s "$SESSION_NAME" "SESSION_NAME='${SESSION_NAME}' '${SLOTH_PATH:-}/bin/dot' package update_all ${package_managers[*]:-}" \; split-window -h 'tail -f ${HOME}/dotly.log' \; || true
   exit 0
 fi
 
