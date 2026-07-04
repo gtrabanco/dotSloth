@@ -49,7 +49,7 @@ gem::update_apps() {
   ! gem::is_available && return 1
   local outdated gem_outdated_exit
 
-  outdated=$(gem outdated 2>&1)
+  outdated=$(gem outdated 2> /dev/null)
   gem_outdated_exit=$?
 
   if [ "$gem_outdated_exit" -ne 0 ]; then

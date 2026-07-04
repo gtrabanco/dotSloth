@@ -41,10 +41,11 @@ load "../helpers/setup"
     grep -q 'gem_outdated_exit.*-ne 0' "$gem_script"
 }
 
-@test "gem::update_apps captures stderr (2>&1) to avoid silent failure" {
-    # The fix for #265: stderr must be captured (2>&1) so that error output
-    # is not lost when gem outdated fails.
+@test "gem::update_apps discards stderr to avoid parsing error text as packages" {
+    # The fix for #265 review: stderr must NOT be merged into $outdated
+    # (2>&1), otherwise error text could be parsed as package names.
+    # Use 2>/dev/null to discard stderr while checking exit code separately.
     local gem_script="$SLOTH_PATH/scripts/package/src/package_managers/gem.sh"
     [[ -f "$gem_script" ]]
-    grep -q 'gem outdated 2>&1' "$gem_script"
+    grep -q 'gem outdated 2> /dev/null' "$gem_script"
 }
