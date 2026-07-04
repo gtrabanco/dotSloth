@@ -170,10 +170,10 @@ git::check_unpushed_commits() {
 #"
 git::is_clean() {
   # Changes that are indexed: git add
-  # "${GIT_EXECUTABLE}" diff-index --no-ext-diff --quiet --exit-code --cached --ignore-submodules="all" HEAD -- || return 1
+  # "${GIT_EXECUTABLE}" "$@" diff-index --no-ext-diff --quiet --exit-code --cached --ignore-submodules="all" HEAD -- || return 1
 
   # Changed tracked files that are not indexed: previous to git add
-  "${GIT_EXECUTABLE}" diff-index --no-ext-diff --quiet --exit-code --ignore-submodules="all" HEAD -- || return 1
+  "${GIT_EXECUTABLE}" "$@" diff-index --no-ext-diff --quiet --exit-code --ignore-submodules="all" HEAD -- || return 1
 }
 
 #;
