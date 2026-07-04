@@ -47,8 +47,15 @@ gem::self_update() {
 
 gem::update_apps() {
   ! gem::is_available && return 1
-  local outdated
-  outdated=$(gem outdated)
+  local outdated gem_outdated_exit
+
+  outdated=$(gem outdated 2>&1)
+  gem_outdated_exit=$?
+
+  if [ "$gem_outdated_exit" -ne 0 ]; then
+    output::error "Error checking for updates (exit code ${gem_outdated_exit}). See \`dot self debug\` for details."
+    return 1
+  fi
 
   if [ -n "$outdated" ]; then
     echo "$outdated" | while IFS= read -r outdated_app; do
