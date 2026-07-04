@@ -63,7 +63,7 @@ apt::update_apps() {
     output::write "└ $app_url"
     output::empty_line
 
-    sudo apt-get --only-upgrade "$outdated_app" | log::file "Updating ${apt_title} app: $outdated_app"
+    sudo apt-get -y --only-upgrade install "$outdated_app" | log::file "Updating ${apt_title} app: $outdated_app"
 
     # Reset variables
     app_old_version=""

@@ -28,6 +28,7 @@ npm::package_exists() {
 }
 
 npm::update_apps() {
+  local outdated
   outdated=$(npm -g outdated | tail -n +2)
 
   if [ -n "$outdated" ]; then

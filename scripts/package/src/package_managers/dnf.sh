@@ -48,15 +48,16 @@ dnf::cleanup() {
 }
 
 dnf::update_apps() {
-  local outdated_app outdated_app_full_info outdated_app_name outdated_app_version outdated_app_info outdated_app_url
+  local outdated_app outdated_app_full_info outdated_app_name outdated_app_version outdated_app_info outdated_app_url outdated_apps
 
-  for outdated_app in $(dnf::outdated_app); do
+  readarray -t outdated_apps < <(dnf::outdated_app)
+  for outdated_app in "${outdated_apps[@]}"; do
     outdated_app_name="${outdated_app%%.*}"
     outdated_app_full_info="$(dnf info "$outdated_app_name" | cut -d " " -f 3-)"
 
-    outdated_app_version="$(echo "$outdated_app_info" | head -n 5 | tail -n 1)"
-    outdated_app_info="$(outdated_app_full_info | head -n 9 | tail -n 1)"
-    outdated_app_url="$(outdated_app_full_info | head -n 10 | tail -n 1)"
+    outdated_app_version="$(echo "$outdated_app_full_info" | head -n 5 | tail -n 1)"
+    outdated_app_info="$(echo "$outdated_app_full_info" | head -n 9 | tail -n 1)"
+    outdated_app_url="$(echo "$outdated_app_full_info" | head -n 10 | tail -n 1)"
 
     output::write "▣ $outdated_app_name"
     output::write "├ $outdated_app_version -> latest"
