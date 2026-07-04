@@ -58,7 +58,7 @@ sloth_update::sloth_repository_set_ready() {
   fi
 
   if ! git::is_in_repo "${SLOTH_UPDATE_GIT_ARGS[@]}" || ! git::check_remote_exists "${SLOTH_DEFAULT_REMOTE:-origin}" "${SLOTH_UPDATE_GIT_ARGS[@]}"; then
-    git::init_repository_if_necessary "${SLOTH_DEFAULT_URL:-${SLOTH_DEFAULT_GIT_SSH_URL:-git+ssh://git@github.com:gtrabanco/sloth.git}}" "${SLOTH_DEFAULT_REMOTE:-origin}" "${SLOTH_DEFAULT_BRANCH:-main}" "${SLOTH_UPDATE_GIT_ARGS[@]}"
+    git::init_repository_if_necessary "${SLOTH_DEFAULT_URL:-${SLOTH_DEFAULT_GIT_SSH_URL:-git+ssh://git@github.com:gtrabanco/dotSloth.git}}" "${SLOTH_DEFAULT_REMOTE:-origin}" "${SLOTH_DEFAULT_BRANCH:-main}" "${SLOTH_UPDATE_GIT_ARGS[@]}"
   fi
 
   # Set head branch
@@ -104,7 +104,7 @@ sloth_update::get_latest_stable_version() {
     -C "${SLOTH_PATH:-${DOTLY_PATH:-}}"
   )
 
-  local url="${SLOTH_DEFAULT_URL:-${SLOTH_DEFAULT_GIT_SSH_URL:-git+ssh://git@github.com:gtrabanco/sloth.git}}"
+  local url="${SLOTH_DEFAULT_URL:-${SLOTH_DEFAULT_GIT_SSH_URL:-git+ssh://git@github.com:gtrabanco/dotSloth.git}}"
   url="${url//git+ssh:\/\//}"
 
   # .Sloth were installed using a package manager
@@ -114,7 +114,7 @@ sloth_update::get_latest_stable_version() {
     exit
   fi
 
-  git::remote_latest_tag_version "${SLOTH_DEFAULT_URL:-${SLOTH_DEFAULT_GIT_SSH_URL:-git+ssh://git@github.com:gtrabanco/sloth.git}}" "v*.*.*" "${SLOTH_UPDATE_GIT_ARGS[@]}"
+  git::remote_latest_tag_version "${SLOTH_DEFAULT_URL:-${SLOTH_DEFAULT_GIT_SSH_URL:-git+ssh://git@github.com:gtrabanco/dotSloth.git}}" "v*.*.*" "${SLOTH_UPDATE_GIT_ARGS[@]}"
 }
 
 #;
@@ -235,9 +235,9 @@ sloth_update::exists_migration_script() {
 # @return 0 if all ok, error code otherwise 10, in no force means has pending commits or dirty directory, 20 remote does not exists or can't be set, no default branch, 40 git pull fails
 #"
 sloth_update::sloth_update() {
-  local remote url default_branch head_branch force_update updated_version
+  local remote url default_branch branch head_branch force_update updated_version
   remote="${1:-${SLOTH_DEFAULT_REMOTE:-origin}}"
-  url="${2:-${SLOTH_GITMODULES_URL:-${SLOTH_DEFAULT_GIT_SSH_URL:-git+ssh://git@github.com:gtrabanco/sloth.git}}}"
+  url="${2:-${SLOTH_GITMODULES_URL:-${SLOTH_DEFAULT_GIT_SSH_URL:-git+ssh://git@github.com:gtrabanco/dotSloth.git}}}"
   branch="${3:-${SLOTH_DEFAULT_BRANCH:-main}}"
   default_remote_branch="${remote}/${branch}"
   force_update="${4:-false}"
@@ -312,7 +312,7 @@ sloth_update::gracefully() {
   fi
 
   # Force update
-  sloth_update::sloth_update "${SLOTH_DEFAULT_REMOTE:-origin}" "${SLOTH_GITMODULES_URL:-${SLOTH_DEFAULT_GIT_SSH_URL:-git+ssh://git@github.com:gtrabanco/sloth.git}}" "${SLOTH_DEFAULT_BRANCH:-main}" true || exit_code=$?
+  sloth_update::sloth_update "${SLOTH_DEFAULT_REMOTE:-origin}" "${SLOTH_GITMODULES_URL:-${SLOTH_DEFAULT_GIT_SSH_URL:-git+ssh://git@github.com:gtrabanco/dotSloth.git}}" "${SLOTH_DEFAULT_BRANCH:-main}" true || exit_code=$?
 
   return $exit_code
 }

@@ -24,7 +24,7 @@ void() {
 #? v3.0.0
 docs::parse "$@"
 
-if ${disable:-enable}; then
+if ${disable:-false}; then
   touch "$DOTFILES_PATH/.sloth_force_current_version"
   exit 0
 elif ${enable:-false}; then
