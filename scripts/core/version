@@ -35,7 +35,7 @@ check_local_tag_exists() {
 docs::parse "$@"
 
 if ${view_remote:-false}; then
-  SLOTH_DEFAULT_URL="${SLOTH_DEFAULT_URL:-${SLOTH_DEFAULT_GIT_SSH_URL:-git+ssh://git@github.com:gtrabanco/sloth.git}}"
+  SLOTH_DEFAULT_URL="${SLOTH_DEFAULT_URL:-${SLOTH_DEFAULT_GIT_SSH_URL:-git+ssh://git@github.com:gtrabanco/dotSloth.git}}"
   git::git "${SLOTH_UPDATE_GIT_ARGS[@]:-}" ls-remote --tags --refs "$SLOTH_DEFAULT_URL" "v*.*.*" 2> /dev/null | awk '{gsub("\\^{}","", $NF);gsub("refs/tags/v",""); print $NF}' | sort -Vur
   exit 0
 fi
