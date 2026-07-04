@@ -34,6 +34,7 @@ pip::uninstall() {
 }
 
 pip::update_apps() {
+  local outdated
   outdated=$(pip::pip list --outdated | tail -n +3)
 
   if [ -n "$outdated" ]; then

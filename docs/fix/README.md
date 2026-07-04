@@ -16,7 +16,7 @@ history lives in git log + closed issues.
 |--------|-------|--------|------------|-------|
 | 233-auto-updater-broken | Auto-updater broken | done · [#260](https://github.com/gtrabanco/dotSloth/pull/260) | — | [#233](https://github.com/gtrabanco/dotSloth/issues/233) |
 | | Restorer broken | done | — | [#234](https://github.com/gtrabanco/dotSloth/issues/234) |
-| | up command fails to parse updates | pending | — | [#235](https://github.com/gtrabanco/dotSloth/issues/235) |
+| | up command fails to parse updates | done | — | [#235](https://github.com/gtrabanco/dotSloth/issues/235) |
 | | pip::update_apps() double install typo | done | — | [#243](https://github.com/gtrabanco/dotSloth/issues/243) |
 | | dnf check-update aborts with set -e | done | — | [#244](https://github.com/gtrabanco/dotSloth/issues/244) |
 | 245-success-message-false-positive | Success message always shown despite failures | done · [#259](https://github.com/gtrabanco/dotSloth/pull/259) | — | [#245](https://github.com/gtrabanco/dotSloth/issues/245) |

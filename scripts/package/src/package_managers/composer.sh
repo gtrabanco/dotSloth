@@ -19,7 +19,7 @@ composer::update_all() {
     total_outdated=$(echo "$outdated" | jq '.installed' | jq length)
 
     if [ 0 -ne "$total_outdated" ]; then
-      echo "$outdated" | jq-cr '.installed | .[]' | while IFS= read -r dependency; do
+      echo "$outdated" | jq -cr '.installed | .[]' | while IFS= read -r dependency; do
         composer::update "$dependency"
       done
     else

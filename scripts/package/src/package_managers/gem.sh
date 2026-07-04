@@ -47,6 +47,7 @@ gem::self_update() {
 
 gem::update_apps() {
   ! gem::is_available && return 1
+  local outdated
   outdated=$(gem outdated)
 
   if [ -n "$outdated" ]; then
