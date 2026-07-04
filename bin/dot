@@ -106,7 +106,7 @@ elif [[ "${1:-}" == "shellenv" ]] && args::total_is 1 "$@"; then
 fi
 
 fzf_prompt() {
-  local fzf_scripts fzf_context fzf_script full_script script
+  local fzf_scripts fzf_context fzf_script full_script script ctx scr args
   ! command -v fzf > /dev/null 2>&1 && return 1
 
   for full_script in $(printf "%s\n" "$@"); do
@@ -118,10 +118,21 @@ fzf_prompt() {
 
   script="$(printf "%s\n" "${fzf_scripts[@]}" | files::fzf --sloth-core --preview 'dot::fzf_view_doc {}' --height 100%)"
 
-  printf "%s" "$script"
+  # script is "context script" (space-separated); split into two args for dispatch
+  read -r ctx scr <<< "$script"
+  [[ -n "${scr:-}" ]] || {
+    output::error "No script selected."
+    exit 1
+  }
+
+  printf "%s %s" "$ctx" "$scr"
   read -r args
 
-  "${SLOTH_PATH:-}/bin/dot" "${script}" "${args}"
+  if [[ -n "$args" ]]; then
+    "${SLOTH_PATH:-}/bin/dot" "$ctx" "$scr" "$args"
+  else
+    "${SLOTH_PATH:-}/bin/dot" "$ctx" "$scr"
+  fi
 }
 
 script_exist() {
