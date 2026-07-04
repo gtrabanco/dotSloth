@@ -16,7 +16,7 @@ history lives in git log + closed issues.
 |--------|-------|--------|------------|-------|
 | 265-gem-update-false-positive | gem::update_apps silently fails on broken system Ruby | pending | — | [#265](https://github.com/gtrabanco/dotSloth/issues/265) |
 | 266-complete-path-fallback-refactor | Complete DOTLY_PATH fallback refactor in context scripts | pending | — | [#266](https://github.com/gtrabanco/dotSloth/issues/266) |
-| 240-testing-framework-finalize | Add 10th test file to meet acceptance criterion #5 | pending | — | [#240](https://github.com/gtrabanco/dotSloth/issues/240) |
+| 240-testing-framework-finalize | Add 10th test file to meet acceptance criterion #5 | done | — | [#240](https://github.com/gtrabanco/dotSloth/issues/240) |
 
 ## Conventions
 
