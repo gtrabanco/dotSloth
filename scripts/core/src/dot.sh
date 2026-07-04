@@ -4,7 +4,7 @@
 [[ -z "${SCRIPT_LOADED_LIBS[*]:-}" ]] && SCRIPT_LOADED_LIBS=()
 
 dot::list_contexts() {
-  dotly_contexts=$(command -p find "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts" -maxdepth 1 -type d,l -print0 2> /dev/null | command -p xargs -0 -I _ command -p basename _)
+  dotly_contexts=$(command -p find "${SLOTH_PATH:-}/scripts" -maxdepth 1 -type d,l -print0 2> /dev/null | command -p xargs -0 -I _ command -p basename _)
 
   [[ -n "${DOTFILES_PATH:-}" ]] &&
     dotfiles_contexts=$(command -p find "${DOTFILES_PATH:-}/scripts" -maxdepth 1 -type d,l -print0 2> /dev/null | command -p xargs -0 -I _ command -p basename _)
@@ -17,7 +17,7 @@ dot::list_context_scripts() {
   local -r context="${1:-}"
 
   if [[ -n "$context" ]]; then
-    readarray -t core_contexts < <(command -p find "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/$context" -mindepth 1 -maxdepth 1 -not -iname "_*" -not -iname ".*" -type f -print0 2> /dev/null | command -p xargs -0 -I _ echo _)
+    readarray -t core_contexts < <(command -p find "${SLOTH_PATH:-}/scripts/$context" -mindepth 1 -maxdepth 1 -not -iname "_*" -not -iname ".*" -type f -print0 2> /dev/null | command -p xargs -0 -I _ echo _)
     [[ -n "${DOTFILES_PATH:-}" ]] &&
       readarray -t dotfiles_contexts < <(command -p find "${DOTFILES_PATH:-}/scripts/$context" -mindepth 1 -maxdepth 1 -not -iname "_*" -not -iname ".*" -type f -print0 2> /dev/null | command -p xargs -0 -I _ echo _)
 
@@ -38,7 +38,7 @@ dot::list_scripts() {
 dot::list_scripts_path() {
   local core_contexts dotfiles_contexts
 
-  readarray -t core_contexts < <(command -p find "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts" -mindepth 2 -maxdepth 2 -not -iname "_*" -not -iname ".*" -type f -print0 2> /dev/null | command -p xargs -0 -I _ echo _)
+  readarray -t core_contexts < <(command -p find "${SLOTH_PATH:-}/scripts" -mindepth 2 -maxdepth 2 -not -iname "_*" -not -iname ".*" -type f -print0 2> /dev/null | command -p xargs -0 -I _ echo _)
   [[ -n "${DOTFILES_PATH:-}" ]] &&
     readarray -t dotfiles_contexts < <(command -p find "${DOTFILES_PATH:-}/scripts" -mindepth 2 -maxdepth 2 -not -iname "_*" -not -iname ".*" -type f -print0 2> /dev/null | command -p xargs -0 -I _ echo _)
 
@@ -67,11 +67,11 @@ dot::fzf_view_doc() {
 
   if
     [[ 
-      -x "${SLOTH_PATH:-${DOTLY_PATH:-/dev/null}}/scripts/${context}/${script}" ||
+      -x "${SLOTH_PATH:-/dev/null}/scripts/${context}/${script}" ||
       -x "${DOTFILES_PATH:-/dev/null}/scripts/${context}/${script}" ]]
   then
 
-    "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" "$context" "$script" --help
+    "${SLOTH_PATH:-}/bin/dot" "$context" "$script" --help
   fi
 }
 
@@ -111,7 +111,7 @@ dot::load_library() {
       # Context
       lib_paths+=(
         "${DOTFILES_PATH:-/dev/null}/scripts/$2/src"
-        "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/$2/src"
+        "${SLOTH_PATH:-}/scripts/$2/src"
       )
 
       # Valid path
@@ -125,7 +125,7 @@ dot::load_library() {
 
     # Finally core library
     lib_paths+=(
-      "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/src"
+      "${SLOTH_PATH:-}/scripts/core/src"
     )
 
     # Full path library is preferred
@@ -167,7 +167,7 @@ dot::load_library() {
 dot::_escape_dotfiles_paths() {
   local -r to_escape_path="${1:-$(< /dev/stdin)}"
   printf $'%s\0' "$to_escape_path" |
-    sed -e "s|${SLOTH_PATH:-${DOTLY_PATH:-}}|\${SLOTH_PATH:-\${DOTLY_PATH}}|g" |
+    sed -e "s|${SLOTH_PATH:-}|\${SLOTH_PATH:-}|g" |
     sed -e "s|${DOTFILES_PATH:-}|\${DOTFILES_PATH}|g" |
     sed -e "s|${HOME}|\${HOME}|g"
 

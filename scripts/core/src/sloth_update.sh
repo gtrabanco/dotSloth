@@ -49,7 +49,7 @@ export SLOTH_DEFAULT_GIT_HTTP_URL SLOTH_DEFAULT_GIT_SSH_URL SLOTH_DEFAULT_REMOTE
 #"
 sloth_update::sloth_repository_set_ready() {
   local -r SLOTH_UPDATE_GIT_ARGS=(
-    -C "${SLOTH_PATH:-${DOTLY_PATH:-}}"
+    -C "${SLOTH_PATH:-}"
   )
 
   # .Sloth were installed using a package manager
@@ -81,7 +81,7 @@ sloth_update::sloth_repository_set_ready() {
 #"
 sloth_update::get_current_version() {
   local -r SLOTH_UPDATE_GIT_ARGS=(
-    -C "${SLOTH_PATH:-${DOTLY_PATH:-}}"
+    -C "${SLOTH_PATH:-}"
   )
 
   # .Sloth were installed using a package manager
@@ -101,7 +101,7 @@ sloth_update::get_current_version() {
 #"
 sloth_update::get_latest_stable_version() {
   local -r SLOTH_UPDATE_GIT_ARGS=(
-    -C "${SLOTH_PATH:-${DOTLY_PATH:-}}"
+    -C "${SLOTH_PATH:-}"
   )
 
   local url="${SLOTH_DEFAULT_URL:-${SLOTH_DEFAULT_GIT_SSH_URL:-git+ssh://git@github.com:gtrabanco/dotSloth.git}}"
@@ -125,7 +125,7 @@ sloth_update::get_latest_stable_version() {
 sloth_update::local_sloth_repository_can_be_updated() {
   local IS_WORKING_DIRECTORY_CLEAN=false HAS_UNPUSHED_COMMITS=false
   local -r SLOTH_UPDATE_GIT_ARGS=(
-    -C "${SLOTH_PATH:-${DOTLY_PATH:-}}"
+    -C "${SLOTH_PATH:-}"
   )
 
   if [[ -f "${SLOTH_FORCE_CURRENT_VERSION_FILE:-${DOTFILES_PATH:-${HOME}}/.sloth_force_current_version}" ]]; then
@@ -160,7 +160,7 @@ sloth_update::local_sloth_repository_can_be_updated() {
 #"
 sloth_update::should_be_updated() {
   local -r SLOTH_UPDATE_GIT_ARGS=(
-    -C "${SLOTH_PATH:-${DOTLY_PATH:-}}"
+    -C "${SLOTH_PATH:-}"
   )
   local -r latest_version=$(sloth_update::get_latest_stable_version)
   local -r current_version=$(sloth_update::get_current_version)
@@ -222,7 +222,7 @@ sloth_update::should_be_updated() {
 sloth_update::exists_migration_script() {
   local -r updated_version="$(sloth_update::get_current_version)"
 
-  [[ -x "${SLOTH_PATH:-${DOTLY_PATH:-}}/migration/${updated_version}" || -f "${SLOTH_PATH:-${DOTLY_PATH:-}}/symlinks/${updated_version}.yaml" || -f "${SLOTH_PATH:-${DOTLY_PATH:-}}/symlinks/${updated_version}.yml" ]]
+  [[ -x "${SLOTH_PATH:-}/migration/${updated_version}" || -f "${SLOTH_PATH:-}/symlinks/${updated_version}.yaml" || -f "${SLOTH_PATH:-}/symlinks/${updated_version}.yml" ]]
 }
 
 #;
@@ -243,7 +243,7 @@ sloth_update::sloth_update() {
   force_update="${4:-false}"
 
   local -r SLOTH_UPDATE_GIT_ARGS=(
-    -C "${SLOTH_PATH:-${DOTLY_PATH:-}}"
+    -C "${SLOTH_PATH:-}"
   )
 
   # .Sloth were installed using a package manager
@@ -342,8 +342,8 @@ sloth_update::async() {
 
   elif
     ! [[ ${SLOTH_ENV:0:1} =~ ^[dD]$ ]] &&
-      [[ -d "${SLOTH_PATH:-${DOTLY_PATH:-}}" ]] &&
-      files::check_if_path_is_older "${SLOTH_PATH:-${DOTLY_PATH:-}}" "${SLOTH_AUTO_UPDATE_PERIOD_IN_DAYS:-7}" "days"
+      [[ -d "${SLOTH_PATH:-}" ]] &&
+      files::check_if_path_is_older "${SLOTH_PATH:-}" "${SLOTH_AUTO_UPDATE_PERIOD_IN_DAYS:-7}" "days"
   then
     if
       sloth_update::local_sloth_repository_can_be_updated &&

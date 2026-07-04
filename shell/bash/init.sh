@@ -32,7 +32,7 @@ if [[ -n "${DOTFILES_PATH:-}" && -d "$DOTFILES_PATH/shell/bash/themes" ]]; then
   )
 fi
 themes_paths+=(
-  "${SLOTH_PATH:-${DOTLY_PATH:-}}/shell/bash/themes"
+  "${SLOTH_PATH:-}/shell/bash/themes"
 )
 
 # brew Bash completion & completions
@@ -60,7 +60,7 @@ done
 PROMPT_COMMAND="__right_prompt"
 export THEME_COMMAND PROMPT_COMMAND
 
-for completion in $(find "${SLOTH_PATH:-${DOTLY_PATH:-}}/shell/bash/completions/" "${DOTFILES_PATH:-/dev/null}/shell/bash/completions/" -name "_*" -print0 -exec echo {} \; 2> /dev/null | xargs -0 -I _ echo _); do
+for completion in $(find "${SLOTH_PATH:-}/shell/bash/completions/" "${DOTFILES_PATH:-/dev/null}/shell/bash/completions/" -name "_*" -print0 -exec echo {} \; 2> /dev/null | xargs -0 -I _ echo _); do
   [[ -z "$completion" ]] && continue
   #shellcheck source=/dev/null
   . "$completion" || echo -e "\033[0;31mBASH completion '$completion' could not be loaded\033[0m"

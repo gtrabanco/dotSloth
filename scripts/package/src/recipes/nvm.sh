@@ -6,7 +6,7 @@ nvm::install_script() {
 }
 
 nvm::finish_install() {
-  . "${SLOTH_PATH:-${DOTLY_PATH:-}}/shell/init.scripts/nvm"
+  . "${SLOTH_PATH:-}/shell/init.scripts/nvm"
   nvm install --lts --latest-npm
   sleep 1s
   nvm use --lts
@@ -28,7 +28,7 @@ nvm::is_installed() {
   fi
   export NVM_DIR
 
-  [[ -s "${NVM_DIR}/nvm.sh" ]] && \. "${SLOTH_PATH:-${DOTLY_PATH:-}}/shell/init.scripts/nvm" && platform::command_exists nvm
+  [[ -s "${NVM_DIR}/nvm.sh" ]] && \. "${SLOTH_PATH:-}/shell/init.scripts/nvm" && platform::command_exists nvm
 }
 
 nvm::install() {
@@ -45,7 +45,7 @@ nvm::install() {
 
   if nvm::is_installed && [[ -z "${DOTFILES_PATH:-}" ]]; then
     nvm::finish_install
-    ln -sf "${SLOTH_PATH:-${DOTLY_PATH:-}}/shell/init.scripts/nvm" "${DOTFILES_PATH:-/dev/null}/shell/init.scripts-enabled/nvm"
+    ln -sf "${SLOTH_PATH:-}/shell/init.scripts/nvm" "${DOTFILES_PATH:-/dev/null}/shell/init.scripts-enabled/nvm"
   elif nvm::is_installed; then
     nvm::finish_install
     output::empty_line
@@ -56,7 +56,7 @@ nvm::install() {
     output::empty_line
   fi
 
-  . "${SLOTH_PATH:-${DOTLY_PATH:-}}/shell/init.scripts/nvm"
+  . "${SLOTH_PATH:-}/shell/init.scripts/nvm"
 
   nvm::is_installed &&
     output::solution "Nvm, node, npm and npx installed" &&
