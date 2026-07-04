@@ -504,7 +504,7 @@ _w "Installing .Sloth/Dotly default tools"
 _w "Please be patient this could take some time...🙏"
 # Installing default .Sloth/Dotly tools
 PATH="$PATH:/usr/local/bin:$HOME/.cargo/bin"
-"${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" core install || {
+"${SLOTH_PATH:-}/bin/dot" core install || {
   _e ".Sloth/Dotly Could not be installed but your dotfiles are restored. Use:"
   _e "  tail -f $HOME/dotly.log"
   _e "To know what happened and where is the point of failure"
@@ -517,7 +517,7 @@ if ${USER_IMPORT_PACKAGES:-false}; then
   _w "Importing your packages"
   _w "This can take a very long time, be patient...🙏"
   {
-    "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" package import --never-prompt 2>&1 | _log "Importing user packages" &&
+    "${SLOTH_PATH:-}/bin/dot" package import --never-prompt 2>&1 | _log "Importing user packages" &&
       _a "Packages imported 👏" &&
       _w
   } || {
