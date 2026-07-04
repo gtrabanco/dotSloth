@@ -51,7 +51,7 @@ EOF
   esac
 done
 
-ICLOUD_PATH="$HOME/Library/Mobile\ Documents/com~apple~CloudDocs/"
+ICLOUD_PATH="$HOME/Library/Mobile Documents/com~apple~CloudDocs/"
 IS_ICLOUD_DOTFILES=false
 
 # Check OSX
@@ -242,10 +242,13 @@ then
   elif ${always_backup:-}; then
     SYMLINKS_ARGS=(--backup)
   else
-    bk=false
-    output::yesno "Do you want to perform a backup of symlinks before apply them (this will include all existing files)" && bk=true
-    $bk && output::yesno "Do you want to be asked for every file" || SYMLINKS_ARGS=(--backup)
-    ! $bk && SYMLINKS_ARGS=(--ignore-backup)
+    _q "Do you want to perform a backup of symlinks before apply them (this will include all existing files)? [Y/n]" "PROMPT_REPLY"
+    if [[ "${PROMPT_REPLY:-Y}" =~ ^[Yy] ]]; then
+      _q "Do you want to be asked for every file? [Y/n]" "PROMPT_REPLY"
+      [[ "${PROMPT_REPLY:-Y}" =~ ^[Yy] ]] || SYMLINKS_ARGS=(--backup)
+    else
+      SYMLINKS_ARGS=(--ignore-backup)
+    fi
   fi
 fi
 export SYMLINKS_ARGS
@@ -324,7 +327,7 @@ export SLOTH_PATH="${SLOTH_PATH:-${DOTLY_PATH:-}}"
 # Backup if currently there are any dotfiles and prepare parent directory
 if [[ -d "$DOTFILES_PATH" ]] && ! ${continue:-}; then
   _q "🗂 Your DOTFILES_PATH is not empty. Do you want to do a backup first? [Y/n]" "PROMPT_REPLY"
-  [[ "${PROMPT_REPLY:-Y}" =~ ^[Yy] ]] && create_dotfiles_dir "$DOTFILES_PATH"
+  [[ "${PROMPT_REPLY:-Y}" =~ ^[Yy] ]] && backup_dotfiles_dir "$DOTFILES_PATH"
 fi
 
 if [[ ! -d "$DOTFILES_PATH" ]]; then
@@ -447,7 +450,7 @@ if [[ ! -d "$DOTFILES_PATH" ]]; then
   fi
   _s "Curl command exists on this system"
 
-  if ${IS_ICLOUD_DOTFILES:-false}; then
+  if ! ${IS_ICLOUD_DOTFILES:-false}; then
     # Recovering your files
     _w "Installing your dotfiles from $opt"
     _a "Attemping: git clone ${GIT_URL} ${DOTFILES_PATH}"
