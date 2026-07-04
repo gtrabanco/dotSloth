@@ -13,7 +13,7 @@
 ##?   -s --sample        Create a script using more complete example with some comments.
 ##?                      useful if it is your first script. Anyway you can see more help
 ##?                      in the docopt website: http://docopt.org
-##?   -c --core          Create the context and script in "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts" instead of
+##?   -c --core          Create the context and script in "${SLOTH_PATH:-}/scripts" instead of
 ##?                      your "$DOTFILES_PATH/scripts" folder
 ##?   -d --dotly         Generate a Dotly compatible script
 ##?   --author <author>  Provide who is the author, if none the default git author will
@@ -65,7 +65,7 @@ if ${core:-}; then
   output::empty_line
   output::yesno "Are you sure you still want to coninue" "N" || { output::answer "User aborted" && exit 1; }
 
-  script_path="${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/$context"
+  script_path="${SLOTH_PATH:-}/scripts/$context"
 else
   if [[ $context == "core" ]] || [[ $context == "package" && $script_name == "add" ]]; then
     output::error "\`$context\` or \`$script_name\` can not be used. Core & package contexts have restrictions when using the generator."

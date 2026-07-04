@@ -2,10 +2,10 @@
 
 set -euo pipefail
 
-[[ -z "${SLOTH_PATH:-${DOTLY_PATH:-}}" ]] && exit 1
+[[ -z "${SLOTH_PATH:-}" ]] && exit 1
 
 #shellcheck disable=SC1091
-. "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/_main.sh"
+. "${SLOTH_PATH:-}/scripts/core/_main.sh"
 
 void() {
   return
@@ -79,7 +79,7 @@ fi
 if [[ -f "$DOTFILES_PATH/.sloth_updated" ]]; then
   if sloth_update::exists_migration_script; then
     output::answer "There is a migration script for this version"
-    "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" core migration --updated
+    "${SLOTH_PATH:-}/bin/dot" core migration --updated
   fi
 
   output::answer '✅ .Sloth updated to the latest version'
