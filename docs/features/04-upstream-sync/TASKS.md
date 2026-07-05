@@ -14,10 +14,10 @@
 - [x] Verify `scripts/core/lint` passes
 
 ## P3: Port utility scripts
-- [ ] Add `bin/git-discard` from upstream (adapt paths)
-- [ ] Add `bin/git-undo` from upstream (adapt paths)
-- [ ] Add `set -euo pipefail` to both scripts
-- [ ] Verify scripts are executable
+- [x] Add `bin/git-discard` from upstream (adapt paths)
+- [x] Add `bin/git-undo` from upstream (adapt paths)
+- [x] Add `set -euo pipefail` to both scripts
+- [x] Verify scripts are executable
 
 ## P4: Sync bin/ and scripts/ improvements
 - [ ] Apply upstream improvements to shared bin files

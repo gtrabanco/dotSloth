@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+##### Start of Homebrew Installation Patch #####
+# export HOMEBREW_SLOTH=true
+# export SLOTH_PATH="HOMEBREW_PREFIX/opt/dot"
+##### End of Homebrew Installation Patch #####
+
+source "${SLOTH_PATH:-}/scripts/core/src/_main.sh"
+
+##? Delete the last commit, but not the files
+##?
+##? Usage:
+##?    git undo
+
+git reset HEAD~1 --mixed

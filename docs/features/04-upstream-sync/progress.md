@@ -11,7 +11,9 @@
 - Result: Core modules differ structurally; no safe improvements identified in AUDIT
 
 ## P3: Port utility scripts
-- Status: pending
+- Status: done
+- Result: Added bin/git-discard and bin/git-undo from upstream with SLOTH_PATH adaptation
+- Gate: static_analysis ✓, lint ✓, 60 tests ✓
 
 ## P4: Sync bin/ and scripts/ improvements
-- Status: pending
+- Status: in_progress

@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+##### Start of Homebrew Installation Patch #####
+# export HOMEBREW_SLOTH=true
+# export SLOTH_PATH="HOMEBREW_PREFIX/opt/dot"
+##### End of Homebrew Installation Patch #####
+
+source "${SLOTH_PATH:-}/scripts/core/src/_main.sh"
+
+##? Reset the status to the last commit
+##?
+##? Usage:
+##?    git discard
+
+git add -A
+git reset --hard >/dev/null 2>&1
+echo 'All changes has been discarded!'
