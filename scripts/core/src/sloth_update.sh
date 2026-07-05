@@ -271,11 +271,13 @@ sloth_update::sloth_update() {
   # Remote exists?
   ! git::check_remote_exists "$remote" "${SLOTH_UPDATE_GIT_ARGS[@]}" 1>&2 && output::error "Remote \`${remote}\` does not exists" && return 20
 
-  # Get remote HEAD branch
+  # Get remote HEAD branch (strip remote prefix to get bare branch name)
   head_branch="$(git::get_remote_head_upstream_branch "$remote" "${SLOTH_UPDATE_GIT_ARGS[@]}")"
+  head_branch="${head_branch#${remote}/}"
   if [[ -z "$head_branch" ]]; then
     git::set_remote_head_upstream_branch "$remote" "$default_remote_branch" "${SLOTH_UPDATE_GIT_ARGS[@]}"
     head_branch="$(git::get_remote_head_upstream_branch "$remote" "${SLOTH_UPDATE_GIT_ARGS[@]}")"
+    head_branch="${head_branch#${remote}/}"
 
     [[ -z "$head_branch" ]] && output::error "Remote \`${remote}\` does not have a default branch and \`${default_branch}\` could not be set" && return 30
   fi
@@ -309,7 +311,8 @@ sloth_update::gracefully() {
   sloth_update::sloth_repository_set_ready || true
 
   if ! sloth_update::should_be_updated; then
-    # Already up to date
+    # Already up to date — clean stale availability marker
+    rm -f "${SLOTH_UPDATE_AVAILABE_FILE:-"${DOTFILES_PATH:-${HOME}}/.sloth_update_available"}"
     return
   fi
 
