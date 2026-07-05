@@ -5,25 +5,33 @@
 
 ## Safe to Cherry-Pick
 
-### bin/pbcopy, bin/pbpaste
-- **Upstream:** Uses `command -v` detection instead of `uname` checks
-- **Why:** More portable; avoids hardcoded `/usr/bin/pbcopy` path
-- **Impact:** 2 files, ~10 lines each
-
-### scripts/package/src/package_managers/gem.sh
-- **Upstream adds:** `gem::title()`, `gem::is_available()`, `gem::install()`, `gem::is_installed()`, `gem::package_exists()`, `gem::self_update()`, `gem::cleanup()`
-- **Why:** Better error handling, `--user-install` flag, exit code checks
-- **Impact:** ~80 lines added, dotSloth version is simpler
-
-### scripts/package/src/package_managers/npm.sh
-- **Upstream adds:** `npm::title()`, `npm::is_available()`, `npm::install()`, `npm::is_installed()`, `npm::uninstall()`, `npm::package_exists()`, `npm::self_update()`, `npm::dump()`, `npm::import()`
-- **Why:** Consistent interface with other package managers, dump/import support
-- **Impact:** ~90 lines added
-
 ### .github/workflows/ci.yml
 - **Upstream adds:** `paths-ignore` for docs, `fail-fast: false`, shell speed tests, better debugging
 - **Why:** CI improvements reduce noise and add performance tracking
 - **Impact:** ~30 lines added (repo path and OS versions need adaptation)
+
+## Already Better in dotSloth (No Sync Needed)
+
+### .github/workflows/ci.yml
+- dotSloth already has: `paths-ignore`, `fail-fast: false`, speed tests, `always()` debug
+- Upstream only has `failure()` debug (dotSloth's `always()` is better)
+- **Verdict:** dotSloth is BETTER — no sync needed
+
+## Already Better in dotSloth (No Sync Needed)
+
+### bin/pbcopy, bin/pbpaste
+- dotSloth already uses `command -v` detection (more portable than upstream's `uname` checks)
+- **Verdict:** dotSloth is BETTER — no sync needed
+
+### scripts/package/src/package_managers/gem.sh
+- dotSloth (84 lines) has MORE functions than upstream (26 lines): `gem::title()`, `gem::is_available()`, `gem::install()`, `gem::is_installed()`, `gem::package_exists()`, `gem::self_update()`, `gem::cleanup()`
+- Upstream only has `gem::is_macos_default()` and `gem::update_all()`
+- **Verdict:** dotSloth is BETTER — no sync needed
+
+### scripts/package/src/package_managers/npm.sh
+- dotSloth (94 lines) has MORE functions than upstream (26 lines): `npm::title()`, `npm::is_available()`, `npm::install()`, `npm::is_installed()`, `npm::uninstall()`, `npm::package_exists()`, `npm::self_update()`, `npm::dump()`, `npm::import()`
+- Upstream only has `npm::update_all()`
+- **Verdict:** dotSloth is BETTER — no sync needed
 
 ## Do NOT Sync (Structural / dotSloth-specific)
 

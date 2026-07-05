@@ -20,13 +20,13 @@
 - [x] Verify scripts are executable
 
 ## P4: Sync bin/ and scripts/ improvements
-- [ ] Apply upstream improvements to shared bin files
-- [ ] Sync improvements to `scripts/package/`, `scripts/symlinks/`, etc.
-- [ ] Each sync is a separate commit
+- [x] Apply upstream improvements to shared bin files
+- [x] Sync improvements to `scripts/package/`, `scripts/symlinks/`, etc.
+- [x] Each sync is a separate commit
 
 ## Completion
-- [ ] `bash scripts/self/static_analysis` passes
-- [ ] `bash scripts/core/lint` passes
-- [ ] `make test` passes (60 tests)
-- [ ] No dotSloth-unique functionality removed
-- [ ] All synced files have clear commit messages
+- [x] `bash scripts/self/static_analysis` passes
+- [x] `bash scripts/core/lint` passes
+- [x] `make test` passes (60 tests)
+- [x] No dotSloth-unique functionality removed
+- [x] All synced files have clear commit messages

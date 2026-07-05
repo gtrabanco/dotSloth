@@ -16,4 +16,6 @@
 - Gate: static_analysis ✓, lint ✓, 60 tests ✓
 
 ## P4: Sync bin/ and scripts/ improvements
-- Status: in_progress
+- Status: done (nothing to sync)
+- Result: dotSloth already has BETTER implementations than upstream for all files
+- Updated AUDIT.md to reflect corrected analysis
