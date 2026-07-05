@@ -8,14 +8,35 @@ load "../helpers/setup"
 # ── Platform detection ────────────────────────────────────────────────────
 
 @test "platform::is_macos returns 0 on macOS" {
-    # On macOS, this should succeed
+    if [[ "$(uname -s)" != "Darwin" ]]; then
+        skip "not running on macOS"
+    fi
     run bash -c "source '$SLOTH_PATH/scripts/core/src/platform.sh'; platform::is_macos"
     [ "$status" -eq 0 ]
 }
 
 @test "platform::is_linux returns 1 on macOS (Linux not detected)" {
+    if [[ "$(uname -s)" != "Darwin" ]]; then
+        skip "not running on macOS"
+    fi
     run bash -c "source '$SLOTH_PATH/scripts/core/src/platform.sh'; platform::is_linux"
     # On macOS, is_linux returns 1 (false)
+    [ "$status" -eq 1 ]
+}
+
+@test "platform::is_linux returns 0 on Linux" {
+    if [[ "$(uname -s)" != "Linux" ]]; then
+        skip "not running on Linux"
+    fi
+    run bash -c "source '$SLOTH_PATH/scripts/core/src/platform.sh'; platform::is_linux"
+    [ "$status" -eq 0 ]
+}
+
+@test "platform::is_macos returns 1 on Linux (macOS not detected)" {
+    if [[ "$(uname -s)" != "Linux" ]]; then
+        skip "not running on Linux"
+    fi
+    run bash -c "source '$SLOTH_PATH/scripts/core/src/platform.sh'; platform::is_macos"
     [ "$status" -eq 1 ]
 }
 
