@@ -71,7 +71,9 @@ sloth_update::sloth_repository_set_ready() {
   git::clone_track_branch "${SLOTH_DEFAULT_REMOTE:-origin}" "${SLOTH_DEFAULT_BRANCH:-main}" "${SLOTH_UPDATE_GIT_ARGS[@]}" 1>&2 || true
 
   # Unshallow by the way
-  git::git "${SLOTH_UPDATE_GIT_ARGS[@]}" fetch --unshallow 1>&2 || true
+  if git::git "${SLOTH_UPDATE_GIT_ARGS[@]}" rev-parse --is-shallow-repository 2> /dev/null | grep -q true; then
+    git::git "${SLOTH_UPDATE_GIT_ARGS[@]}" fetch --unshallow 1>&2 || true
+  fi
 }
 
 #;
