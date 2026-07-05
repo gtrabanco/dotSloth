@@ -19,6 +19,7 @@ history lives in git log + closed issues.
 | 266-complete-path-fallback-refactor | Complete DOTLY_PATH fallback refactor in context scripts | pending | — | [#266](https://github.com/gtrabanco/dotSloth/issues/266) |
 | 240-testing-framework-finalize | Add 10th test file to meet acceptance criterion #5 | pending | — | [#240](https://github.com/gtrabanco/dotSloth/issues/240) |
 | 269-set-euo-pipefail | Migrate remaining scripts to set -euo pipefail | done · [#282](https://github.com/gtrabanco/dotSloth/pull/282) | — | [#269](https://github.com/gtrabanco/dotSloth/issues/269) |
+| 275-ci-bats-recursive | CI runs 0 tests — bats tests/ should use --recursive | pending | — | [#275](https://github.com/gtrabanco/dotSloth/issues/275) |
 
 ## Conventions
 
