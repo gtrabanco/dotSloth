@@ -1,17 +1,17 @@
 # TASKS: 04-upstream-sync
 
 ## P1: Audit upstream changes
-- [ ] Add upstream remote temporarily
-- [ ] Diff each shared file between `upstream/main` and `HEAD`
-- [ ] Categorize changes: bug fix / improvement / breaking / cosmetic
-- [ ] Document safe-to-cherry-pick changes in `AUDIT.md`
+- [x] Add upstream remote temporarily
+- [x] Diff each shared file between `upstream/main` and `HEAD`
+- [x] Categorize changes: bug fix / improvement / breaking / cosmetic
+- [x] Document safe-to-cherry-pick changes in `AUDIT.md`
 - [ ] Remove upstream remote after audit
 
 ## P2: Sync core module improvements
-- [ ] Port upstream improvements to `scripts/core/src/` modules
-- [ ] Verify `_main.sh` sourcing still works
-- [ ] Verify `scripts/self/static_analysis` passes
-- [ ] Verify `scripts/core/lint` passes
+- [x] Port upstream improvements to `scripts/core/src/` modules
+- [x] Verify `_main.sh` sourcing still works
+- [x] Verify `scripts/self/static_analysis` passes
+- [x] Verify `scripts/core/lint` passes
 
 ## P3: Port utility scripts
 - [ ] Add `bin/git-discard` from upstream (adapt paths)
