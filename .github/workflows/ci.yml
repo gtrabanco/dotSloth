@@ -135,4 +135,4 @@ jobs:
           fi
 
       - name: Run bats tests
-        run: bats tests/
+        run: make test
