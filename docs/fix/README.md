@@ -18,6 +18,7 @@ history lives in git log + closed issues.
 | 280-remaining-path-fallback | Remaining DOTLY_PATH fallback in init scripts | done · [#281](https://github.com/gtrabanco/dotSloth/pull/281) | — | [#280](https://github.com/gtrabanco/dotSloth/issues/280) |
 | 266-complete-path-fallback-refactor | Complete DOTLY_PATH fallback refactor in context scripts | pending | — | [#266](https://github.com/gtrabanco/dotSloth/issues/266) |
 | 240-testing-framework-finalize | Add 10th test file to meet acceptance criterion #5 | pending | — | [#240](https://github.com/gtrabanco/dotSloth/issues/240) |
+| 269-set-euo-pipefail | Migrate remaining scripts to set -euo pipefail | done · pending PR | — | [#269](https://github.com/gtrabanco/dotSloth/issues/269) |
 
 ## Conventions
 
