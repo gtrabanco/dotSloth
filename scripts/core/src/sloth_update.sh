@@ -65,7 +65,7 @@ sloth_update::sloth_repository_set_ready() {
   git::git "${SLOTH_UPDATE_GIT_ARGS[@]}" remote set-head "${SLOTH_DEFAULT_REMOTE:-origin}" --auto 1>&2 || true
 
   # Automatic convert windows git crlf to lf
-  git::git "${SLOTH_UPDATE_GIT_ARGS[@]}" config --bool core.autcrl false 1>&2 || true
+  git::git "${SLOTH_UPDATE_GIT_ARGS[@]}" config --bool core.autocrlf false 1>&2 || true
 
   # Track default branch
   git::clone_track_branch "${SLOTH_DEFAULT_REMOTE:-origin}" "${SLOTH_DEFAULT_BRANCH:-main}" "${SLOTH_UPDATE_GIT_ARGS[@]}" 1>&2 || true
@@ -113,7 +113,7 @@ sloth_update::get_latest_stable_version() {
   if ${HOMEBREW_SLOTH:-false}; then
     #shellcheck disable=SC2016
     brew info gtrabanco/tools/dot 2>&1 | command -p head -n1 | command -p sed 's/[,|HEAD]//g' | command -p awk '{print $NF}' | command -p xargs
-    exit
+    return
   fi
 
   git::remote_latest_tag_version "${SLOTH_DEFAULT_URL:-${SLOTH_DEFAULT_GIT_SSH_URL:-git+ssh://git@github.com:gtrabanco/dotSloth.git}}" "v*.*.*" "${SLOTH_UPDATE_GIT_ARGS[@]}"
@@ -237,7 +237,7 @@ sloth_update::exists_migration_script() {
 # @return 0 if all ok, error code otherwise 10, in no force means has pending commits or dirty directory, 20 remote does not exists or can't be set, no default branch, 40 git pull fails
 #"
 sloth_update::sloth_update() {
-  local remote url default_branch branch head_branch force_update updated_version
+  local remote url default_branch branch head_branch force_update default_remote_branch
   remote="${1:-${SLOTH_DEFAULT_REMOTE:-origin}}"
   url="${2:-${SLOTH_GITMODULES_URL:-${SLOTH_DEFAULT_GIT_SSH_URL:-git+ssh://git@github.com:gtrabanco/dotSloth.git}}}"
   branch="${3:-${SLOTH_DEFAULT_BRANCH:-main}}"
