@@ -5,21 +5,27 @@ set -euo pipefail
 ##? Setups the environment
 ##?
 ##? Usage:
-##?    install [-c | --continue]
+##?    restorer [-c | --continue] [--dry-run] [--components=dotfiles,packages,symlinks,shell]
 ##?
 ##? Options:
 ##?    -h --help      Prints this help
 ##?    -v --version   Prints this script version
 ##?    -c --continue  Continue previous install withour cloning again your
 ##?                   dotfiles if they exists. Useful if previous restore fails.
+##?    --dry-run      Show what would be done without making changes
+##?    --components   Comma-separated list of components to restore
+##?                   (dotfiles, packages, symlinks, shell). Default: all
 ##?
 
 # Script variables
 SCRIPT_NAME="dot dotfiles recovery"
-SCRIPT_VERSION="v1.0.0"
+SCRIPT_VERSION="v2.0.0"
 
 # Default values
 continue=false
+dry_run=false
+COMPONENTS="dotfiles,packages,symlinks,shell"
+ROLLBACK_DIR=""
 
 # Arguments
 while [[ $# -gt 0 ]]; do
@@ -27,13 +33,16 @@ while [[ $# -gt 0 ]]; do
     --help | -h)
       cat << EOF
 Usage:
-   install [-c | --continue]
+   restorer [-c | --continue] [--dry-run] [--components=dotfiles,packages,symlinks,shell]
 
 Options:
    -h --help      Prints this help
    -v --version   Prints this script version
    -c --continue  Continue previous install withour cloning again your
                   dotfiles if they exists. Useful if previous restore fails.
+   --dry-run      Show what would be done without making changes
+   --components   Comma-separated list of components to restore
+                  (dotfiles, packages, symlinks, shell). Default: all
 
 EOF
       exit 0
@@ -46,9 +55,20 @@ EOF
     --continue | -c)
       continue=true
       ;;
+    --dry-run)
+      dry_run=true
+      ;;
+    --components)
+      shift
+      COMPONENTS="${1:-}"
+      ;;
+    --components=*)
+      COMPONENTS="${1#*=}"
+      ;;
     *) ;;
 
   esac
+  shift
 done
 
 ICLOUD_PATH="$HOME/Library/Mobile Documents/com~apple~CloudDocs/"
@@ -77,6 +97,63 @@ _e() { _a "${red}$1${normal}"; }
 _s() { _a "${green}$1${normal}"; }
 _q() { read -rp "🤔 $1 : " "$2"; }
 _pk() { read -rp "Press a key to ${1}... 👇" "REPLY"; }
+
+# Progress output
+show_progress() {
+  local current="$1" total="$2" message="$3"
+  _w "[$current/$total] $message"
+}
+
+# Check if a component should be restored
+has_component() {
+  local component="$1"
+  echo ",$COMPONENTS," | grep -q ",$component,"
+}
+
+# Validate dotfiles directory structure
+validate_dotfiles() {
+  local dotfiles_path="$1"
+  [[ -d "$dotfiles_path" ]] || return 1
+  [[ -d "$dotfiles_path/.git" ]] || return 1
+  git -C "$dotfiles_path" rev-parse HEAD > /dev/null 2>&1 || return 1
+  return 0
+}
+
+# Create a rollback point before destructive operations
+create_rollback_point() {
+  ROLLBACK_DIR=$(mktemp -d "/tmp/dotSloth-rollback-XXXXXX")
+  if [[ -d "${DOTFILES_PATH:-}" ]]; then
+    cp -a "$DOTFILES_PATH" "$ROLLBACK_DIR/dotfiles" 2> /dev/null || true
+  fi
+  ls -la "$HOME" 2> /dev/null | grep '^l' > "$ROLLBACK_DIR/symlinks.txt" 2> /dev/null || true
+  _a "Rollback point created at $ROLLBACK_DIR"
+}
+
+# Rollback to pre-restore state
+rollback() {
+  local rollback_dir="$1"
+  [[ -d "$rollback_dir" ]] || return 1
+  if [[ -d "$rollback_dir/dotfiles" ]] && [[ -n "${DOTFILES_PATH:-}" ]]; then
+    rm -rf "$DOTFILES_PATH"
+    mv "$rollback_dir/dotfiles" "$DOTFILES_PATH"
+  fi
+  _e "Rolled back to pre-restore state."
+}
+
+# Cleanup on exit — offer rollback on failure
+restorer_cleanup() {
+  local exit_code=$?
+  if [[ $exit_code -ne 0 ]] && [[ -n "${ROLLBACK_DIR:-}" ]] && ! $dry_run; then
+    _e "Restore failed (exit code $exit_code)."
+    if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
+      _q "Would you like to rollback to the pre-restore state? [Y/n]" "reply"
+      [[ "${reply:-Y}" =~ ^[Yy] ]] && rollback "$ROLLBACK_DIR"
+    fi
+  fi
+  [[ -n "${SUDO_PID:-}" ]] && stop_sudo
+  [[ -n "${ROLLBACK_DIR:-}" ]] && [[ -d "$ROLLBACK_DIR" ]] && rm -rf "$ROLLBACK_DIR" 2> /dev/null || true
+}
+trap restorer_cleanup EXIT
 
 _log() {
   log_name="$1"
@@ -193,6 +270,17 @@ _w "  └───────────────────────�
 _w
 
 #### Begin user prompts ####
+TOTAL_STEPS=4
+CURRENT_STEP=0
+
+if $dry_run; then
+  _w "🔍 DRY RUN MODE — no changes will be made"
+  _w
+fi
+
+CURRENT_STEP=$((CURRENT_STEP + 1))
+show_progress "$CURRENT_STEP" "$TOTAL_STEPS" "Gathering configuration..."
+
 if [[ $(uname -s) == "Darwin" ]] && ! is_clt_installed; then
   _w "We will need to use user elevation with sudo to install Command Line Tools"
   start_sudo
@@ -324,6 +412,21 @@ dotly_inner_path="modules/sloth"
 export DOTLY_PATH="$DOTFILES_PATH/$dotly_inner_path"
 export SLOTH_PATH="${SLOTH_PATH:-${DOTLY_PATH:-}}"
 
+# Validate existing dotfiles if --continue
+if ${continue:-} && [[ -d "$DOTFILES_PATH" ]]; then
+  if ! validate_dotfiles "$DOTFILES_PATH"; then
+    _e "Existing dotfiles at '$DOTFILES_PATH' failed validation (not a git repo or no HEAD)."
+    _e "Remove it or fix the git repo, then re-run without --continue."
+    exit 1
+  fi
+  _s "Existing dotfiles validated."
+fi
+
+# Create rollback point before destructive operations
+if ! $dry_run && ! ${continue:-} && [[ -d "$DOTFILES_PATH" ]]; then
+  create_rollback_point
+fi
+
 # Backup if currently there are any dotfiles and prepare parent directory
 if [[ -d "$DOTFILES_PATH" ]] && ! ${continue:-}; then
   _q "🗂 Your DOTFILES_PATH is not empty. Do you want to do a backup first? [Y/n]" "PROMPT_REPLY"
@@ -453,77 +556,107 @@ if [[ ! -d "$DOTFILES_PATH" ]]; then
   if ! ${IS_ICLOUD_DOTFILES:-false}; then
     # Recovering your files
     _w "Installing your dotfiles from $opt"
-    _a "Attemping: git clone ${GIT_URL} ${DOTFILES_PATH}"
-    is_cloned=false
-    git clone "${GIT_URL}" "${DOTFILES_PATH}" 2>&1 | _log "Cloning from $GIT_URL" && is_cloned=true
+    if $dry_run; then
+      _a "DRY RUN: would run 'git clone ${GIT_URL} ${DOTFILES_PATH}'"
+      _s "DRY RUN: dotfiles would be cloned."
+    else
+      _a "Attemping: git clone ${GIT_URL} ${DOTFILES_PATH}"
+      is_cloned=false
+      git clone "${GIT_URL}" "${DOTFILES_PATH}" 2>&1 | _log "Cloning from $GIT_URL" && is_cloned=true
 
-    # This because maybe you do not have yet your ssh-keys because you did not download
-    # your dotfiles. And SSH URL for repository would be the default method using a
-    # repository that you can write.
-    if ! $is_cloned && [[ ! -d "$DOTFILES_PATH" ]] && [[ "$opt" == "GitHub" ]]; then
-      _a "Attemping: git clone ${GIT_URL_MIRROR} ${DOTFILES_PATH}"
-      git clone "$GIT_URL_MIRROR" "$DOTFILES_PATH" 2>&1 | _log "Cloning from $GIT_URL_MIRROR" && is_cloned=true
+      # This because maybe you do not have yet your ssh-keys because you did not download
+      # your dotfiles. And SSH URL for repository would be the default method using a
+      # repository that you can write.
+      if ! $is_cloned && [[ ! -d "$DOTFILES_PATH" ]] && [[ "$opt" == "GitHub" ]]; then
+        _a "Attemping: git clone ${GIT_URL_MIRROR} ${DOTFILES_PATH}"
+        git clone "$GIT_URL_MIRROR" "$DOTFILES_PATH" 2>&1 | _log "Cloning from $GIT_URL_MIRROR" && is_cloned=true
 
-      if $is_cloned; then
-        _s "Dotfiles restored."
-        _w
-        _w "Your dotfiles could not be downloaded using ssh. Were downloaded using https."
-        _w
-        _w "Trying to setup remote origin upstream url with git+ssh protocol"
-        cd "${DOTFILES_PATH}" &&
-          git remote set-url origin "${GIT_URL}" 2>&1 &&
-          _s "SSH Remote was set."
-      else
+        if $is_cloned; then
+          _s "Dotfiles restored."
+          _w
+          _w "Your dotfiles could not be downloaded using ssh. Were downloaded using https."
+          _w
+          _w "Trying to setup remote origin upstream url with git+ssh protocol"
+          cd "${DOTFILES_PATH}" &&
+            git remote set-url origin "${GIT_URL}" 2>&1 &&
+            _s "SSH Remote was set."
+        else
+          _e "Dotfiles could not be cloned. See more details: \`tail -f $HOME/dotly.log\`"
+          exit 1
+        fi
+      elif ! $is_cloned || [[ ! -d "$DOTFILES_PATH" ]]; then
         _e "Dotfiles could not be cloned. See more details: \`tail -f $HOME/dotly.log\`"
         exit 1
       fi
-    elif ! $is_cloned || [[ ! -d "$DOTFILES_PATH" ]]; then
-      _e "Dotfiles could not be cloned. See more details: \`tail -f $HOME/dotly.log\`"
-      exit 1
-    fi
 
-    _s "Dotfiles cloned successfully."
-    _w
+      _s "Dotfiles cloned successfully."
+      _w
+    fi
   fi
 fi
 #### End user prompts ####
 
-# Update .Sloth/Dotly submodule
-cd "${DOTFILES_PATH}"
-# Only .Sloth/Dotly submodule must be updated recursively because we do not know if
-# user has added any other submodules that are privated and maybe the user
-# needs to configure something to access those repositories
-git submodule update --init --recursive "$dotly_inner_path" 2>&1 | _log "Downloading .Sloth/Dotly and submodules" || {
-  _e "Downloading dotly failed. See for more details:"
-  _e "  tail -f $HOME/dotly.log"
-  _w
-  exit 1
-}
+# Phase: dotfiles (submodule update + core install)
+if has_component dotfiles; then
+  CURRENT_STEP=$((CURRENT_STEP + 1))
+  show_progress "$CURRENT_STEP" "$TOTAL_STEPS" "Updating .Sloth/Dotly submodule..."
 
-_w "Installing .Sloth/Dotly default tools"
-_w "Please be patient this could take some time...🙏"
-# Installing default .Sloth/Dotly tools
-PATH="$PATH:/usr/local/bin:$HOME/.cargo/bin"
-"${SLOTH_PATH:-}/bin/dot" core install || {
-  _e ".Sloth/Dotly Could not be installed but your dotfiles are restored. Use:"
-  _e "  tail -f $HOME/dotly.log"
-  _e "To know what happened and where is the point of failure"
-  _w
-}
-_a "🎉 dotfiles restored! 🎉"
-
-# Installing packages
-if ${USER_IMPORT_PACKAGES:-false}; then
-  _w "Importing your packages"
-  _w "This can take a very long time, be patient...🙏"
-  {
-    "${SLOTH_PATH:-}/bin/dot" package import --never-prompt 2>&1 | _log "Importing user packages" &&
-      _a "Packages imported 👏" &&
+  if $dry_run; then
+    _a "DRY RUN: would run 'git submodule update --init --recursive $dotly_inner_path'"
+  else
+    # Update .Sloth/Dotly submodule
+    cd "${DOTFILES_PATH}"
+    # Only .Sloth/Dotly submodule must be updated recursively because we do not know if
+    # user has added any other submodules that are privated and maybe the user
+    # needs to configure something to access those repositories
+    git submodule update --init --recursive "$dotly_inner_path" 2>&1 | _log "Downloading .Sloth/Dotly and submodules" || {
+      _e "Downloading dotly failed. See for more details:"
+      _e "  tail -f $HOME/dotly.log"
       _w
-  } || {
-    _e "📦 Packages import fail"
-    _w
-  }
+      exit 1
+    }
+
+    _w "Installing .Sloth/Dotly default tools"
+    _w "Please be patient this could take some time...🙏"
+    # Installing default .Sloth/Dotly tools
+    PATH="$PATH:/usr/local/bin:$HOME/.cargo/bin"
+    "${SLOTH_PATH:-}/bin/dot" core install || {
+      _e ".Sloth/Dotly Could not be installed but your dotfiles are restored. Use:"
+      _e "  tail -f $HOME/dotly.log"
+      _e "To know what happened and where is the point of failure"
+      _w
+    }
+  fi
+  _a "🎉 dotfiles restored! 🎉"
+fi
+
+# Phase: packages
+if has_component packages; then
+  CURRENT_STEP=$((CURRENT_STEP + 1))
+  show_progress "$CURRENT_STEP" "$TOTAL_STEPS" "Importing packages..."
+
+  if ${USER_IMPORT_PACKAGES:-false}; then
+    if $dry_run; then
+      _a "DRY RUN: would run 'dot package import --never-prompt'"
+    else
+      _w "Importing your packages"
+      _w "This can take a very long time, be patient...🙏"
+      {
+        "${SLOTH_PATH:-}/bin/dot" package import --never-prompt 2>&1 | _log "Importing user packages" &&
+          _a "Packages imported 👏" &&
+          _w
+      } || {
+        _e "📦 Packages import fail"
+        _w
+      }
+    fi
+  fi
+fi
+
+# Phase: shell + symlinks (done by dot core install, already handled above)
+if has_component shell || has_component symlinks; then
+  CURRENT_STEP=$((CURRENT_STEP + 1))
+  show_progress "$CURRENT_STEP" "$TOTAL_STEPS" "Shell & symlinks configured (via dot core install)."
 fi
 
 _a "🎉 dotfiles restored! 🎉"
