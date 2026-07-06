@@ -1,28 +1,25 @@
 # Ship Roadmap — Decision Record
 
 **Run mode:** `--fullauto` (auto-merge with non-negotiable safety floors)
-**Founded:** 2026-07-03
-**Profile:** Throwaway/experimental — validate Rust migration viability before committing
+**Founded:** 2026-07-06
+**Profile:** Internal tool — stricter testing, more docs discipline
 
 ## Locked interview answers
 
 ### Round 1 — Product
 - **What:** dotSloth — modular Bash dotfiles framework (fork of dotly/CodelyTV)
 - **Scale:** Solo developer / small community
-- **Lifespan:** Throwaway/experimental — validate migration to Rust before committing
-- **Ambition:** Stabilize existing bugs, validate tooling path, then decide on Rust migration
+- **Lifespan:** Internal tool — daily driver, stricter quality bars
+- **Ambition:** Stabilize and improve the existing Bash codebase; defer Rust migration
 
 ### Round 2 — Features
-- **Scope:** Bugs first, then tech-debt. No roadmap features in this run.
+- **Scope:** Fixes + easy Bash features. Skip Rust migration (01-03).
 - **Order (confirmed):**
-  1. Fix #247 — pkill -f tmux destroys all system sessions
-  2. Fix #246 — script::depends_on hangs in non-interactive contexts
-  3. Fix #245 — Success message always shown despite failures
-  4. Fix #233 — Auto-updater broken
-  5. Fix #234 — Restorer broken
-  6. Fix #235 — up command fails to parse updates
-  7. Fix #255 — Reconcile DOTLY_PATH/SLOTH_PATH (tech-debt)
-- **Out of scope:** All roadmap features (01-07), new feature proposals
+  1. Fix #288 — eval injection in install_remote (security, fix-now)
+  2. Feature 08 — test-coverage-expansion (sloth_update tests, from #267)
+  3. Feature 06 — pm-timeouts (configurable timeouts for package managers)
+  4. Feature 07 — restorer-v2 (validation, rollback, partial restore)
+- **Out of scope:** Features 01-03 (Rust migration), #268 (restorer/installer tests), #273 (gem.bats grep tests)
 
 ### Round 3 — Stack & architecture
 - **Stack:** Bash, shfmt + shellcheck, bats-core for tests
@@ -30,7 +27,7 @@
 - **No changes from substrate**
 
 ### Round 4 — Quality & ops
-- **Test depth:** Workflow default (bats-core, integration over mocking)
+- **Test depth:** Workflow default (bats-core, integration over mocking) — stricter for internal tool
 - **Verification gate:** `bash scripts/self/static_analysis && bash scripts/self/lint && make test`
 - **CI:** GitHub Actions (already configured)
 - **Deploy:** N/A — dotfiles framework
@@ -40,13 +37,13 @@
 - **Forge:** GitHub (`gh` authenticated as gtrabanco)
 - **Git workflow:** Worktrees (per CLAUDE.md) — `git worktree add` under `../dotSloth-<branch>`
 - **Merge policy:** `--fullauto` (dual-keyed: flag + this record)
-- **Sensitive areas:** None for this run (dotfiles bug fixes, no auth/payments/secrets)
+- **Sensitive areas:** None for this run (dotfiles framework, no auth/payments/secrets)
 - **Budget caps:**
-  - Max iterations: 28 (4×7 units)
+  - Max iterations: 16 (4×4 units)
   - Red gate retries: 2 per unit
   - Review-fix cycles: 2 per unit
   - Audit-fix cycles: 2 per unit
-- **Model routing:** Conductor at opus/high; execution subagents at sonnet
+- **Model routing:** Conductor at high; execution subagents at sonnet
 
 ## Safety floors (non-negotiable, evaluated fresh before every merge)
 
@@ -59,7 +56,7 @@
 
 ## Skills directory
 
-Installed at: `/Users/gtrabanco/.hermes/skills/`
+Installed at: `/Users/gtrabanco/.agents/skills/`
 - `plan-feature` — JIT feature planning
 - `execute-phase` — phase execution (sonnet subagents)
 - `review-change` — review checkpoints
