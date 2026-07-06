@@ -13,7 +13,7 @@ every row must have a folder (or be explicitly marked "scheduled").
 | 03 | `rust-up-cli` | planned | 01 | Migrar comando `up` a Rust con manejo robusto, timeouts, feedback | [#238](https://github.com/gtrabanco/dotSloth/issues/238) |
 | 04 | `upstream-sync` | done | — | Sincronizar mejoras upstream de CodelyTV/dotly | [#239](https://github.com/gtrabanco/dotSloth/issues/239) · [#283](https://github.com/gtrabanco/dotSloth/pull/283) |
 | 05 | `testing-framework` | done | — | Implementar sistema de testing completo con bats-core | [#240](https://github.com/gtrabanco/dotSloth/issues/240) |
-| 06 | `pm-timeouts` | planned | — | Mejorar sistema de package managers con timeouts configurables | [#241](https://github.com/gtrabanco/dotSloth/issues/241) |
+| 06 | `pm-timeouts` | in-progress | — | Mejorar sistema de package managers con timeouts configurables | [#241](https://github.com/gtrabanco/dotSloth/issues/241) |
 | 07 | `restorer-v2` | planned | — | Mejorar restorer con validación, rollback, restauración parcial | [#242](https://github.com/gtrabanco/dotSloth/issues/242) |
 | 08 | `test-coverage-expansion` | done | — | Add tests for sloth_update.sh auto-updater flow + critical path coverage | [#267](https://github.com/gtrabanco/dotSloth/issues/267) |
 
