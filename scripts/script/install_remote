@@ -30,13 +30,15 @@ docs::parse "$@"
 
 # Save current working directory to return user there
 STARTING_DIRECTORY="$(pwd)"
-CURL_BIN="$(which curl)"
+CURL_BIN="$(command -v curl)"
 
-# Script name if provided if not with downloaded name
-[[ -n $script_name ]] && script_name_args="-o $script_name" || script_name_args=${script_name:-"-O"}
-
-# Download command
-download_command="$CURL_BIN -k -L -f -q $script_name_args"
+# Build curl arguments as an array (avoids eval — prevents command injection via URL)
+curl_args=("$CURL_BIN" -k -L -f -q)
+if [[ -n "${script_name:-}" ]]; then
+  curl_args+=(-o "$script_name")
+else
+  curl_args+=(-O)
+fi
 
 # Scripts context directory
 { [[ -z "${context:-}" ]] || [[ -z "${script_raw_url:-}" ]]; } && output::error "Error no context or script name." && exit 1
@@ -48,9 +50,10 @@ cd "$dotfiles_context" || exit 1
 
 # Download the script
 output::write "Downloading the script ⚡️"
-eval "$download_command $script_raw_url"
-if [ ! $? ]; then
-  if [ -z "$(ls -A "$dotfiles_context" 2> /dev/null)" ]; then
+"${curl_args[@]}" "$script_raw_url"
+curl_exit=$?
+if [[ $curl_exit -ne 0 ]]; then
+  if [[ -z "$(ls -A "$dotfiles_context" 2> /dev/null)" ]]; then
     output::error "The context '$dotfiles_context' is empty. File could not be downloaded."
     exit 1
   fi
