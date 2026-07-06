@@ -35,7 +35,7 @@ This is not a layered architecture in the traditional sense; it's a command-disp
 - **Package manager wrappers** (`scripts/package/src/package_managers/*.sh`) must implement the standard interface: `dump`, `install`, `update_all`, `cleanup`, `which` (where applicable). New wrappers must follow the `brew.sh` pattern.
 - **Recipes** (`scripts/package/src/recipes/*.sh`) must implement: `install`, `update` (if applicable), and `info` (if applicable). They may use package managers but must not be used as package managers themselves.
 - **Init scripts** (`shell/init.scripts/`) are sourced at the end of the shell initializer and must be idempotent and fast. They must not depend on core libraries being loaded (they run after the loader, but must degrade gracefully).
-- **`set -euo pipefail`** is mandatory in all new scripts. Existing scripts should be migrated when touched.
+- **`set -euo pipefail`** is mandatory in all standalone/executable scripts. Sourced library files (`scripts/core/src/*.sh`) intentionally omit it — `set -e` would propagate to the caller's shell on any function failure, breaking the interactive experience. The entry point (`bin/dot`) sets it, and it applies for the duration of each command invocation.
 - **No bashisms in zsh-targeted code.** Scripts under `shell/zsh/` may use zsh syntax; scripts under `shell/bash/` must be bash-compatible. Core scripts must be bash-compatible (shfmt lints as bash).
 
 ## Diagram
