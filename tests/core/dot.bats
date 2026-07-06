@@ -27,13 +27,13 @@ load "../helpers/setup"
 @test "dot::list_contexts returns core contexts" {
     run dot::list_contexts
     [ "$status" -eq 0 ]
-    echo "$output" | grep -q "core"
+    [[ "$output" == *"core"* ]]
 }
 
 @test "dot::list_contexts excludes underscore-prefixed dirs" {
     run dot::list_contexts
     [ "$status" -eq 0 ]
-    ! echo "$output" | grep -q "^_"
+    [[ "$output" != *$'\n_'* ]]
 }
 
 # ── list_context_scripts ──────────────────────────────────────────────────
@@ -41,7 +41,7 @@ load "../helpers/setup"
 @test "dot::list_context_scripts returns scripts for core context" {
     run dot::list_context_scripts core
     [ "$status" -eq 0 ]
-    echo "$output" | grep -q "lint\|install\|update\|version"
+    [[ "$output" == *"lint"* || "$output" == *"install"* || "$output" == *"update"* || "$output" == *"version"* ]]
 }
 
 @test "dot::list_context_scripts returns empty for nonexistent context" {
