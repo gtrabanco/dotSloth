@@ -12,6 +12,7 @@ composer::is_available() {
 }
 
 composer::update_all() {
+  local -r timeout="${COMPOSER_TIMEOUT:-${SLOTH_PM_TIMEOUT:-300}}"
   script::depends_on jq
 
   if [ -f "$HOME/.composer/composer.json" ]; then

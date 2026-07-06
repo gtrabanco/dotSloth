@@ -40,8 +40,9 @@ gem::package_exists() {
 }
 
 gem::self_update() {
+  local -r timeout="${GEM_TIMEOUT:-${SLOTH_PM_TIMEOUT:-300}}"
   if command -p sudo -v -n 2> /dev/null; then
-    gem::is_available && gem update --system 2>&1 | log::file "Updating ${gem_title}"
+    gem::is_available && package::run_with_timeout "$timeout" gem update --system 2>&1 | log::file "Updating ${gem_title}"
   fi
 }
 

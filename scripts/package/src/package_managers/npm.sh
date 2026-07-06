@@ -55,7 +55,8 @@ npm::update_apps() {
 }
 
 npm::self_update() {
-  npm install -g npm@latest
+  local -r timeout="${NPM_TIMEOUT:-${SLOTH_PM_TIMEOUT:-300}}"
+  package::run_with_timeout "$timeout" npm install -g npm@latest
 }
 
 npm::update_all() {

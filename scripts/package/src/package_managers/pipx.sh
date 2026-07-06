@@ -73,8 +73,9 @@ pipx::uninstall() {
 
 # REQUIRED TO USE `up` or `up pipx`
 pipx::update_all() {
-  pipx::self_update
-  pipx::update_apps
+  local -r timeout="${PIPX_TIMEOUT:-${SLOTH_PM_TIMEOUT:-300}}"
+  package::run_with_timeout "$timeout" pipx::self_update
+  package::run_with_timeout "$timeout" pipx::update_apps
 }
 
 # Internal function

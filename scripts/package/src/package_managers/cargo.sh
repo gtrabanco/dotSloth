@@ -62,7 +62,8 @@ cargo::import() {
 }
 
 cargo::update_all() {
-  cargo::update_apps
+  local -r timeout="${CARGO_TIMEOUT:-${SLOTH_PM_TIMEOUT:-300}}"
+  package::run_with_timeout "$timeout" cargo::update_apps
 }
 
 cargo::update_apps() {
