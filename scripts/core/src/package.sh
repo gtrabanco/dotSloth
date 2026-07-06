@@ -541,3 +541,35 @@ package::common_import_check() {
     [[ -n "$(package::manager_exists "$package_manager")" ]] &&
     [[ -f "$file_path" ]]
 }
+
+#;
+# package::run_with_timeout()
+# Run a command with a timeout. Uses gtimeout, timeout, or bash job control as fallback.
+# @param number timeout_seconds Timeout in seconds (default: 300)
+# @param any args Command and arguments to run
+# @return int Command exit code, or 124 on timeout
+#"
+package::run_with_timeout() {
+  local -r timeout_seconds="${1:-${SLOTH_PM_TIMEOUT:-300}}"
+  shift
+
+  if command -v gtimeout &> /dev/null; then
+    gtimeout "$timeout_seconds" "$@"
+  elif command -v timeout &> /dev/null; then
+    timeout "$timeout_seconds" "$@"
+  else
+    local cmd_pid timer_pid exit_code
+    "$@" &
+    cmd_pid=$!
+    (
+      sleep "$timeout_seconds"
+      kill "$cmd_pid" 2> /dev/null
+    ) &
+    timer_pid=$!
+    wait "$cmd_pid" 2> /dev/null
+    exit_code=$?
+    kill "$timer_pid" 2> /dev/null
+    wait "$timer_pid" 2> /dev/null
+    return "$exit_code"
+  fi
+}

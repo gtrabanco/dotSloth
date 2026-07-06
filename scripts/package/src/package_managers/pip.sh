@@ -61,7 +61,8 @@ pip::update_apps() {
 }
 
 pip::self_update() {
-  pip::pip install --upgrade --user pip 2>&1 | log::file "Updating ${pip_title}"
+  local -r timeout="${PIP_TIMEOUT:-${SLOTH_PM_TIMEOUT:-300}}"
+  package::run_with_timeout "$timeout" pip::pip install --upgrade --user pip 2>&1 | log::file "Updating ${pip_title}"
 }
 
 pip::update_all() {

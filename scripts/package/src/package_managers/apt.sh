@@ -77,8 +77,9 @@ apt::update_apps() {
 }
 
 apt::self_update() {
+  local -r timeout="${APT_TIMEOUT:-${SLOTH_PM_TIMEOUT:-300}}"
   platform::command_exists sudo && platform::command_exists hwclock && sudo hwclock --hctosys
-  apt::is_available && platform::command_exists sudo && sudo apt-get update | log::file "Updating ${apt_title}"
+  apt::is_available && platform::command_exists sudo && package::run_with_timeout "$timeout" sudo apt-get update | log::file "Updating ${apt_title}"
 }
 
 apt::update_all() {

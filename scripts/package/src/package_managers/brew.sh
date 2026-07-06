@@ -63,7 +63,8 @@ brew::update_all() {
 }
 
 brew::self_update() {
-  brew::is_available && brew update 2>&1 | log::file "Updating ${brew_title}"
+  local -r timeout="${BREW_TIMEOUT:-${SLOTH_PM_TIMEOUT:-300}}"
+  brew::is_available && package::run_with_timeout "$timeout" brew update 2>&1 | log::file "Updating ${brew_title}"
 }
 
 brew::update_apps() {

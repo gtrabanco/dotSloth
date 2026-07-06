@@ -78,7 +78,8 @@ dnf::outdated_app() {
 
 dnf::update_all() {
   ! dnf::is_available && return 1
-  dnf::update_apps
+  local -r timeout="${DNF_TIMEOUT:-${SLOTH_PM_TIMEOUT:-300}}"
+  package::run_with_timeout "$timeout" dnf::update_apps
 }
 
 dnf::dump() {
