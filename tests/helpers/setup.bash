@@ -14,12 +14,16 @@ fi
 export DOTLY_PATH="${SLOTH_PATH}"
 
 # Add mocks directory to PATH (before real commands)
-# From tests/core/, helpers/mocks is at ../../helpers/mocks
-export PATH="${BATS_TEST_DIRNAME}/../../helpers/mocks:${PATH}"
+export PATH="${SLOTH_PATH}/tests/helpers/mocks:${PATH}"
 
 # Source core libraries for testing
 #shellcheck disable=SC1091
 . "${SLOTH_PATH}/scripts/core/src/_main.sh"
+
+# Source mock harness
+#shellcheck disable=SC1091
+. "${SLOTH_PATH}/tests/helpers/mock.sh"
+export MOCK_DIR="${SLOTH_PATH}/tests/helpers/mocks"
 
 # Track if we're running in CI
 if [[ -n "${CI:-}" ]]; then
