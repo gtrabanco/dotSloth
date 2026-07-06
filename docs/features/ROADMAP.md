@@ -15,6 +15,7 @@ every row must have a folder (or be explicitly marked "scheduled").
 | 05 | `testing-framework` | done | — | Implementar sistema de testing completo con bats-core | [#240](https://github.com/gtrabanco/dotSloth/issues/240) |
 | 06 | `pm-timeouts` | planned | — | Mejorar sistema de package managers con timeouts configurables | [#241](https://github.com/gtrabanco/dotSloth/issues/241) |
 | 07 | `restorer-v2` | planned | — | Mejorar restorer con validación, rollback, restauración parcial | [#242](https://github.com/gtrabanco/dotSloth/issues/242) |
+| 08 | `test-coverage-expansion` | planned | — | Add tests for sloth_update.sh auto-updater flow + critical path coverage | [#267](https://github.com/gtrabanco/dotSloth/issues/267) |
 
 ## Status legend
 
