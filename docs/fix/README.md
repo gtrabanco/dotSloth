@@ -14,7 +14,7 @@ history lives in git log + closed issues.
 
 | Folder | Topic | Status | Depends on | Issue |
 |--------|-------|--------|------------|-------|
-| 288-eval-injection | eval with user-provided URL is a command injection vector | in-progress | — | [#288](https://github.com/gtrabanco/dotSloth/issues/288) |
+| (none) | | | | |
 
 ## Conventions
 
