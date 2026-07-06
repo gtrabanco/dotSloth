@@ -148,7 +148,7 @@ bun::uninstall() {
     output::solution "bun uninstalled" &&
     return 0
 
-  ourput::error "bun could not be uninstalled"
+  output::error "bun could not be uninstalled"
   return 1
 }
 
@@ -188,6 +188,7 @@ bun::version() {
 
 bun::latest() {
   dot::load_library github
+  script::depends_on jq
 
   bun_remote_version=$(curl --silent "$(github::get_api_url oven-sh/bun "releases/latest")" | jq -r '.tag_name')
   printf "%s\n" "${bun_remote_version##*v}"
