@@ -115,7 +115,7 @@ validate_dotfiles() {
   local dotfiles_path="$1"
   [[ -d "$dotfiles_path" ]] || return 1
   [[ -d "$dotfiles_path/.git" ]] || return 1
-  git -C "$dotfiles_path" rev-parse HEAD >/dev/null 2>&1 || return 1
+  git -C "$dotfiles_path" rev-parse HEAD > /dev/null 2>&1 || return 1
   return 0
 }
 
@@ -123,9 +123,9 @@ validate_dotfiles() {
 create_rollback_point() {
   ROLLBACK_DIR=$(mktemp -d "/tmp/dotSloth-rollback-XXXXXX")
   if [[ -d "${DOTFILES_PATH:-}" ]]; then
-    cp -a "$DOTFILES_PATH" "$ROLLBACK_DIR/dotfiles" 2>/dev/null || true
+    cp -a "$DOTFILES_PATH" "$ROLLBACK_DIR/dotfiles" 2> /dev/null || true
   fi
-  ls -la "$HOME" 2>/dev/null | grep '^l' > "$ROLLBACK_DIR/symlinks.txt" 2>/dev/null || true
+  ls -la "$HOME" 2> /dev/null | grep '^l' > "$ROLLBACK_DIR/symlinks.txt" 2> /dev/null || true
   _a "Rollback point created at $ROLLBACK_DIR"
 }
 
@@ -151,7 +151,7 @@ restorer_cleanup() {
     fi
   fi
   [[ -n "${SUDO_PID:-}" ]] && stop_sudo
-  [[ -n "${ROLLBACK_DIR:-}" ]] && [[ -d "$ROLLBACK_DIR" ]] && rm -rf "$ROLLBACK_DIR" 2>/dev/null || true
+  [[ -n "${ROLLBACK_DIR:-}" ]] && [[ -d "$ROLLBACK_DIR" ]] && rm -rf "$ROLLBACK_DIR" 2> /dev/null || true
 }
 trap restorer_cleanup EXIT
 
@@ -560,37 +560,37 @@ if [[ ! -d "$DOTFILES_PATH" ]]; then
       _a "DRY RUN: would run 'git clone ${GIT_URL} ${DOTFILES_PATH}'"
       _s "DRY RUN: dotfiles would be cloned."
     else
-    _a "Attemping: git clone ${GIT_URL} ${DOTFILES_PATH}"
-    is_cloned=false
-    git clone "${GIT_URL}" "${DOTFILES_PATH}" 2>&1 | _log "Cloning from $GIT_URL" && is_cloned=true
+      _a "Attemping: git clone ${GIT_URL} ${DOTFILES_PATH}"
+      is_cloned=false
+      git clone "${GIT_URL}" "${DOTFILES_PATH}" 2>&1 | _log "Cloning from $GIT_URL" && is_cloned=true
 
-    # This because maybe you do not have yet your ssh-keys because you did not download
-    # your dotfiles. And SSH URL for repository would be the default method using a
-    # repository that you can write.
-    if ! $is_cloned && [[ ! -d "$DOTFILES_PATH" ]] && [[ "$opt" == "GitHub" ]]; then
-      _a "Attemping: git clone ${GIT_URL_MIRROR} ${DOTFILES_PATH}"
-      git clone "$GIT_URL_MIRROR" "$DOTFILES_PATH" 2>&1 | _log "Cloning from $GIT_URL_MIRROR" && is_cloned=true
+      # This because maybe you do not have yet your ssh-keys because you did not download
+      # your dotfiles. And SSH URL for repository would be the default method using a
+      # repository that you can write.
+      if ! $is_cloned && [[ ! -d "$DOTFILES_PATH" ]] && [[ "$opt" == "GitHub" ]]; then
+        _a "Attemping: git clone ${GIT_URL_MIRROR} ${DOTFILES_PATH}"
+        git clone "$GIT_URL_MIRROR" "$DOTFILES_PATH" 2>&1 | _log "Cloning from $GIT_URL_MIRROR" && is_cloned=true
 
-      if $is_cloned; then
-        _s "Dotfiles restored."
-        _w
-        _w "Your dotfiles could not be downloaded using ssh. Were downloaded using https."
-        _w
-        _w "Trying to setup remote origin upstream url with git+ssh protocol"
-        cd "${DOTFILES_PATH}" &&
-          git remote set-url origin "${GIT_URL}" 2>&1 &&
-          _s "SSH Remote was set."
-      else
+        if $is_cloned; then
+          _s "Dotfiles restored."
+          _w
+          _w "Your dotfiles could not be downloaded using ssh. Were downloaded using https."
+          _w
+          _w "Trying to setup remote origin upstream url with git+ssh protocol"
+          cd "${DOTFILES_PATH}" &&
+            git remote set-url origin "${GIT_URL}" 2>&1 &&
+            _s "SSH Remote was set."
+        else
+          _e "Dotfiles could not be cloned. See more details: \`tail -f $HOME/dotly.log\`"
+          exit 1
+        fi
+      elif ! $is_cloned || [[ ! -d "$DOTFILES_PATH" ]]; then
         _e "Dotfiles could not be cloned. See more details: \`tail -f $HOME/dotly.log\`"
         exit 1
       fi
-    elif ! $is_cloned || [[ ! -d "$DOTFILES_PATH" ]]; then
-      _e "Dotfiles could not be cloned. See more details: \`tail -f $HOME/dotly.log\`"
-      exit 1
-    fi
 
-    _s "Dotfiles cloned successfully."
-    _w
+      _s "Dotfiles cloned successfully."
+      _w
     fi
   fi
 fi
