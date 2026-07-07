@@ -6,6 +6,10 @@ apt::title() {
   echo -n "@ APT"
 }
 
+apt::require_sudo_elevation() {
+  return 0
+}
+
 apt::is_available() {
   platform::command_exists apt-get && platform::command_exists apt-cache && platform::command_exists dpkg
 }
