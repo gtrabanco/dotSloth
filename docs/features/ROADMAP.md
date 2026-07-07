@@ -17,7 +17,7 @@ every row must have a folder (or be explicitly marked "scheduled").
 | 07 | `restorer-v2` | done | — | Mejorar restorer con validación, rollback, restauración parcial · [#295](https://github.com/gtrabanco/dotSloth/pull/295) | [#242](https://github.com/gtrabanco/dotSloth/issues/242) |
 | 08 | `test-coverage-expansion` | done | — | Add tests for sloth_update.sh auto-updater flow + critical path coverage · [#293](https://github.com/gtrabanco/dotSloth/pull/293) | [#267](https://github.com/gtrabanco/dotSloth/issues/267) |
 | 09 | `mock-harness` | done | — | Mock harness for external commands (unblocks #268, #273) · [#303](https://github.com/gtrabanco/dotSloth/pull/303) | [#302](https://github.com/gtrabanco/dotSloth/issues/302) |
-| 10 | `core-library-tests` | planned | 09 | Deep functional tests for core libraries (array, str, json, git) | [#301](https://github.com/gtrabanco/dotSloth/issues/301) |
+| 10 | `core-library-tests` | in-progress | 09 | Deep functional tests for core libraries (array, str, json, git) | [#301](https://github.com/gtrabanco/dotSloth/issues/301) |
 
 ## Status legend
 
