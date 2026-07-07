@@ -2,11 +2,14 @@
 # bats file=true
 
 # Functional tests for scripts/core/src/json.sh — json::* functions
-# json::to_yaml depends on yq; json::is_valid depends on jq. Per the SPEC,
-# every test skips when yq is not installed (yq is the gating dependency of the
-# json library and is present in CI). The file-form branches are guarded by
-# `[[ -t 0 ]]`, which is never true under bats (stdin is not a tty), so they
-# are exercised through a small pty helper that skips when python3 is absent.
+# json::is_valid depends on jq; json::to_yaml depends on python-yq (kislyuk/yq),
+# whose `--yaml-output` flag is NOT supported by the Go yq (mikefarah/yq) that is
+# preinstalled on CI. Each test skips when its own dependency is missing:
+# json::is_valid tests skip when jq is absent; json::to_yaml tests skip when
+# python-yq (kislyuk) is absent — detected via `yq --help | grep kislyuk`, like
+# the python-yq recipe. The file-form branches are guarded by `[[ -t 0 ]]`,
+# which is never true under bats (stdin is not a tty), so they are exercised
+# through a small pty helper that skips when python3 is absent.
 
 load "../helpers/setup"
 
@@ -40,10 +43,18 @@ PYEOF
     PTY_STATUS=$?
 }
 
+# json::to_yaml uses `yq --yaml-output`, a python-yq (kislyuk/yq) flag that the
+# Go yq (mikefarah/yq) does not understand. Detect python-yq specifically, the
+# same way the python-yq recipe does, so the to_yaml tests skip (rather than
+# fail) when only the Go yq is installed — as is the case in CI.
+_have_python_yq() {
+    command -v yq >/dev/null 2>&1 && yq --help 2>&1 | grep -q "https://github.com/kislyuk/yq"
+}
+
 # ── json::is_valid ───────────────────────────────────────────────────────────
 
 @test "json::is_valid returns 0 for valid JSON via stdin" {
-    command -v yq >/dev/null 2>&1 || skip "yq not installed"
+    command -v jq >/dev/null 2>&1 || skip "jq not installed"
     local out rc
     out=$(echo "{\"a\":1}" | json::is_valid)
     rc=$?
@@ -51,15 +62,12 @@ PYEOF
 }
 
 @test "json::is_valid returns non-zero for invalid JSON via stdin" {
-    command -v yq >/dev/null 2>&1 || skip "yq not installed"
-    local out rc
-    out=$(echo "{not json}" | json::is_valid)
-    rc=$?
-    [ "$rc" -ne 0 ]
+    command -v jq >/dev/null 2>&1 || skip "jq not installed"
+    ! echo "{not json}" | json::is_valid
 }
 
 @test "json::is_valid returns 0 for a valid JSON file" {
-    command -v yq >/dev/null 2>&1 || skip "yq not installed"
+    command -v jq >/dev/null 2>&1 || skip "jq not installed"
     local f
     f=$(temp_file '{"a":1}')
     _pty_bash ". '${SLOTH_PATH}/scripts/core/src/_main.sh'; json::is_valid '$f'"
@@ -68,10 +76,10 @@ PYEOF
 }
 
 @test "json::is_valid returns non-zero for an invalid JSON file" {
-    command -v yq >/dev/null 2>&1 || skip "yq not installed"
+    command -v jq >/dev/null 2>&1 || skip "jq not installed"
     local f
     f=$(temp_file '{not json}')
-    _pty_bash ". '${SLOTH_PATH}/scripts/core/src/_main.sh'; json::is_valid '$f'"
+    ! _pty_bash ". '${SLOTH_PATH}/scripts/core/src/_main.sh'; json::is_valid '$f'"
     [ "$PTY_STATUS" -ne 0 ]
     rm -f "$f"
 }
@@ -79,7 +87,7 @@ PYEOF
 # ── json::to_yaml ───────────────────────────────────────────────────────────
 
 @test "json::to_yaml converts valid JSON to YAML via stdin" {
-    command -v yq >/dev/null 2>&1 || skip "yq not installed"
+    _have_python_yq || skip "python-yq (kislyuk) not installed"
     local out rc
     out=$(echo "{\"a\":1,\"b\":\"two\"}" | json::to_yaml)
     rc=$?
@@ -89,7 +97,7 @@ PYEOF
 }
 
 @test "json::to_yaml converts valid JSON from a file" {
-    command -v yq >/dev/null 2>&1 || skip "yq not installed"
+    _have_python_yq || skip "python-yq (kislyuk) not installed"
     local f
     f=$(temp_file '{"a":1,"b":"two"}')
     _pty_bash ". '${SLOTH_PATH}/scripts/core/src/_main.sh'; json::to_yaml '$f'"
