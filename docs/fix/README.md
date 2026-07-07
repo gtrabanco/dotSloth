@@ -14,7 +14,7 @@ history lives in git log + closed issues.
 
 | Folder | Topic | Status | Depends on | Issue |
 |--------|-------|--------|------------|-------|
-| 308-309-git-arg-bugs | git.sh argument bugs: add_to_gitignore wrong-file write + current_commit_hash/check_branch_is_behind shift footgun | pending | — | #308, #309 |
+| 308-309-git-arg-bugs | git.sh argument bugs: add_to_gitignore wrong-file write + current_commit_hash/check_branch_is_behind shift footgun | done | — | #308, #309 |
 
 ## Conventions
 
