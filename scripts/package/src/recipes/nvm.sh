@@ -6,7 +6,7 @@ nvm::install_script() {
 }
 
 nvm::finish_install() {
-  . "${SLOTH_PATH:-${DOTLY_PATH:-}}/shell/init.scripts/nvm"
+  . "${SLOTH_PATH:-}/shell/init.scripts/nvm"
   nvm install --lts --latest-npm
   sleep 1s
   nvm use --lts
@@ -17,7 +17,7 @@ nvm::finish_install() {
 nvm::is_installed() {
   if
     [[ -z "${NVM_DIR:-}" && -z "${XDG_CONFIG_HOME:-}" ]] &&
-      command -v brew &> /dev/null &&
+      command -v brew > /dev/null 2>&1 &&
       [[ -n "$(brew --prefix nvm)" ]]
   then
     NVM_DIR="$(brew --prefix nvm)"
@@ -28,7 +28,7 @@ nvm::is_installed() {
   fi
   export NVM_DIR
 
-  [[ -s "${NVM_DIR}/nvm.sh" ]] && \. "${SLOTH_PATH:-${DOTLY_PATH:-}}/shell/init.scripts/nvm" && platform::command_exists nvm
+  [[ -s "${NVM_DIR}/nvm.sh" ]] && \. "${SLOTH_PATH:-}/shell/init.scripts/nvm" && platform::command_exists nvm
 }
 
 nvm::install() {
@@ -43,18 +43,20 @@ nvm::install() {
     nvm::install_script
   fi
 
-  if nvm::is_installed && [[ -n "${DOTFILES_PATH:-}" ]]; then
+  if nvm::is_installed && [[ -z "${DOTFILES_PATH:-}" ]]; then
     nvm::finish_install
-    ln -sf "${SLOTH_PATH:-${DOTLY_PATH:-}}/shell/init.scripts/nvm" "${DOTFILES_PATH:-}/shell/init.scripts-enabled/nvm"
+    ln -sf "${SLOTH_PATH:-}/shell/init.scripts/nvm" "${DOTFILES_PATH:-/dev/null}/shell/init.scripts-enabled/nvm"
   elif nvm::is_installed; then
     nvm::finish_install
     output::empty_line
-    output::answer "You should add these lines to your \`.bashrc\` & \`.zshrc\` manully because your \`DOTFILES_PATH\` could not be detected"
-    output::write "    \`. \"${SLOTH_PATH:-${DOTLY_PATH:-}}/shell/init.scripts/nvm\"\`"
+    output::write "Check if \`nvm\` init script is enabled by executing:"
+    output::answer "\`dot init status nvm\`"
+    output::write "If not try to activate by using"
+    output::answer "\`dot init enable nvm\`"
     output::empty_line
   fi
 
-  . "${SLOTH_PATH:-${DOTLY_PATH:-}}/shell/init.scripts/nvm"
+  . "${SLOTH_PATH:-}/shell/init.scripts/nvm"
 
   nvm::is_installed &&
     output::solution "Nvm, node, npm and npx installed" &&
@@ -64,7 +66,7 @@ nvm::install() {
 
 nvm::uninstall() {
   [[ -d "${NVM_DIR:-}" ]] && rm -rf "${NVM_DIR:-}"
-  [[ -e "${DOTFILES_PATH:-}/shell/init.scripts-enabled/nvm" ]] && rm -rf "${DOTFILES_PATH:-}/shell/init.scripts-enabled/nvm"
+  [[ -e "${DOTFILES_PATH:-/dev/null}/shell/init.scripts-enabled/nvm" ]] && rm -rf "${DOTFILES_PATH:-/dev/null}/shell/init.scripts-enabled/nvm"
   unset -f nvm npx npm node
   ! nvm::is_installed && output::answer "nvm uninstalled" && return 0
 

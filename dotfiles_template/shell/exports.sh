@@ -29,12 +29,21 @@ export SLOTH_UPDATE_AVAILABE_FILE='${DOTFILES_PATH}/.sloth_update_available'
 export SLOTH_FORCE_CURRENT_VERSION_FILE='${DOTFILES_PATH}/.sloth_force_current_version'
 
 # ------------------------------------------------------------------------------
-# Codely theme config
+# Theme config
 # ------------------------------------------------------------------------------
+export SLOTH_BASH_THEME="sloth"
+export SLOTH_ZSH_THEM="codely"
 export CODELY_THEME_MINIMAL=false
 export CODELY_THEME_MODE="dark"
 export CODELY_THEME_PROMPT_IN_NEW_LINE=false
 export CODELY_THEME_PWD_MODE="short" # full, short, home_relative
+
+# ------------------------------------------------------------------------------
+# Package Manager config
+# ------------------------------------------------------------------------------
+# BREW_BIN="/usr/local/bin/brew" # /opt/homebrew/bin/brew
+# Define BREW_BIN makes .Sloth to load quite faster
+# HOMEBREW_PREFIX="/usr/local" # /opt/homebrew
 
 # ------------------------------------------------------------------------------
 # Languages

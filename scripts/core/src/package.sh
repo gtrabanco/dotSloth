@@ -1,31 +1,33 @@
 #!/usr/bin/env bash
 
+DOTFILES_PACKAGE_MANAGERS_PATH="${DOTFILES_PACKAGE_MANAGERS_PATH:-${DOTFILES_PATH:-${HOME}/.dotfiles}/package/managers}"
+
 if [[ -n "${PACKAGE_MANAGERS_SRC[*]:-}" ]]; then
   if
-    ! array::exists_value "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/package/src/package_managers" "${PACKAGE_MANAGERS_SRC[@]}" ||
-      ! array::exists_value "${DOTFILES_PATH:-}/package/managers" "${PACKAGE_MANAGERS_SRC[@]}"
+    ! array::exists_value "${SLOTH_PATH:-/dev/null}/scripts/package/src/package_managers" "${PACKAGE_MANAGERS_SRC[@]}" ||
+      ! array::exists_value "$DOTFILES_PACKAGE_MANAGERS_PATH" "${PACKAGE_MANAGERS_SRC[@]}"
   then
     export PACKAGE_MANAGERS_SRC=(
-      "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/package/src/package_managers"
-      "${DOTFILES_PATH:-}/package/managers"
+      "${SLOTH_PATH:-/dev/null}/scripts/package/src/package_managers"
+      "$DOTFILES_PACKAGE_MANAGERS_PATH"
       "${PACKAGE_MANAGERS_SRC[@]}"
     )
   fi
 else
   export PACKAGE_MANAGERS_SRC=(
-    "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/package/src/package_managers"
-    "${DOTFILES_PATH:-}/package/managers"
+    "${SLOTH_PATH:-/dev/null}/scripts/package/src/package_managers"
+    "$DOTFILES_PACKAGE_MANAGERS_PATH"
   )
 fi
 
 if [[ -z "${SLOTH_PACKAGE_MANAGERS_PRECEDENCE:-}" ]]; then
   if platform::is_macos; then
     export SLOTH_PACKAGE_MANAGERS_PRECEDENCE=(
-      brew cargo pip volta npm mas
+      mas brew cargo pipx pip volta npm
     )
   else
     export SLOTH_PACKAGE_MANAGERS_PRECEDENCE=(
-      apt snap brew dnf pacman yum cargo pip gem volta npm
+      brew apt snap dnf pacman yum cargo pipx pip gem volta npm
     )
   fi
 fi
@@ -41,7 +43,7 @@ package::manager_exists() {
   local -r package_manager="${1:-}"
   for package_manager_src in "${PACKAGE_MANAGERS_SRC[@]}"; do
     [[ -f "${package_manager_src}/${package_manager}.sh" ]] &&
-      echo "${package_manager_src}/${package_manager}.sh" &&
+      printf "%s" "${package_manager_src}/${package_manager}.sh" &&
       return
   done
 }
@@ -72,27 +74,24 @@ package::load_manager() {
 # @param any commands command or command that must have the package managers to list them as available
 #"
 package::get_all_package_managers() {
-  local package_manager_src package_manager command has_all
+  local package_manager_src package_manager package_command has_all
 
-  for package_manager_src in $(find "${PACKAGE_MANAGERS_SRC[@]}" -maxdepth 1 -mindepth 1 -name "*.sh" -print0 2> /dev/null | xargs -0 -I _ echo _); do
+  for package_manager_src in $(find "${PACKAGE_MANAGERS_SRC[@]}" -maxdepth 1 -mindepth 1 -name "*.sh" -print0 2> /dev/null | xargs -0); do
     # Get package manager name
     #shellcheck disable=SC2030
     package_manager="$(basename "$package_manager_src")"
     package_manager="${package_manager%%.sh}"
     has_all=true
 
-    # Check if it is a valid package manager
-    [[ -z "$(package::manager_exists "$package_manager")" ]] && continue
-
-    if [[ -n "$*" ]]; then
-      for command in "$@"; do
-        if ! script::function_exists "$package_manager_src" "${package_manager}::${command}"; then
-          has_all=false
-        fi
+    if [[ $# -gt 0 ]]; then
+      for package_command in "$@"; do
+        ! script::function_exists "$package_manager_src" "${package_manager}::${package_command}" && has_all=false && break
       done
     fi
 
-    $has_all && echo "$package_manager"
+    if ${has_all:-true}; then
+      printf "%s\n" "$package_manager"
+    fi
   done
 }
 
@@ -108,7 +107,7 @@ package::get_available_package_managers() {
     package_manager="${package_manager_filename%%.sh}"
 
     if package::command "$package_manager" "is_available"; then
-      echo "$package_manager"
+      printf "%s\n" "$package_manager"
     fi
   done
 }
@@ -125,7 +124,7 @@ package::manager_preferred() {
   eval "$(array::uniq_unordered "${SLOTH_PACKAGE_MANAGERS_PRECEDENCE[@]}" "${all_available_pkgmgrs[@]}")"
 
   if [[ ${#uniq_values[@]} -gt 0 ]]; then
-    echo "${uniq_values[0]}"
+    printf "%s" "${uniq_values[0]}"
   fi
 }
 
@@ -220,7 +219,9 @@ package::which_package_manager() {
   # Check every package manager first because maybe registry has used a package manager
   for package_manager in $(package::get_all_package_managers "is_available" "is_installed"); do
     package::command "$package_manager" "is_available" &&
-      package::command "$package_manager" is_installed "$package_name" && echo "$package_manager" && return
+      package::command "$package_manager" is_installed "$package_name" &&
+      printf "%s" "$package_manager" &&
+      return
   done
 
   # Because registry::is_installed is defined in core. This is a expected behavior and we do it at
@@ -230,7 +231,7 @@ package::which_package_manager() {
       [[ -n "$(registry::recipe_exists "$package_name")" ]] &&
       registry::command_exists "$package_name" "is_installed"
   then
-    registry::is_installed "$package_name" && echo "registry" && return
+    registry::is_installed "$package_name" && printf "%s" "registry" && return
     return 1
   fi
 
@@ -263,8 +264,10 @@ package::is_installed() {
   then
     registry::is_installed "$package_name" && return
     return 1
+
+  # auto package manager means any but not registry
   elif [[ $package_manager == "auto" || -z "$package_manager" ]]; then
-    package::which_package_manager "$package_name" true &> /dev/null && return 0
+    package::which_package_manager "$package_name" true > /dev/null 2>&1 && return 0
   elif [[ -n "$package_manager" ]]; then
     package::command_exists "$package_manager" "is_installed" && package::command "$package_manager" "is_installed" "$package_name" && return
   fi
@@ -328,11 +331,23 @@ package::_install() {
 # @return boolen
 #"
 package::install() {
-  local all_available_pkgmgrs uniq_values package_manager package
-  [[ -z "${1:-}" ]] && return 1
-  package="$1"
-  shift
-  package_manager="${1:-}"
+  local _args all_available_pkgmgrs uniq_values package_manager package
+
+  if [[ $* == *"--force"* ]]; then
+    mapfile -t _args < <(array::substract "--force" "$@")
+
+    package::force_install "${_args[@]}" &&
+      return
+
+    log::error "Unable to force install \`$package\` with \`$package_manager\`"
+    return 1
+  else
+    [[ -z "${1:-}" ]] && return 1
+    package="$1"
+    shift
+    package_manager="${1:-}"
+  fi
+
   if [[ -n "$package_manager" ]]; then
     shift
     # Allow to use recipe(s) instead of registry
@@ -388,8 +403,50 @@ package::install() {
 }
 
 #;
+# package::force_install()
+# Install using forced method if implemented for the given package, if second parameter is used as the package manager to be used or it will fail
+# @param string package_name
+# @param string package_manager Can be "any" to use any package manager or registry. "auto" to use any one except registry. "recipe" or "registry" are aliases. Can be any other valid package manager in 'scripts/package/src/package_managers'.
+# @param any args Additional arguments to be passed to install function (package_manager is required then)
+# @return boolean True if installed and false if still installed
+#"
+package::force_install() {
+  local package_manager package_name recipe_path
+  [[ $# -lt 1 ]] && log::error "There is no package name" && return 1
+
+  mapfile -t _args < <(array::substract "--force" "$@")
+  package_name="${_args[0]:-}"
+  package_manager="${_args[1]:-}"
+  [[ -z "$package_name" ]] && return 1
+
+  recipe_path="$(registry::recipe_exists "$package_name")"
+  if [[ -n "$recipe_path" || $package_manager == "registry" || $package_manager == "recipe" ]]; then
+    package_manager=registry
+    registry::force_install "$package_name" "${_args[@]:2}" &&
+      return
+
+  elif
+    [[ -n "$package_manager" ]] &&
+      package::command_exists "$package_manager" "force_install"
+  then
+    package::command "$package_manager" "force_install" "$package_name" "${_args[@]:2}" && return
+
+  elif
+    [[ -n "$package_manager" ]] &&
+      package::command_exists "$package_manager" "uninstall" &&
+      package::uninstall "$package_name" "$package_manager" "${_args[@]:2}" &&
+      package::command_exists "$package_manager" "install"
+  then
+    package::command "$package_manager" "install" "$package_name" "${_args[@]:2}" && return
+  fi
+
+  log::error "Unable to force install \`$package_name\` with \`$package_manager\`"
+  return 1
+}
+
+#;
 # package::uninstall()
-# Uninstall the given package, if second parameter is given it will try do it with package manager
+# Uninstall the given package, if second parameter is used as the package manager to be used or it will fail
 # @param string package_name
 # @param string package_manager Can be "any" to use any package manager or registry. "auto" to use any one except registry. "recipe" or "registry" are aliases. Can be any other valid package manager in 'scripts/package/src/package_managers'.
 # @param any args Additional arguments to be passed to uninstall function (package_manager is required then)
@@ -417,14 +474,15 @@ package::uninstall() {
       registry::uninstall "$package_name" "$@" && ! registry::is_installed "$package_name" && return 0
     fi
   else
-    [[ $package_manager == "auto" || -z "$package_manager" ]] && package_manager="$(package::which_package_manager "$package_name" || echo -n)"
+    [[ $package_manager == "auto" || -z "$package_manager" ]] && package_manager="$(package::which_package_manager "$package_name" true || true)"
+    echo "- $package_manager -"
     if
       [[ 
         -z "$package_manager" ||
         -z "$(package::manager_exists "$package_manager")" ]]
     then
 
-      echo "Package manager $package_manager"
+      printf "%s" "Package manager $package_manager"
       # Could not determine which package manager to be used or package manager not exists
       return 1
     fi
@@ -439,26 +497,11 @@ package::uninstall() {
 }
 
 #;
-# package::which_file()
-# Askt to user for a file in given files_path and output it. Used to get the file to import packages
-# @param string files_path
-# @param string header For fzf
-# @return string|void
+# package::remove()
+# Alias of package::uninstall
 #"
-package::which_file() {
-  local files_path header answer files
-  [[ $# -lt 3 ]] && return
-  files_path="$(realpath -sm "$1")"
-  header="$2"
-
-  #shellcheck disable=SC2207
-  files=($(find "$files_path" -not -iname ".*" -maxdepth 1 -type f,l -print0 2> /dev/null | xargs -0 -I _ basename _ | sort -u))
-
-  if [[ -d "$files_path" && ${#files[@]} -gt 0 ]]; then
-    answer="$(printf "%s\n" "${files[@]}" | fzf -0 --filepath-word -d ',' --prompt "$(hostname -s) > " --header "$header" --preview "[[ -f $files_path/{} ]] && cat $files_path/{} || echo No import a file for this package manager")"
-    [[ -f "$files_path/$answer" ]] && answer="$files_path/$answer" || answer=""
-  fi
-  echo "$answer"
+package::remove() {
+  package::uninstall "$@"
 }
 
 #;
@@ -497,4 +540,36 @@ package::common_import_check() {
     [[ -n "$file_path" ]] &&
     [[ -n "$(package::manager_exists "$package_manager")" ]] &&
     [[ -f "$file_path" ]]
+}
+
+#;
+# package::run_with_timeout()
+# Run a command with a timeout. Uses gtimeout, timeout, or bash job control as fallback.
+# @param number timeout_seconds Timeout in seconds (default: 300)
+# @param any args Command and arguments to run
+# @return int Command exit code, or 124 on timeout
+#"
+package::run_with_timeout() {
+  local -r timeout_seconds="${1:-${SLOTH_PM_TIMEOUT:-300}}"
+  shift
+
+  if command -v gtimeout &> /dev/null; then
+    gtimeout "$timeout_seconds" "$@"
+  elif command -v timeout &> /dev/null; then
+    timeout "$timeout_seconds" "$@"
+  else
+    local cmd_pid timer_pid exit_code
+    "$@" &
+    cmd_pid=$!
+    (
+      sleep "$timeout_seconds"
+      kill "$cmd_pid" 2> /dev/null
+    ) &
+    timer_pid=$!
+    wait "$cmd_pid" 2> /dev/null
+    exit_code=$?
+    kill "$timer_pid" 2> /dev/null
+    wait "$timer_pid" 2> /dev/null
+    return "$exit_code"
+  fi
 }

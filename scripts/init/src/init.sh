@@ -7,7 +7,7 @@ fi
 
 # PR annotation
 # If you change this folders you should also change them in init-dotly.sh
-SLOTH_INIT_SCRIPTS_PATH="${SLOTH_PATH:-${DOTLY_PATH:-}}/shell/init.scripts"
+SLOTH_INIT_SCRIPTS_PATH="${SLOTH_PATH:-}/shell/init.scripts"
 DOTFILES_INIT_SCRIPTS_PATH="${DOTFILES_INIT_SCRIPTS_PATH:-$DOTFILES_PATH/shell/init.scripts}"
 ENABLED_INIT_SCRIPTS_PATH="${ENABLED_INIT_SCRIPTS_PATH:-$DOTFILES_PATH/shell/init.scripts-enabled}"
 
@@ -18,12 +18,13 @@ ENABLED_INIT_SCRIPTS_PATH="${ENABLED_INIT_SCRIPTS_PATH:-$DOTFILES_PATH/shell/ini
   exit 1
 
 [[ ! -d "$SLOTH_INIT_SCRIPTS_PATH" ]] &&
-  output::error "The init scripts of SLOTH does not exists." &&
+  output::error "The init scripts of .Sloth does not exists." &&
   output::write "Try with \`dot self migration v2.0.0\` first." &&
   exit 1
 
 init::exists_script() {
-  [[ -e "$SLOTH_INIT_SCRIPTS_PATH/$1" ]] || [[ -e "$DOTFILES_INIT_SCRIPTS_PATH" ]]
+  [[ -z "${1:-}" ]] && return 1
+  [[ -e "${SLOTH_INIT_SCRIPTS_PATH}/${1}" ]] || [[ -e "${DOTFILES_INIT_SCRIPTS_PATH}/${1}" ]]
 }
 
 init::status() {
@@ -59,30 +60,47 @@ init::fzf() {
 }
 
 init::enable() {
-  local sloth_init_path dotfiles_init_path to item
+  local sloth_init_path dotfiles_init_path to item status=0
   sloth_init_path="$SLOTH_INIT_SCRIPTS_PATH"
   dotfiles_init_path="$DOTFILES_INIT_SCRIPTS_PATH"
   to="$ENABLED_INIT_SCRIPTS_PATH"
 
   for item in "$@"; do
-    [[ -e "$sloth_init_path/$item" ]] &&
-      [[ ! -e "$to/$item" ]] &&
+    if
+      [[ -e "$sloth_init_path/$item" ]] &&
+        [[ ! -e "$to/$item" ]]
+    then
       rm -f "$to/$item" &&
-      ln -s "$sloth_init_path/$item" "$to/"
+        ln -s "$sloth_init_path/$item" "$to/"
+      continue
+    fi
 
-    [[ -e "$dotfiles_init_path/$item" ]] &&
-      [[ ! -e "$to/$item" ]] &&
+    if
+      [[ -e "$dotfiles_init_path/$item" ]] &&
+        [[ ! -e "$to/$item" ]]
+    then
       rm -f "$to/$item" &&
-      ln -s "$dotfiles_init_path/$item" "$to/"
+        ln -s "$dotfiles_init_path/$item" "$to/"
+      continue
+    fi
+
+    status=1
   done
+
+  return $status
 }
 
 init::disable() {
-  local enabled_path item
+  local enabled_path item status=0
   enabled_path="$ENABLED_INIT_SCRIPTS_PATH"
 
   for item in "$@"; do
-    [[ -e "$enabled_path/$item" ]] &&
+    if [[ -e "$enabled_path/$item" ]]; then
       rm -f "$enabled_path/$item"
+    else
+      status=1
+    fi
   done
+
+  return $status
 }

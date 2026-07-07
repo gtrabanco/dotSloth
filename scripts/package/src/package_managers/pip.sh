@@ -1,7 +1,11 @@
 #!/usr/bin/env bash
 
 pip_title='🐍 pip'
-PYTHON_DUMP_FILE_PATH="$DOTFILES_PATH/langs/python/$(hostname -s).txt"
+PYTHON_DUMP_FILE_PATH="${PYTHON_DUMP_FILE_PATH:-${DOTFILES_PATH}/langs/python/$(hostname -s).txt}"
+
+pip::title() {
+  echo -n "🐍 pip"
+}
 
 # Just a wrapper to change it anytime that would be neccesary
 pip::pip() {
@@ -9,11 +13,11 @@ pip::pip() {
 }
 
 pip::is_available() {
-  platform::command_exists python3 && python3 -c "import pip; print(pip.__version__)" &> /dev/null
+  platform::command_exists python3 && python3 -c "import pip; print(pip.__version__)" > /dev/null 2>&1
 }
 
 pip::is_installed() {
-  [[ -n "${1:-}" ]] && pip::pip show "$1" &> /dev/null
+  [[ -n "${1:-}" ]] && pip::pip show "$1" > /dev/null 2>&1
 }
 
 # Not define the function because it is not possible to do it with pip
@@ -30,6 +34,7 @@ pip::uninstall() {
 }
 
 pip::update_apps() {
+  local outdated
   outdated=$(pip::pip list --outdated | tail -n +3)
 
   if [ -n "$outdated" ]; then
@@ -48,7 +53,7 @@ pip::update_apps() {
       output::write "└ $url"
       output::empty_line
 
-      pip::pip install install -U "$package" 2>&1 | log::file "Updating pip app: ${package}"
+      pip::pip install -U "$package" 2>&1 | log::file "Updating pip app: ${package}"
     done
   else
     output::answer "Already up-to-date"
@@ -56,7 +61,8 @@ pip::update_apps() {
 }
 
 pip::self_update() {
-  pip::pip install --upgrade --user pip 2>&1 | log::file "Updating ${pip_title}"
+  local -r timeout="${PIP_TIMEOUT:-${SLOTH_PM_TIMEOUT:-300}}"
+  package::run_with_timeout "$timeout" pip::pip install --upgrade --user pip 2>&1 | log::file "Updating ${pip_title}"
 }
 
 pip::update_all() {
@@ -80,7 +86,7 @@ pip::dump() {
 pip::import() {
   PYTHON_DUMP_FILE_PATH="${1:-$PYTHON_DUMP_FILE_PATH}"
 
-  if package::common_import_check pip::pip "$PYTHON_DUMP_FILE_PATH"; then
+  if package::common_import_check pip "$PYTHON_DUMP_FILE_PATH"; then
     pip::pip install -r "$PYTHON_DUMP_FILE_PATH" | log::file "Importing ${pip_title} packages"
 
     return 0

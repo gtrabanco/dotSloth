@@ -1,16 +1,49 @@
 #!/usr/bin/env bash
 #shellcheck disable=SC2016
 
+# Please make sure next formulas are installed before using this library
 # script::depends_on realpath tee python-yq jq
 
 # DOTBOT_BASE_PATH is the path used in option -d when executing dotbot
 DOTBOT_BASE_PATH="${DOTBOT_BASE_PATH:-$DOTFILES_PATH}"
 
 # Where to look for the yaml files
-DOTBOT_DEFAULT_YAML_FILES_BASE_PATH="${DOTBOT_DEFAULT_YAML_FILES_BASE_PATH:-$DOTBOT_BASE_PATH/symlinks}"
+DOTBOT_DEFAULT_YAML_FILES_BASE_PATH="${DOTBOT_DEFAULT_YAML_FILES_BASE_PATH:-${DOTBOT_BASE_PATH}/symlinks}"
 
 # Where is placed dotbot
-DOTBOT_SCRIPT_BIN="${DOTBOT_SCRIPT_BIN:-${SLOTH_PATH:-${DOTLY_PATH:-}}/modules/dotbot/bin/dotbot}"
+DOTBOT_SCRIPT_BIN="${DOTBOT_SCRIPT_BIN:-}"
+
+# Default file to retrieve when looking for default dotbot file
+DOTBOT_DEFAULT_YAML_FILE_NAME="${DOTBOT_DEFAULT_YAML_FILE_NAME:-conf.yaml}"
+
+#;
+# dotbot::exec()
+# Execute dotbot with the given arguments
+#"
+dotbot::exec() {
+  local db
+  local -r dotbot_paths=(
+    "$(command -v dotbot || true)"
+    "${DOTFILES_PATH}/${DOTBOT_GIT_SUBMODULE:-modules/dotbot}/bin/dotbot"
+    "${HOME}/bin/dotbot"
+    "${HOME}/.dotbot/bin/dotbot"
+  )
+
+  if [[ ! -x "$DOTBOT_SCRIPT_BIN" ]]; then
+    for db in "${dotbot_paths[@]}"; do
+      if [[ -x "$db" ]]; then
+        DOTBOT_SCRIPT_BIN="$db"
+        break
+      fi
+    done
+  fi
+
+  [[ ! -x "$DOTBOT_SCRIPT_BIN" ]] &&
+    output::error "Dotbot could not be found. Please use \`dot package add dotbot_git\` or \`dot package add dotbot\` to install." &&
+    return 1
+
+  "$DOTBOT_SCRIPT_BIN" "$@"
+}
 
 #;
 # dotbot::yaml_file_path()
@@ -20,7 +53,7 @@ DOTBOT_SCRIPT_BIN="${DOTBOT_SCRIPT_BIN:-${SLOTH_PATH:-${DOTLY_PATH:-}}/modules/d
 #"
 dotbot::yaml_file_path() {
   local yaml_file_posibilities yaml_file yaml_dir_path
-  yaml_file="${1:-}"
+  yaml_file="${1:-${DOTBOT_DEFAULT_YAML_FILE_NAME:-conf.yaml}}"
   yaml_dir_path="${2:-$DOTBOT_DEFAULT_YAML_FILES_BASE_PATH}"
   yaml_file_posibilities=(
     "$yaml_file"
@@ -372,7 +405,7 @@ dotbot::apply_yaml() {
     -c "$yaml_file"
   )
 
-  "$DOTBOT_SCRIPT_BIN" "${_args[@]}" || {
+  dotbot::exec "${_args[@]}" || {
     output::error "Error applying symlinks file name \`$yaml_file\`"
     return 1
   }

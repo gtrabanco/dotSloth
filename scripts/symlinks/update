@@ -3,12 +3,12 @@
 set -euo pipefail
 
 #shellcheck disable=SC1091
-. "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/_main.sh"
+. "${SLOTH_PATH:-}/scripts/core/_main.sh"
 dot::load_library "dotbot.sh"
 
 symlinks::get_files() {
-  [[ -d "${SLOTH_PATH:-${DOTLY_PATH:-}}/symlinks" ]] &&
-    find "${SLOTH_PATH:-${DOTLY_PATH:-}}/symlinks" -name "*.yaml" -type f,l -print0 |
+  [[ -d "${SLOTH_PATH:-}/symlinks" ]] &&
+    find "${SLOTH_PATH:-}/symlinks" -name "*.yaml" -type f,l -print0 |
     xargs -0 -I _ basename _ | sort
 }
 
@@ -32,22 +32,13 @@ symlinks::fzf() {
 ##?   -p --no-prompt  Avoid warning the user about the consecuences of apply
 ##?                   a dotbot file.
 ##?
-##? SCRIPT_VERSION "2.0.0"
+#? 2.0.0
 docs::parse "$@"
-
-SCRIPT_NAME="sloth symlinks update"
-SCRIPT_VERSION="1.0.0"
-
-# Print name and version
-if ${version:-false}; then
-  output::write "$SCRIPT_NAME v$SCRIPT_VERSION"
-  exit
-fi
 
 if [[ -z "$symlinks_file" ]]; then
   symlinks_file="$(symlinks::get_files | symlinks::fzf)"
   [[ -z "$symlinks_file" ]] && exit 0
-  symlinks_file="${SLOTH_PATH:-${DOTLY_PATH:-}}/symlinks/$symlinks_file"
+  symlinks_file="${SLOTH_PATH:-}/symlinks/$symlinks_file"
 else
   for f in "$symlinks_file" "$symlinks_file.yaml" "$symlinks_file.yml"; do
     [[ -e "$f" ]] && symlinks_file="$f" && break

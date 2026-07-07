@@ -1,21 +1,25 @@
 #!/usr/bin/env bash
 
 #shellcheck disable=SC2034
-gem_title='♦️  gem'
+gem_title='♦️ gem'
 
-if command -v gem &> /dev/null; then
+if command -v gem > /dev/null 2>&1; then
   [[ -z "${GEM_HOME:-}" ]] && export GEM_HOME="${HOME}/.gem"
 
   # Path GEM HOME does not exist in PATH
   PATH="$(command -v gem env gempath)${PATH:+:$PATH}"
 fi
 
+gem::title() {
+  echo -n "♦️ gem"
+}
+
 gem::is_available() {
   platform::command_exists gem
 }
 
 gem::install() {
-  [[ -n "${1:-}" ]] && gem::is_available && gem install "$@"
+  [[ -n "${1:-}" ]] && gem::is_available && gem install --user-install "$@"
 }
 
 gem::is_installed() {
@@ -36,12 +40,23 @@ gem::package_exists() {
 }
 
 gem::self_update() {
-  gem::is_available && gem update --system | log::file "Updating ${gem_title}"
+  local -r timeout="${GEM_TIMEOUT:-${SLOTH_PM_TIMEOUT:-300}}"
+  if command -p sudo -v -n 2> /dev/null; then
+    gem::is_available && package::run_with_timeout "$timeout" gem update --system 2>&1 | log::file "Updating ${gem_title}"
+  fi
 }
 
 gem::update_apps() {
   ! gem::is_available && return 1
-  outdated=$(gem outdated)
+  local outdated gem_outdated_exit
+
+  outdated=$(gem outdated 2> /dev/null)
+  gem_outdated_exit=$?
+
+  if [ "$gem_outdated_exit" -ne 0 ]; then
+    output::error "Error checking for updates (exit code ${gem_outdated_exit}). See \`dot self debug\` for details."
+    return 1
+  fi
 
   if [ -n "$outdated" ]; then
     echo "$outdated" | while IFS= read -r outdated_app; do

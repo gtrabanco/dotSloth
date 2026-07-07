@@ -2,10 +2,10 @@
 
 set -euo pipefail
 
-[[ -z "${SLOTH_PATH:-${DOTLY_PATH:-}}" ]] && exit 1
+[[ -z "${SLOTH_PATH:-}" ]] && exit 1
 
 #shellcheck disable=SC1091
-. "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/src/_main.sh"
+. "${SLOTH_PATH:-}/scripts/core/src/_main.sh"
 
 ##? Perform a cleanup in all available package managers
 ##?
@@ -21,6 +21,7 @@ set -euo pipefail
 ##? Author:
 ##?   Gabriel Trabanco Llano <gtrabanco@users.noreply.github.com>
 ##?
+#? v1.0.0
 docs::parse "$@"
 
 output::h1_without_margin "🧹 Performing a cleanup in all available package managers"

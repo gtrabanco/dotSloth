@@ -1,14 +1,12 @@
 #!/usr/bin/env bash
 
-set -uo pipefail
+set -euo pipefail
 
-[[ -z "${SLOTH_PATH:-${DOTLY_PATH:-}}" ]] && exit 1
+[[ -z "${SLOTH_PATH:-}" ]] && exit 1
 
 #shellcheck disable=SC1091
-. "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/src/_main.sh"
+. "${SLOTH_PATH:-}/scripts/core/src/_main.sh"
 dot::load_library "templating.sh" "core"
-dot::load_library "git_extended.sh" "core"
-dot::load_library "sloth_update.sh" "core"
 
 ##?  Executes migration scripts for dotfiles. If your dotly is updated and no
 ##? script version is provided then try to guess the latest necessary migration
@@ -28,16 +26,8 @@ dot::load_library "sloth_update.sh" "core"
 ##? Author:
 ##?   Gabriel Trabanco Llano <gtrabanco@users.noreply.github.com>
 ##?
-##? SCRIPT_VERSION "2.0.0"
+#? v2.0.0
 docs::parse "$@"
-
-SCRIPT_NAME="sloth core version"
-
-# Print name and version
-if ${version:-}; then
-  output::write "$SCRIPT_NAME v$SCRIPT_VERSION"
-  exit
-fi
 
 output::header "SLOTH migration wizard"
 
@@ -53,7 +43,7 @@ then
     to_version="$(sloth_update::get_current_version)"
     rm -f "${SLOTH_UPDATED_FILE:-$DOTFILES_PATH/.sloth_updated}"
     output::empty_line
-    output::write "     🥳 🎉 🍾      SLOTH UPDATED     🥳 🎉 🍾  "
+    output::write "     🥳 🎉 🍾      .Sloth updated     🥳 🎉 🍾  "
     output::empty_line
     output::answer "Detected a migration script: executing the script."
   else
@@ -61,10 +51,10 @@ then
   fi
 
 elif [[ -z "${to_version:-}" ]]; then
-  to_version="$(find "${SLOTH_PATH:-${DOTLY_PATH:-}}/migration/" -name "*" -type f,l -executable -print0 | xargs -0 -I _ basename _ | sort --reverse | fzf --header "Select migration script version")"
+  to_version="$(find "${SLOTH_PATH:-}/migration/" -name "*" -type f,l -executable -print0 | xargs -0 -I _ basename _ | sort --reverse | fzf --header "Select migration script version")"
 fi
 
-if [[ -n "$to_version" ]] && [[ -x "${SLOTH_PATH:-${DOTLY_PATH:-}}/migration/${to_version}" ]]; then
+if [[ -n "$to_version" ]] && [[ -x "${SLOTH_PATH:-}/migration/${to_version}" ]]; then
   output::write "You will execute migration script for \`${to_version}\` this could"
   output::write "result in a damage of your current dotfiles if they are not"
   output::write "organized as expected."
@@ -75,14 +65,14 @@ if [[ -n "$to_version" ]] && [[ -x "${SLOTH_PATH:-${DOTLY_PATH:-}}/migration/${t
   output::empty_line
 
   #shellcheck source=/dev/null
-  . "${SLOTH_PATH:-${DOTLY_PATH:-}}/migration/${to_version}" || output::error "Migration script '${to_version}' could not be executed"
+  . "${SLOTH_PATH:-}/migration/${to_version}" || output::error "Migration script '${to_version}' could not be executed"
 else
   output::error "There is no migration script for version '${to_version}' or is not a executable file"
 fi
 
-if [[ -n "$to_version" ]] && { [[ -f "${SLOTH_PATH:-${DOTLY_PATH:-}}/symlinks/${to_version}.yaml" ]] || [[ -f "${SLOTH_PATH:-${DOTLY_PATH:-}}/symlinks/${to_version}.yml" ]]; }; then
+if [[ -n "$to_version" ]] && { [[ -f "${SLOTH_PATH:-}/symlinks/${to_version}.yaml" ]] || [[ -f "${SLOTH_PATH:-}/symlinks/${to_version}.yml" ]]; }; then
   output::header "Applying symlinks for '${to_version}'"
-  "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" symlinks update "${to_version}"
+  "${SLOTH_PATH:-}/bin/dot" symlinks update "${to_version}"
 fi
 
 # If migration script is executed then finalize the update
@@ -90,7 +80,7 @@ if ${updated:-false}; then
   if [[ -f "${SLOTH_UPDATED_FILE:-$DOTFILES_PATH/.sloth_updated}" ]]; then
     rm -f "${SLOTH_UPDATED_FILE:-$DOTFILES_PATH/.sloth_updated}"
     output::empty_line
-    output::write "     🥳 🎉 🍾      SLOTH UPDATED     🥳 🎉 🍾  "
+    output::write "     🥳 🎉 🍾      .Sloth updated     🥳 🎉 🍾  "
     output::empty_line
   fi
 fi

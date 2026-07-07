@@ -1,16 +1,32 @@
 #!/usr/bin/env zsh
 
-set -euo pipefail
-
-. "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/src/_main.sh"
-
 ##? Short the current $PWD
 ##?
 ##? Usage:
 ##?    short_pwd
+#? v1.0.0
 
-if [[ $(pwd) == "$HOME" ]]; then
+join_str() {
+  local -r IFS=$1
+  shift
+  echo -n "${*}"
+}
+
+if [[ "$PWD" == "$HOME" ]]; then
   echo "~"
-else
-  echo ${${${:-/${(j:/:)${(M)${(s:/:)${(D)PWD:h}}#(|.)[^.]}}/${PWD:t}}//\/~/\~}/\/\//\/}
+  exit
 fi
+
+dirs=($(echo "${PWD//$HOME/"~"}" | tr '/' '\n'))
+lastpos=$((${#dirs[@]} - 1))
+process_dirs=()
+for d in ${dirs[@]}; do
+  process_dirs+=("${d:0:2}")
+done
+process_dirs[$lastpos]="${dirs[$lastpos]}"
+
+join_str '/' "${process_dirs[@]}"
+
+# if [[ $SHELL == *"zsh" ]]; then
+#   echo ${${${:-/${(j:/:)${(M)${(s:/:)${(D)PWD:h}}#(|.)[^.]}}/${PWD:t}}//\/~/\~}/\/\//\/}
+# fi

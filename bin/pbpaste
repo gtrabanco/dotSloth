@@ -1,8 +1,12 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
-os=$(uname)
-if [[ "$os" == "Linux" ]]; then
+if command -v xclip > /dev/null 2>&1; then
   xclip -selection clipboard -o
-elif [[ "$os" == "Darwin" ]]; then
-  /usr/bin/pbpaste
+
+elif command -vp pbpaste > /dev/null 2>&1; then
+  command -p pbpaste
+
+else
+  echo "Unsupported feature"
 fi

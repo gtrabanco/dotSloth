@@ -3,6 +3,10 @@
 #shellcheck disable=SC2034
 dnf_title='▣ DNF'
 
+dnf::title() {
+  echo -n "▣ DNF"
+}
+
 dnf::is_available() {
   platform::command_exists dnf
 }
@@ -44,15 +48,16 @@ dnf::cleanup() {
 }
 
 dnf::update_apps() {
-  local outdated_app outdated_app_full_info outdated_app_name outdated_app_version outdated_app_info outdated_app_url
+  local outdated_app outdated_app_full_info outdated_app_name outdated_app_version outdated_app_info outdated_app_url outdated_apps
 
-  for outdated_app in $(dnf::outdated_app); do
+  readarray -t outdated_apps < <(dnf::outdated_app)
+  for outdated_app in "${outdated_apps[@]}"; do
     outdated_app_name="${outdated_app%%.*}"
     outdated_app_full_info="$(dnf info "$outdated_app_name" | cut -d " " -f 3-)"
 
-    outdated_app_version="$(echo "$outdated_app_info" | head -n 5 | tail -n 1)"
-    outdated_app_info="$(outdated_app_full_info | head -n 9 | tail -n 1)"
-    outdated_app_url="$(outdated_app_full_info | head -n 10 | tail -n 1)"
+    outdated_app_version="$(echo "$outdated_app_full_info" | head -n 5 | tail -n 1)"
+    outdated_app_info="$(echo "$outdated_app_full_info" | head -n 9 | tail -n 1)"
+    outdated_app_url="$(echo "$outdated_app_full_info" | head -n 10 | tail -n 1)"
 
     output::write "▣ $outdated_app_name"
     output::write "├ $outdated_app_version -> latest"
@@ -66,18 +71,21 @@ dnf::update_apps() {
 
 dnf::outdated_app() {
   ! dnf::is_available && return 1
-  dnf check-update | awk '{print $1}'
+  local outdated
+  outdated="$(dnf check-update 2> /dev/null)" || true
+  echo "$outdated" | awk '{print $1}'
 }
 
 dnf::update_all() {
   ! dnf::is_available && return 1
-  dnf::update_apps
+  local -r timeout="${DNF_TIMEOUT:-${SLOTH_PM_TIMEOUT:-300}}"
+  package::run_with_timeout "$timeout" dnf::update_apps
 }
 
 dnf::dump() {
   DNF_DUMP_FILE_PATH="${1:-$DNF_DUMP_FILE_PATH}"
 
-  if package::common_dump_check apt "$DNF_DUMP_FILE_PATH"; then
+  if package::common_dump_check dnf "$DNF_DUMP_FILE_PATH"; then
     dnf repoquery --qf '%{name}' --userinstalled |
       grep -v -- '-debuginfo$' |
       grep -v '^\(kernel-modules\|kernel\|kernel-core\|kernel-devel\)$' | tee "$DNF_DUMP_FILE_PATH" | log::file "Exporting ${dnf_title} packages"
@@ -91,7 +99,7 @@ dnf::dump() {
 dnf::import() {
   DNF_DUMP_FILE_PATH="${1:-$DNF_DUMP_FILE_PATH}"
 
-  if package::common_import_check apt "$DNF_DUMP_FILE_PATH"; then
+  if package::common_import_check dnf "$DNF_DUMP_FILE_PATH"; then
     xargs sudo dnf -y install < "$DNF_DUMP_FILE_PATH" | log::file "Importing ${dnf_title} packages"
   fi
 }

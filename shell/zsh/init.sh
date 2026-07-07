@@ -26,37 +26,53 @@ setopt +o nomatch
 # setopt autopushd
 
 # Start zim
-#shellcheck disable=SC1091
-. "${ZIM_HOME}/init.zsh"
+if ! ${SLOTH_DISABLE_ZIMFW:-false} && [[ -n "${ZIM_HOME:-}" && -d "${ZIM_HOME:-}" && -r "${ZIM_HOME}/init.zsh" ]]; then
+  [[ -z "${ZSH_HIGHLIGHT_HIGHLIGHTERS:-}" ]] && ZSH_HIGHLIGHT_HIGHLIGHTERS=(main brackets)
+  #shellcheck disable=SC1091
+  . "${ZIM_HOME}/init.zsh" || echo "Error loading ZimFW"
+  { [[ "${DOTLY_ENV:-PROD}" == "CI" ]] && echo "Loaded ZimFW"; } || true
+fi
 
 # Async mode for autocompletion
 # shellcheck disable=SC2034
-ZSH_AUTOSUGGEST_USE_ASYNC=true
+[[ -z "${ZSH_AUTOSUGGEST_USE_ASYNC:-}" ]] && ZSH_AUTOSUGGEST_USE_ASYNC=true
 # shellcheck disable=SC2034
-ZSH_HIGHLIGHT_MAXLENGTH=300
+[[ -z "${ZSH_HIGHLIGHT_MAXLENGTH:-}" ]] && ZSH_HIGHLIGHT_MAXLENGTH=300
 
-fpath=(
-  "${DOTFILES_PATH}/shell/zsh/themes"
-  "${DOTFILES_PATH}/shell/zsh/autocompletions"
-  "${SLOTH_PATH}/shell/zsh/themes"
-  "${SLOTH_PATH}/shell/zsh/completions"
-  "${fpath[@]}"
-)
+tmp_fpath=("${fpath[@]}")
+fpath=()
+if [[ -n "${DOTFILES_PATH:-}" && -d "$DOTFILES_PATH" ]]; then
+  fpath+=("${DOTFILES_PATH}/shell/zsh/themes")
+  fpath+=("${DOTFILES_PATH}/shell/zsh/completions")
+fi
+
+fpath+=("${SLOTH_PATH}/shell/zsh/themes")
+fpath+=("${SLOTH_PATH}/shell/zsh/completions")
+fpath+=("${tmp_fpath[@]}")
 
 # Brew ZSH Completions
 if [[ -n "${HOMEBREW_PREFIX:-}" ]]; then
-  fpath+=("${HOMEBREW_PREFIX}/share/zsh-completions")
-  fpath+=("${HOMEBREW_PREFIX}/share/zsh/site-functions")
+  fpath+=(
+    "${HOMEBREW_PREFIX}/share/zsh-completions"
+    "${HOMEBREW_PREFIX}/share/zsh/site-functions"
+  )
 fi
 
+# autoload -Uz promptinit && promptinit
+# prompt "${SLOTH_ZSH_THEME:-${SLOTH_THEME:-${DOTLY_THEME:-codely}}}"
 
-SLOTH_THEME="${SLOTH_THEME:-${DOTLY_THEME:-codely}}"
-autoload -Uz promptinit && promptinit
-prompt "$SLOTH_THEME"
+if
+  [[
+    -r "${SLOTH_PATH}/shell/zsh/bindings/dot.zsh" &&
+    -r "${SLOTH_PATH}/shell/zsh/bindings/reverse_search.zsh"
+  ]]
+then
+  . "${SLOTH_PATH}/shell/zsh/bindings/dot.zsh"
+  . "${SLOTH_PATH}/shell/zsh/bindings/reverse_search.zsh"
+fi
 
-#shellcheck source=/dev/null
-. "${SLOTH_PATH}/shell/zsh/bindings/dot.zsh"
-#shellcheck source=/dev/null
-. "${SLOTH_PATH}/shell/zsh/bindings/reverse_search.zsh"
-#shellcheck source=/dev/null
-. "${DOTFILES_PATH}/shell/zsh/key-bindings.zsh"
+if [[ -r "${DOTFILES_PATH}/shell/zsh/key-bindings.zsh" ]]; then
+  . "${DOTFILES_PATH}/shell/zsh/key-bindings.zsh"
+fi
+
+unset tmp_fpath

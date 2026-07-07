@@ -2,4 +2,7 @@
 .sloth_force_current_version
 .sloth_update_available
 .sloth_updated
+.cached_github_api_calls
+shell/zsh/.zimfw
+shell/zsh/.z
 # END OF SLOTH GITIGNORE

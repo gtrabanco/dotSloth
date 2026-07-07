@@ -6,7 +6,8 @@ bold_blue='\033[1m\033[34m'
 normal='\033[0m'
 
 _output::parse_code() {
-  local normal="\033[0m" style="$normal"
+  local normal="\033[0m"
+  local style="$normal"
   case "${1:-}" in
     --color | --style)
       style="$2"
@@ -16,7 +17,7 @@ _output::parse_code() {
 
   local -r text="${*:-}"
 
-  with_code_parsed=$(echo "$text" | awk "{ORS=(NR+1)%2==0?\"${green}\":RS}1" RS="\`" | awk "{ORS=NR%1==0?\"${style}\":RS}1" RS="\`" | tr -d '\n')
+  with_code_parsed=$(echo "$text" | command -p awk "{ORS=(NR+1)%2==0?\"${green}\":RS}1" RS="\`" | command -p awk "{ORS=NR%1==0?\"${style}\":RS}1" RS="\`" | command -p tr -d '\n')
 
   echo -e "${with_code_parsed}${normal}"
 }
@@ -59,10 +60,11 @@ output::question() {
   esac
   with_code_parsed="$(_output::parse_code --color "${color}" "${1:-}")"
 
-  if [[ "${DOTLY_ENV:-PROD}" == "CI" ]] || [[ "${DOTLY_INSTALLER:-false}" = true ]]; then
+  if [[ "${DOTLY_ENV:-PROD}" == "CI" ]] || [[ "${DOTLY_INSTALLER:-false}" = true ]] || ! [[ -t 0 ]]; then
     answer="y"
   else
-    read -rp "🤔 $with_code_parsed: " "answer"
+    echo -n "🤔 $with_code_parsed: "
+    read -r "answer"
   fi
 
   echo "$answer"
@@ -93,11 +95,12 @@ output::question_default() {
 
   with_code_parsed="$(_output::parse_code --color "${color}" "$question")"
 
-  if [[ "${DOTLY_ENV:-PROD}" == "CI" ]] || [[ "${DOTLY_INSTALLER:-false}" == true ]]; then
+  if [[ "${DOTLY_ENV:-PROD}" == "CI" ]] || [[ "${DOTLY_INSTALLER:-false}" == true ]] || ! [[ -t 0 ]]; then
     echo "🤔 ${with_code_parsed} ? [${default_value}]: ${default_value}"
     PROMPT_REPLY="$default_value"
   else
-    read -rp "🤔 $with_code_parsed ? [$default_value]: " PROMPT_REPLY
+    echo -n "🤔 $with_code_parsed ? [$default_value]: "
+    read -r PROMPT_REPLY
   fi
 
   eval "$var_name=\"${PROMPT_REPLY:-$default_value}\""

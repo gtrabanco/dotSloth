@@ -2,8 +2,14 @@
 
 set -euo pipefail
 
+##### Start of Homebrew Installation Patch #####
+# export HOMEBREW_SLOTH=true
+# export SLOTH_PATH="HOMEBREW_PREFIX/opt/dot"
+# export DOTFILES_PATH="${DOTFILES_PATH:-${SLOTH_PATH}/dotfiles_template}"
+##### End of Hombrew Installation Patch #####
+
 #shellcheck disable=SC1091
-. "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/src/_main.sh"
+. "${SLOTH_PATH:-}/scripts/core/src/_main.sh"
 dot::load_library "dotbot.sh"
 dot::load_library "symlinks.sh"
 
@@ -24,6 +30,8 @@ dotbot_yaml_file_backup() {
   suffix="${3:-$(date +%s)}"
 
   [[ $mode == "ignore" ]] && return
+
+  script::depends_on python-yq jq
 
   for link in $(symlinks::get_all_links "$(dotbot::yaml_file_path "$yaml_file")"); do
     link="$(dotbot::realpath "$link")"
@@ -61,6 +69,12 @@ select_yaml_files_in_path() {
   fi
 }
 
+if platform::is_macos; then
+  script::depends_on brew
+
+  export HOMEBREW_PREFIX="${HOMEBREW_PREFIX:-$(brew --prefix)}"
+fi
+
 ##? Apply all symlinks
 ##?
 ##? Usage:
@@ -84,16 +98,11 @@ select_yaml_files_in_path() {
 ##?   --apply-core            Apply core symlinks as well at the beggining
 ##?   -c --continue-on-error  If any symlinks fail, continue applying the next
 ##?
-##? SCRIPT_VERSION "2.1.0"
-if ! ${DOTLY_INSTALLER:-false}; then
+#? v2.1.0
+if ! ${DOTLY_INSTALLER:-false} || [[ "${1:-}" == "-h" || "${1:-}" == "--help" || "${1:-}" == "-v" || "${1:-}" == "--version" ]] || package::is_installed docopts; then
   docs::parse "$@"
 
-  if ${backup:-} || ${interactive_backup:-}; then
-    script::depends_on python-yq
-  fi
 else
-  version=false
-  help=false
   quiet=false
   super_quiet=false
   backup=false
@@ -103,14 +112,6 @@ else
   after_core=false
   while [[ $# -gt 0 ]]; do
     case "${1:-}" in
-      --version | -v)
-        version=true
-        shift
-        ;;
-      --help | -h)
-        help=true
-        shift
-        ;;
       --quiet | -q)
         quiet=true
         shift
@@ -121,12 +122,10 @@ else
         ;;
       --backup)
         { $interactive_backup || $ignore_backup; } && output::error "Error you can not use \`--backup\` with \`--interactive-backup\` or \`--ignore-backup\`" && exit 4
-        script::depends_on python-yq jq
         backup=true
         ;;
       --interactive-backup)
         { $backup || $ignore_backup; } && output::error "Error you can not use \`--interactive-backup\` with \`--backup\` or \`--ignore-backup\`" && exit 4
-        script::depends_on python-yq jq
         interactive_backup=true
         shift
         ;;
@@ -150,17 +149,6 @@ else
   done
 fi
 
-SCRIPT_NAME="dot symlinks apply"
-
-# Print name and version
-if ${version:-false}; then
-  output::write "$SCRIPT_NAME v$(dot::parse_script_version "$(dot::get_full_script_path)")"
-  exit
-elif ${help:-false}; then
-  grep "##?" "$(dot::get_full_script_path)" | cut -c 5-
-  exit
-fi
-
 # Vars to be used
 _dotbot_args=()
 _after_core_args=()
@@ -168,7 +156,7 @@ yaml_files=()
 tmp_yaml_files=()
 backup_type="ignore"
 backup_suffix="$(date +%s).bak"
-CORE_SYMLINKS_PATH="${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/symlinks/src/core"
+CORE_SYMLINKS_PATH="${SLOTH_PATH:-}/scripts/symlinks/src/core"
 USER_SYMLINKS_PATH="${DOTFILES_PATH}/symlinks"
 #shellcheck disable=SC2034
 DOTBOT_BASE_PATH="$DOTFILES_PATH" # is used in dotbot.sh library
@@ -193,9 +181,9 @@ if ${after_core:-false}; then
   ${continue_on_error:-false} && _after_core_args+=(--continue-on-error)
 
   if [[ ${#_after_core_args[@]} -gt 0 ]]; then
-    "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" symlinks apply "${_after_core_args[@]}" core
+    "${SLOTH_PATH:-}/bin/dot" symlinks apply "${_after_core_args[@]}" core
   else
-    "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" symlinks apply core
+    "${SLOTH_PATH:-}/bin/dot" symlinks apply core
   fi
 fi
 

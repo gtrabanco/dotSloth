@@ -1,27 +1,43 @@
 #!/usr/bin/env bash
+#shellcheck disable=SC2296
 
 command_or_package_exists() {
-  platform::command_exists "$1" || package::is_installed "$1"
+  platform::command_exists "$1" || package::is_installed "$1" || registry::is_installed "$1"
 }
 
 script::depends_on() {
   utils::curry command_not_exists utils::not command_or_package_exists
-  non_existing_commands=$(coll::filter command_not_exists "$@")
+
+  non_existing_commands=$(coll::filter command_not_exists "${@:1:1}")
 
   for non_existing_command in $non_existing_commands; do
     has_to_install=$(output::question "\`$non_existing_command\` is a dependency of this script. Should this be installed? [Y/n]")
 
     if output::answer_is_yes "$has_to_install"; then
-      "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" package add "$non_existing_command"
+      "${SLOTH_PATH:-}/bin/dot" package add "$non_existing_command"
     else
       output::write "🙅‍ The script can't be ran without \`$non_existing_command\` being installed before."
       exit 1
     fi
   done
+
+  if [[ $# -gt 1 ]]; then
+    script::depends_on "${@:2}"
+  fi
 }
 
 script::list_functions() {
-  [[ -f "${1:-}" ]] && bash -c ". \"${1:-}\"; typeset -F" | awk '{print $3}'
+  local -r file="${1:-}"
+  if [[ ! -r "$file" ]]; then
+    return
+  fi
+
+  if head -n1 "$file" | grep -q 'bash' || head -n1 "$file" | grep -q 'sloth' || head -n1 "$file" | grep -q "sh"; then
+    bash -c ". \"$file\"; typeset -F" | awk '{print $3}'
+  elif head -n1 "$file" | grep -q 'zsh'; then
+    #shellcheck disable=SC2296
+    zsh -c '. \"'"$file"'\"; print -l ${(ok)functions}'
+  fi
 }
 
 script::function_exists() {

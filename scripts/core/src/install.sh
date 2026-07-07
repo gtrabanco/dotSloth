@@ -54,24 +54,24 @@ install_macos_custom() {
     custom::install gnutls gnu-tar gnu-which gawk grep
 
     output::answer "Installing other needed packages"
-    custom::install make bash zsh bash-completion@2 zsh-completions python3-pip
+    custom::install make bash zsh bash-completion@2 zsh-completions python3-pip python-yq docopts
 
     # Adds brew zsh and bash to /etc/shells
     HOMEBREW_PREFIX="${HOMEBREW_PREFIX:-$(brew --prefix)}"
-    if ${SETUP_ZSH_AND_BASH_IN_SHELLS:-false} && [[ -d "$HOMEBREW_PREFIX" && -x "${HOMEBREW_PREFIX}/bin/zsh" ]] && ! grep -q "^${HOMEBREW_PREFIX}/bin/zsh$" "/etc/shells" && sudo -n -v &> /dev/null; then
-      sudo bash -c "echo '${HOMEBREW_PREFIX}/bin/zsh' | tee -a /etc/shells &> /dev/null"
+    if ${SETUP_ZSH_AND_BASH_IN_SHELLS:-false} && [[ -d "$HOMEBREW_PREFIX" && -x "${HOMEBREW_PREFIX}/bin/zsh" ]] && ! grep -q "^${HOMEBREW_PREFIX}/bin/zsh$" "/etc/shells" && sudo -n -v > /dev/null 2>&1; then
+      sudo bash -c "echo '${HOMEBREW_PREFIX}/bin/zsh' | tee -a /etc/shells >/dev/null 2>&1"
     fi
 
-    if ${SETUP_ZSH_AND_BASH_IN_SHELLS:-false} && [[ -d "$HOMEBREW_PREFIX" && -x "${HOMEBREW_PREFIX}/bin/bash" ]] && ! grep -q "^${HOMEBREW_PREFIX}/bin/bash$" "/etc/shells" && sudo -n -v &> /dev/null; then
-      sudo bash -c "echo '${HOMEBREW_PREFIX}/bin/bash' | tee -a /etc/shells &> /dev/null"
+    if ${SETUP_ZSH_AND_BASH_IN_SHELLS:-false} && [[ -d "$HOMEBREW_PREFIX" && -x "${HOMEBREW_PREFIX}/bin/bash" ]] && ! grep -q "^${HOMEBREW_PREFIX}/bin/bash$" "/etc/shells" && sudo -n -v > /dev/null 2>&1; then
+      sudo bash -c "echo '${HOMEBREW_PREFIX}/bin/bash' | tee -a /etc/shells >/dev/null 2>&1"
     fi
 
     output::answer "Installing mas"
     custom::install mas
 
     # Required packages output an error
-    if ! package::is_installed "docpars" || ! package::is_installed "python3-pip" || ! package::is_installed "python-yq"; then
-      output::error "🚨 Any of the following packages \`docpars\`, \`python3\`, \`python-yq\` could not be installed, and are required"
+    if ! package::is_installed "docopts" || ! package::is_installed "python3-pip" || ! package::is_installed "python-yq"; then
+      output::error "🚨 Any of the following packages \`docopts\`, \`python3\`, \`python-yq\` could not be installed, and are required"
     fi
   fi
 }
@@ -109,7 +109,7 @@ install_linux_custom() {
 
     if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
       output::anser "Continue with cargo"
-      custom::install cargo cargo-update docpars hyperfine
+      custom::install cargo cargo-update docopts hyperfine
     fi
 
     return
@@ -120,11 +120,16 @@ install_linux_custom() {
 
   # To make CI Checks faster this packages are only installed if not CI
   if [[ "${DOTLY_ENV:-PROD}" != "CI" ]]; then
-    custom::install bash zsh python3-pip python-yq jq
+
+    if [[ $package_manager != "brew" ]]; then
+      custom::install bash zsh python3-pip yq jq
+    else
+      custom::install bash zsh python3-pip python-yq jq
+    fi
 
     # Required packages output an error
-    if ! package::is_installed "docpars" || ! package::is_installed "python3-pip" || ! package::is_installed "python-yq"; then
-      output::error "🚨 Any of the following packages \`docpars\`, \`python3-pip\`, \`python-yq\` could not be installed, and are required"
+    if ! package::is_installed "docopts" || ! package::is_installed "python3-pip" || ! package::is_installed "python-yq"; then
+      output::error "🚨 Any of the following packages \`docopts\`, \`python3-pip\`, \`python-yq\` could not be installed, and are required"
     fi
   fi
 }

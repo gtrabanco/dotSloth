@@ -3,12 +3,13 @@
 set -euo pipefail
 
 #shellcheck disable=SC1091
-. "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/src/_main.sh"
+. "${SLOTH_PATH:-}/scripts/core/src/_main.sh"
 
 ##? Debug dotly
 ##?
 ##? Usage:
 ##?   debug
+#? v1.0.0
 docs::parse "$@"
 script::depends_on tail
 

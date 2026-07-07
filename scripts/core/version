@@ -3,13 +3,11 @@
 set -uo pipefail
 set +e # Avoid crash if any function return false
 
-[[ -z "${SLOTH_PATH:-${DOTLY_PATH:-}}" ]] && exit 1
+[[ -z "${SLOTH_PATH:-}" ]] && exit 1
 
 #shellcheck disable=SC1091
-. "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/_main.sh"
+. "${SLOTH_PATH:-}/scripts/core/_main.sh"
 dot::load_library "templating.sh" "core"
-dot::load_library "git_extended.sh" "core"
-dot::load_library "sloth_update.sh" "core"
 
 check_local_tag_exists() {
   local -r tag="${1:-}"
@@ -23,7 +21,7 @@ check_local_tag_exists() {
 ##?   version [-h | --help]
 ##?   version [-v | --version]
 ##?   version [-r | --view-remote]
-##?   version
+##?   version [<select_version>]
 ##?
 ##? Options:
 ##?   -h --help         Show this help
@@ -33,28 +31,29 @@ check_local_tag_exists() {
 ##? Author:
 ##?   Gabriel Trabanco Llano <gtrabanco@users.noreply.github.com>
 ##?
-##? SCRIPT_VERSION 1.1.0
+#? v1.1.0
 docs::parse "$@"
 
-SCRIPT_NAME="sloth core version"
-SCRIPT_VERSION="1.0.0"
-
-# Print name and version
-if ${version:-}; then
-  output::write "$SCRIPT_NAME v$SCRIPT_VERSION"
-  exit
-fi
-
 if ${view_remote:-false}; then
-  SLOTH_DEFAULT_URL="${SLOTH_DEFAULT_URL:-${SLOTH_DEFAULT_GIT_SSH_URL:-git+ssh://git@github.com:gtrabanco/sloth.git}}"
+  SLOTH_DEFAULT_URL="${SLOTH_DEFAULT_URL:-${SLOTH_DEFAULT_GIT_SSH_URL:-git+ssh://git@github.com:gtrabanco/dotSloth.git}}"
   git::git "${SLOTH_UPDATE_GIT_ARGS[@]:-}" ls-remote --tags --refs "$SLOTH_DEFAULT_URL" "v*.*.*" 2> /dev/null | awk '{gsub("\\^{}","", $NF);gsub("refs/tags/v",""); print $NF}' | sort -Vur
   exit 0
 fi
 
-declare -a local_tags
-readarray -t local_tags < <(git::git "${SLOTH_UPDATE_GIT_ARGS[@]:-}" tag | sort -Vr)
-local_tags+=("stable" "latest")
-selected_tag="$(printf "%s\n" "${local_tags[@]}" | fzf --header "Select a dotly version" --preview "")"
+if [[ -z "${select_version:-}" ]]; then
+  declare -a local_tags
+  readarray -t local_tags < <(git::git "${SLOTH_UPDATE_GIT_ARGS[@]:-}" tag | sort -Vr)
+  local_tags+=("stable" "latest")
+  selected_tag="$(printf "%s\n" "${local_tags[@]}" | fzf --header "Select a dotly version" --preview "")"
+else
+  selected_tag="$select_version"
+fi
+
+# .Sloth were installed using a package manager
+if platform::command_exists brew && brew list gtrabanco/tools/dot; then
+  output::error "To choose a custom version use .Sloth as submodule and not brew version"
+  exit 1
+fi
 
 case "$selected_tag" in
   "stable")
@@ -70,7 +69,7 @@ case "$selected_tag" in
     ;;
   "latest")
     templating::modify_bash_file_variable "$DOTFILES_PATH/shell/exports.sh" "SLOTH_UPDATE_VERSION" "latest"
-    git::git "${SLOTH_UPDATE_GIT_ARGS[@]:-}" checkout -q "${SLOTH_GITMODULES_BRANCH:-${SLOTH_DEFAULT_BRANCH:-master}}"
+    git::git "${SLOTH_UPDATE_GIT_ARGS[@]:-}" checkout -q "${SLOTH_GITMODULES_BRANCH:-${SLOTH_DEFAULT_BRANCH:-main}}"
     ;;
   *)
     if [[ -n "$selected_tag" ]] && check_local_tag_exists "$selected_tag"; then

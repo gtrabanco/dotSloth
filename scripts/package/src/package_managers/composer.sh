@@ -1,24 +1,35 @@
 #!/usr/bin/env bash
 
+#shellcheck disable=SC2034
 composer_title='🐘 Composer'
+
+composer::title() {
+  echo -n "🐘 Composer"
+}
 
 composer::is_available() {
   platform::command_exists composer
 }
 
 composer::update_all() {
+  local -r timeout="${COMPOSER_TIMEOUT:-${SLOTH_PM_TIMEOUT:-300}}"
   script::depends_on jq
 
-  outdated=$(composer global outdated --direct -f json --no-ansi)
-  total_outdated=$(echo "$outdated" | jq '.installed' | jq length)
+  if [ -f "$HOME/.composer/composer.json" ]; then
+    outdated=$(composer global outdated --direct -f json --no-ansi)
+    total_outdated=$(echo "$outdated" | jq '.installed' | jq length)
 
-  if [ 0 -ne "$total_outdated" ]; then
-    echo "$outdated" | jq -cr '.installed | .[]' | while IFS= read -r dependency; do
-      composer::update "$dependency"
-    done
+    if [ 0 -ne "$total_outdated" ]; then
+      echo "$outdated" | jq -cr '.installed | .[]' | while IFS= read -r dependency; do
+        composer::update "$dependency"
+      done
+    else
+      output::answer "Already up-to-date"
+    fi
   else
-    output::answer "Already up-to-date"
+    output::answer "There is no composer global file, process skipped"
   fi
+
 }
 
 composer::update() {
@@ -34,5 +45,5 @@ composer::update() {
   output::write "└ $url"
   output::empty_line
 
-  composer global require -W "$name" 2>&1 | log::file "Updating ${composer_title} app: $name"
+  composer global require -W "$name"
 }

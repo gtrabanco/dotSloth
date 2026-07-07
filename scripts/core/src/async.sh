@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
+#shellcheck disable=SC2302,SC2303
 
 # This was literally copied from: https://github.com/zombieleet/async-bash
 # check the README.md for information on how to use this script
 
-# set +eu
-
 declare -a JOB_IDS
 declare -i JOBS=1
+
+# trap "exit" INT TERM
+# trap "kill 0" EXIT
 
 killJob() {
   local jobToKill signal __al__signals isSig
@@ -81,7 +83,7 @@ async() {
 
   for _c in "${__temp[@]}"; do
     read -r -d " " comm <<< "${_c}"
-    type "${comm}" &> /dev/null
+    type "${comm}" > /dev/null 2>&1
 
     status=$?
 

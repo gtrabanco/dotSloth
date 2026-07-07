@@ -2,12 +2,10 @@
 
 set -euo pipefail
 
-[[ -z "${SLOTH_PATH:-${DOTLY_PATH:-}}" ]] && exit 1
+[[ -z "${SLOTH_PATH:-}" ]] && exit 1
 
 #shellcheck disable=SC1091
-. "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/_main.sh"
-dot::load_library "git_extended.sh" "core"
-dot::load_library "sloth_update.sh" "core"
+. "${SLOTH_PATH:-}/scripts/core/_main.sh"
 
 void() {
   return
@@ -23,10 +21,10 @@ void() {
 ##?    --enable   Activate the dotly update command
 ##?    --async    Asynchronous update
 ##?
-##? SCRIPT_VERSION=3.0.0
+#? v3.0.0
 docs::parse "$@"
 
-if ${disable:-enable}; then
+if ${disable:-false}; then
   touch "$DOTFILES_PATH/.sloth_force_current_version"
   exit 0
 elif ${enable:-false}; then
@@ -45,13 +43,13 @@ if [[ -f "$DOTFILES_PATH/.sloth_force_current_version" ]]; then
   output::error "Updates are disabled: use \`dot core update --enable\` to enable them"
 fi
 
-[[ -n "${DEBUG:-}" ]] && echo "---- Env vars ----" | command -p tee -a "${DOTLY_LOG_FILE:-$HOME/dotly.log}" &> /dev/null
-[[ -n "${DEBUG:-}" ]] && env | command -p tee -a "${DOTLY_LOG_FILE:-$HOME/dotly.log}" &> /dev/null
+[[ -n "${DEBUG:-}" ]] && echo "---- Env vars ----" | command -p tee -a "${DOTLY_LOG_FILE:-$HOME/dotly.log}" > /dev/null 2>&1
+[[ -n "${DEBUG:-}" ]] && env | command -p tee -a "${DOTLY_LOG_FILE:-$HOME/dotly.log}" > /dev/null 2>&1
 
-[[ -n "${DEBUG:-}" ]] && echo "---- Executing the function sloth_update::gracefully ----" | command -p tee -a "${DOTLY_LOG_FILE:-$HOME/dotly.log}" &> /dev/null
+[[ -n "${DEBUG:-}" ]] && echo "---- Executing the function sloth_update::gracefully ----" | command -p tee -a "${DOTLY_LOG_FILE:-$HOME/dotly.log}" > /dev/null 2>&1
 status=0
 sloth_update::gracefully 2>&1 | log::file "Updating .Sloth" || status=$?
-[[ -n "${DEBUG:-}" ]] && echo "---- End of Executing the function sloth_update::gracefully ----" | command -p tee -a "${DOTLY_LOG_FILE:-$HOME/dotly.log}" &> /dev/null
+[[ -n "${DEBUG:-}" ]] && echo "---- End of Executing the function sloth_update::gracefully ----" | command -p tee -a "${DOTLY_LOG_FILE:-$HOME/dotly.log}" > /dev/null 2>&1
 
 if [[ $status -ne 0 ]]; then
   case $status in
@@ -68,7 +66,7 @@ if [[ $status -ne 0 ]]; then
       exit $status
       ;;
     40)
-      output::error "No updated something was wrong"
+      output::error "Update failed — git pull could not complete. Check log using \`dot core debug\`"
       exit $status
       ;;
     1)
@@ -81,7 +79,7 @@ fi
 if [[ -f "$DOTFILES_PATH/.sloth_updated" ]]; then
   if sloth_update::exists_migration_script; then
     output::answer "There is a migration script for this version"
-    "${SLOTH_PATH:-${DOTLY_PATH:-}}/bin/dot" core migration --updated
+    "${SLOTH_PATH:-}/bin/dot" core migration --updated
   fi
 
   output::answer '✅ .Sloth updated to the latest version'

@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 
-apt_title='@ APT'
+apt_title="@ APT"
+
+apt::title() {
+  echo -n "@ APT"
+}
 
 apt::require_sudo_elevation() {
   return 0
@@ -30,11 +34,11 @@ apt::uninstall() {
 
 apt::is_installed() {
   #apt list -a "$@" | grep -q 'installed'
-  [[ -n "${1:-}" ]] && apt::is_available && dpkg --list "$1" &> /dev/null
+  [[ -n "${1:-}" ]] && apt::is_available && dpkg --list "$1" > /dev/null 2>&1
 }
 
 apt::package_exists() {
-  [[ -n "${1:-}" ]] && apt::is_available && apt-cache show "$1" &> /dev/null
+  [[ -n "${1:-}" ]] && apt::is_available && apt-cache show "$1" > /dev/null 2>&1
 }
 
 apt::outdated_list() {
@@ -63,7 +67,7 @@ apt::update_apps() {
     output::write "└ $app_url"
     output::empty_line
 
-    sudo apt-get --only-upgrade "$outdated_app" | log::file "Updating ${apt_title} app: $outdated_app"
+    sudo apt-get -y --only-upgrade install "$outdated_app" | log::file "Updating ${apt_title} app: $outdated_app"
 
     # Reset variables
     app_old_version=""
@@ -77,8 +81,9 @@ apt::update_apps() {
 }
 
 apt::self_update() {
+  local -r timeout="${APT_TIMEOUT:-${SLOTH_PM_TIMEOUT:-300}}"
   platform::command_exists sudo && platform::command_exists hwclock && sudo hwclock --hctosys
-  apt::is_available && platform::command_exists sudo && sudo apt-get update | log::file "Updating ${apt_title}"
+  apt::is_available && platform::command_exists sudo && package::run_with_timeout "$timeout" sudo apt-get update | log::file "Updating ${apt_title}"
 }
 
 apt::update_all() {

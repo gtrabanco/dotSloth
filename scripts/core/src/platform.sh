@@ -34,13 +34,17 @@ platform::get_os() {
   echo "${SLOTH_OS}" | tr '[:upper:]' '[:lower:]'
 }
 
+platform::macos_is_rosetta() {
+  [[ $(sysctl -n sysctl.proc_translated 2> /dev/null) == 1 ]]
+}
+
 platform::get_arch() {
   local architecture="unknown"
   case "${SLOTH_ARCH}" in
     x86_64)
       architecture="amd64"
       ;;
-    arm)
+    arm*)
       architecture="arm"
       ;;
     ppc64)
@@ -79,7 +83,7 @@ platform::is_windows() {
 }
 
 platform::is_wsl() {
-  grep -qEi "(Microsoft|WSL|microsoft)" /proc/version &> /dev/null || grep -q -F 'Microsoft' /proc/sys/kernel/osrelease
+  grep -qEi "(Microsoft|WSL|microsoft)" /proc/version > /dev/null 2>&1 || grep -q -F 'Microsoft' /proc/sys/kernel/osrelease
 }
 
 platform::is_bsd() {
@@ -129,13 +133,18 @@ platform::semver_is_minor_or_patch_update() {
 }
 
 platform::semver() {
-  local SEMVER_BIN=""
-  if command -v semver &> /dev/null; then
-    SEMVER_BIN="$(command -v "semver")"
-  elif [[ -f "${SLOTH_PATH:-${DOTLY_PATH:-}}/modules/semver-tool/src/semver" ]]; then
-    SEMVER_BIN="${SLOTH_PATH:-${DOTLY_PATH:-}}/modules/semver-tool/src/semver"
-  else
-    return 1
+  script::depends_on semver
+
+  if [[ -z "${SEMVER_BIN:-}" || -x "$SEMVER_BIN" ]]; then
+    if command -v semver > /dev/null 2>&1; then
+      SEMVER_BIN="$(command -v "semver")"
+    elif [[ -x "${DOTFILES_PATH}/bin/semver" ]]; then
+      SEMVER_BIN="${DOTFILES_PATH}/bin/semver"
+    elif [[ -x "${HOME}/bin/semver" ]]; then
+      SEMVER_BIN="${HOME}/bin/semver"
+    else
+      return 1
+    fi
   fi
 
   "$SEMVER_BIN" "$@"

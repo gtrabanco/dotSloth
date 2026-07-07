@@ -1,14 +1,18 @@
 #!/usr/bin/env bash
 
 snap_title='🦜 Snap'
-SNAP_DUMP_FILE_PATH="$DOTFILES_PATH/os/linux/snap/$(hostname -s).txt"
+SNAP_DUMP_FILE_PATH="${SNAP_DUMP_FILE_PATH:-${DOTFILES_PATH}/os/linux/snap/$(hostname -s).txt}"
+
+snap::title() {
+  echo -n "🦜 Snap"
+}
 
 snap::is_available() {
   platform::command_exists snap
 }
 
 snap::package_exists() {
-  [[ -n "${1:-}" ]] && snap::is_available && snap info "$1" &> /dev/null
+  [[ -n "${1:-}" ]] && snap::is_available && snap info "$1" > /dev/null 2>&1
 }
 
 snap::is_installed() {

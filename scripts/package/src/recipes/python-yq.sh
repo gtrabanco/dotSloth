@@ -1,15 +1,27 @@
 #!/usr/bin/env bash
 
+# The Go `yq` (mikefarah/yq) and `python-yq` (kislyuk/yq) both ship a `yq`
+# executable, so Homebrew refuses to install python-yq while the Go yq is
+# linked ("Cannot install python-yq because conflicting formulae are
+# installed"). Unlink the Go yq first; reversible with `brew link yq`.
+python-yq::_unlink_conflicting_yq() {
+  if platform::command_exists brew && brew list --versions yq > /dev/null 2>&1; then
+    brew unlink yq > /dev/null 2>&1 || true
+  fi
+  return 0
+}
+
 python-yq::install() {
   script::depends_on python3-pip
 
   if [[ -n "${1:-}" && $1 == "--force" ]] && python-yq::is_installed; then
     if platform::command_exists brew; then
+      python-yq::_unlink_conflicting_yq
       brew reinstall python-yq
 
     elif
       platform::command_exists python3 &&
-        python3 -c "import pip; print(pip.__version__)" &> /dev/null
+        python3 -c "import pip; print(pip.__version__)" > /dev/null 2>&1
     then
       python3 -m pip install --ignore-installed --user --no-cache-dir yq
     else
@@ -24,6 +36,7 @@ python-yq::install() {
   if
     ! python-yq::is_installed &&
       platform::command_exists brew &&
+      python-yq::_unlink_conflicting_yq &&
       brew install python-yq &&
       python-yq::is_installed
   then

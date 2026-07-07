@@ -2,6 +2,10 @@
 
 cargo_title='📦 Cargo'
 
+cargo::title() {
+  echo -n "📦 Cargo"
+}
+
 cargo::is_available() {
   platform::command_exists cargo
 }
@@ -58,7 +62,8 @@ cargo::import() {
 }
 
 cargo::update_all() {
-  cargo::update_apps
+  local -r timeout="${CARGO_TIMEOUT:-${SLOTH_PM_TIMEOUT:-300}}"
+  package::run_with_timeout "$timeout" cargo::update_apps
 }
 
 cargo::update_apps() {
@@ -69,8 +74,6 @@ cargo::update_apps() {
   cargo::has_updated() {
     cargo_has_updated_apps=true
   }
-
-  script::depends_on cargo-update
 
   cargo install-update --list --git | tail -n+4 | head -n-1 | awk '{print ($4 != "No"?$0:"");}' | while read -r row; do
     outdated_app="$(echo "$row" | awk '{print $1}')"

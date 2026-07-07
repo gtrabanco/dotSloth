@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
 # Open command if open exists in system
 SCRIPT_PATH="$(cd -- "$(dirname "$0")" && pwd -P)"
@@ -32,7 +33,7 @@ else
       fi
       ;;
     *cygwin*)
-      if command -v cygstart &> /dev/null; then
+      if command -v cygstart > /dev/null 2>&1; then
         cygstart "$@"
       else
         echo -e "\033[0;31mNot possible to use \`open\` command in this system\033[0m"

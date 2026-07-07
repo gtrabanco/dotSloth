@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 #shellcheck disable=SC1091
-. "${SLOTH_PATH:-${DOTLY_PATH:-}}/scripts/core/src/_main.sh"
+. "${SLOTH_PATH:-}/scripts/core/src/_main.sh"
 dot::load_library "dump.sh"
 
 if platform::command_exists npm; then
@@ -19,6 +19,8 @@ fi
 ##? Options:
 ##?   --silent -s  If you use this option you won't prompted for custom file name,
 ##?                the file name will be the hostname
+##?
+#? v3.0.0
 docs::parse "$@"
 
 HOSTNAME="$(hostname -s)"
