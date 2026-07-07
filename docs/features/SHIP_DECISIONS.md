@@ -21,6 +21,18 @@
   4. Feature 07 — restorer-v2 (validation, rollback, partial restore)
 - **Out of scope:** Features 01-03 (Rust migration), #268 (restorer/installer tests), #273 (gem.bats grep tests)
 
+### Deferred features — rationale
+
+- **Features 01-03 (Rust migration)** — deferred, **not cancelled**. The roadmap
+  keeps them as `planned` so they are not lost. Reason (confirmed 2026-07-07):
+  migrating `docpars`/`docopts` and the `dot`/`up` commands to Rust requires
+  generating native binaries and a proper installation/distribution flow
+  (build per platform, ship the binary, update the installer, handle PATH).
+  That is a meaningful infrastructure investment beyond the Bash codebase this
+  run stabilizes. Revisit when the Bash codebase is stable and the binary
+  distribution story is decided. Do not reopen in a routine run without
+  re-evaluating this decision.
+
 ### Round 3 — Stack & architecture
 - **Stack:** Bash, shfmt + shellcheck, bats-core for tests
 - **Architecture:** Modular monolith with context-based namespacing (see ARCHITECTURE.md)
