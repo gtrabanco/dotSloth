@@ -76,6 +76,13 @@ teardown() {
     [[ "$output" =~ ^[0-9a-f]+$ ]]
 }
 
+@test "git::current_commit_hash with -C option (no explicit branch) defaults to HEAD" {
+    run git::current_commit_hash -C "$REPO_DIR"
+    [ "$status" -eq 0 ]
+    [ -n "$output" ]
+    [[ "$output" =~ ^[0-9a-f]+$ ]]
+}
+
 # ── git::local_branch_exists ────────────────────────────────────────────────
 
 @test "git::local_branch_exists returns 0 for an existing branch" {
@@ -101,27 +108,29 @@ teardown() {
 }
 
 # ── git::add_to_gitignore ───────────────────────────────────────────────────
-# NOTE: git::add_to_gitignore appends to $GITIGNORE_PATH (not to its first
-# argument $gitignore_file_path), so the test points GITIGNORE_PATH at the
-# same file to exercise the intended behavior. See the final report for the
-# noted bug.
+# Tests use distinct files for $1 and $GITIGNORE_PATH to verify the
+# function writes to its first argument, not the global $GITIGNORE_PATH.
 
-@test "git::add_to_gitignore appends content and returns 0" {
-    local gi
+@test "git::add_to_gitignore appends content to the first argument and returns 0" {
+    local gi other
     gi=$(temp_file "")
-    GITIGNORE_PATH="$gi" run git::add_to_gitignore "$gi" "build/"
+    other=$(temp_file "")
+    GITIGNORE_PATH="$other" run git::add_to_gitignore "$gi" "build/"
     [ "$status" -eq 0 ]
     grep -q "^build/$" "$gi"
-    rm -f "$gi"
+    ! grep -q "^build/$" "$other"
+    rm -f "$gi" "$other"
 }
 
 @test "git::add_to_gitignore does not duplicate already-present content" {
-    local gi
+    local gi other
     gi=$(temp_file "build/")
-    GITIGNORE_PATH="$gi" run git::add_to_gitignore "$gi" "build/"
+    other=$(temp_file "")
+    GITIGNORE_PATH="$other" run git::add_to_gitignore "$gi" "build/"
     [ "$status" -eq 0 ]
     [ "$(grep -c '^build/$' "$gi")" -eq 1 ]
-    rm -f "$gi"
+    ! grep -q "^build/$" "$other"
+    rm -f "$gi" "$other"
 }
 
 # ── git::check_branch_is_behind ─────────────────────────────────────────────
@@ -129,6 +138,30 @@ teardown() {
 @test "git::check_branch_is_behind returns 1 when no upstream is configured" {
     run git::check_branch_is_behind main -C "$REPO_DIR"
     [ "$status" -ne 0 ]
+}
+
+# Distinguishing regression test: a remote ahead of local main is set up and
+# branch.main.merge is wired to the remote-tracking ref, so the fixed code
+# resolves branch=main, finds the upstream, and returns 0 (behind). Under the
+# bug, $1 (-C) is consumed as the branch name, branch.-C.merge is unset, and
+# the function returns 1 (no upstream) — so a 0 here proves -C was preserved.
+@test "git::check_branch_is_behind with -C option does not consume -C" {
+    local remote_dir
+    remote_dir=$(temp_dir)
+    git init -q -b main "$remote_dir"
+    git -C "$remote_dir" config user.email "test@test.com"
+    git -C "$remote_dir" config user.name "test"
+    git -C "$remote_dir" commit -qm "remote root" --allow-empty
+    git -C "$remote_dir" commit -qm "remote ahead" --allow-empty
+
+    git -C "$REPO_DIR" remote add origin "$remote_dir"
+    git -C "$REPO_DIR" fetch -q origin
+    git -C "$REPO_DIR" config branch.main.merge "refs/remotes/origin/main"
+
+    run git::check_branch_is_behind -C "$REPO_DIR"
+    [ "$status" -eq 0 ]
+
+    rm -rf "$remote_dir"
 }
 
 # ── git::remote_latest_tag_version (mock tier) ─────────────────────────────

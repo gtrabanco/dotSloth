@@ -14,7 +14,7 @@ history lives in git log + closed issues.
 
 | Folder | Topic | Status | Depends on | Issue |
 |--------|-------|--------|------------|-------|
-| 306-python-yq-brew-conflict | python-yq install fails on macOS when Go yq formula is installed | in-progress | — | #306 |
+| 308-309-git-arg-bugs | git.sh argument bugs: add_to_gitignore wrong-file write + current_commit_hash/check_branch_is_behind shift footgun | done · [#313](https://github.com/gtrabanco/dotSloth/pull/313) | — | #308, #309 |
 
 ## Conventions
 

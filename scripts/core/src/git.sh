@@ -182,8 +182,11 @@ git::is_clean() {
 # @param string branch Optional, by default is HEAD
 #"
 git::current_commit_hash() {
-  local -r branch="${1:-HEAD}"
-  [[ -n "${1:-}" ]] && shift
+  local branch="HEAD"
+  if [[ -n "${1:-}" && "$1" != -* ]]; then
+    branch="$1"
+    shift
+  fi
   git::git "$@" rev-parse -q --verify "${branch}"
 }
 
@@ -276,9 +279,14 @@ git::remote_latest_tag_version() {
 # @param string local_branch current branch by default
 #"
 git::check_branch_is_behind() {
-  local -r branch="${1:-$(git::current_branch "$@")}"
+  local branch
+  if [[ -n "${1:-}" && "$1" != -* ]]; then
+    branch="$1"
+    shift
+  else
+    branch="$(git::current_branch "$@")"
+  fi
   [[ -z "$branch" ]] && return 1
-  [[ -n "${1:-}" ]] && shift
 
   local -r upstream_branch="$(git::git "$@" config --get "branch.${branch}.merge" || echo -n)"
   if [[ -n "$upstream_branch" ]]; then
@@ -575,7 +583,7 @@ git::add_to_gitignore() {
   shift
 
   if [[ -n "$content" ]]; then
-    grep -q "^${content}$" "$gitignore_file_path" || echo "$content" | tee -a "$GITIGNORE_PATH" > /dev/null 2>&1
+    grep -q "^${content}$" "$gitignore_file_path" || echo "$content" | tee -a "$gitignore_file_path" > /dev/null 2>&1
     echo > /dev/null 2>&1
   fi
 
