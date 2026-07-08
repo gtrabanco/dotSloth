@@ -14,7 +14,7 @@ history lives in git log + closed issues.
 
 | Folder | Topic | Status | Depends on | Issue |
 |--------|-------|--------|------------|-------|
-| `314-check-branch-ahead-consumes-C` | git::check_branch_is_ahead consumes -C as branch name | pending | — | #314 |
+| `314-check-branch-ahead-consumes-C` | git::check_branch_is_ahead consumes -C as branch name | done | — | #314 |
 
 ## Conventions
 
