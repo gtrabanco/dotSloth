@@ -14,7 +14,7 @@ history lives in git log + closed issues.
 
 | Folder | Topic | Status | Depends on | Issue |
 |--------|-------|--------|------------|-------|
-| _(none)_ | | | | |
+| `268-restorer-installer-tests` | tests for restorer and installer bootstrap | pending | — | #268 |
 
 ## Conventions
 
