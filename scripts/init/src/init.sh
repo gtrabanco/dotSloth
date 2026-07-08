@@ -32,10 +32,11 @@ init::status() {
 }
 
 init::get_scripts() {
-  [[ -d "$SLOTH_INIT_SCRIPTS_PATH" ]] &&
-    [[ -d "$DOTFILES_INIT_SCRIPTS_PATH" ]] &&
-    find "$SLOTH_INIT_SCRIPTS_PATH" \
-      "$DOTFILES_INIT_SCRIPTS_PATH" -name "*" -type f,l -print0 -exec echo {} \; |
+  local dirs=()
+  [[ -d "$SLOTH_INIT_SCRIPTS_PATH" ]] && dirs+=("$SLOTH_INIT_SCRIPTS_PATH")
+  [[ -d "$DOTFILES_INIT_SCRIPTS_PATH" ]] && dirs+=("$DOTFILES_INIT_SCRIPTS_PATH")
+  [[ ${#dirs[@]} -eq 0 ]] && return 0
+  find "${dirs[@]}" -name "*" -type f,l -print0 -exec echo {} \; |
     xargs -0 -I _ basename _ | sort | uniq
 }
 
