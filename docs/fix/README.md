@@ -14,7 +14,7 @@ history lives in git log + closed issues.
 
 | Folder | Topic | Status | Depends on | Issue |
 |--------|-------|--------|------------|-------|
-| _(none)_ | | | | |
+| `314-ahead-C-option-footgun` | `check_branch_is_ahead` consumes `-C` as branch name (twin of #308) | pending | — | #314 |
 
 ## Conventions
 
