@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="https://github.com/gtrabanco/sloth">
+  <a href="https://github.com/gtrabanco/dotSloth">
     <img src="sloth.svg" alt="Sloth Logo" width="256px" height="256px" />
   </a>
 </p>
@@ -13,213 +13,290 @@
 </p>
 
 <p align="center">
-<a href="https://twitter.com/intent/tweet?text=Be%20more%20productive%20by%20using%20.Sloth%20dotfiles%20framework%20%23dotSloth%20%23dotfiles%20%23productivityraptor&url=https%3A%2F%2Fgithub.com%2Fgtrabanco%2F.Sloth" title="Tweet about .Sloth"><img src="ic_twitter_share.svg" width="200" height="20" alt="Twitter share button" /></a>
+<a href="https://twitter.com/intent/tweet?text=Be%20more%20productive%20by%20using%20.Sloth%20dotfiles%20framework%20%23dotSloth%20%23dotfiles%20%23productivityraptor&url=https%3A%2F%2Fgithub.com%2Fgtrabanco%2FdotSloth" title="Tweet about .Sloth"><img src="ic_twitter_share.svg" width="200" height="20" alt="Twitter share button" /></a>
 </p>
 
 <p align="right">
-  Original idea is <a href="https://github.com/codelytv/dotly" alt="Dotly repository">Dotly Framework</a> by <a href="https://github.com/rgomezcasas" alt="Dotly orginal developer">Rafa Gomez</a>
+  Original idea by <a href="https://github.com/rgomezcasas">Rafa Gomez</a> &mdash;
+  Based on <a href="https://github.com/CodelyTV/dotly">Dotly Framework</a> by <a href="https://codely.com">CodelyTV</a>
 </p>
 
+---
+
+- [What you can do](#what-you-can-do)
+- [Installing](#installing)
+  - [One-liner install](#one-liner-install)
+  - [Migration from Dotly](#migration-from-dotly)
 - [Getting Started](#getting-started)
-  - [After installing using installer](#after-installing-using-installer)
-  - [Future restoration of your dotfiles](#future-restoration-of-your-dotfiles)
-  - [Configuration](#configuration)
-  - [Creating a custom script](#creating-a-custom-script)
-    - [.Sloth Scripts](#sloth-scripts)
-  - [Fully automated restoration with restoration scripts](#fully-automated-restoration-with-restoration-scripts)
-  - [Creating your own package manager wrapper](#creating-your-own-package-manager-wrapper)
-  - [Creating your own recipe](#creating-your-own-recipe)
-  - [Creating your own theme](#creating-your-own-theme)
-  - [Init scripts](#init-scripts)
-    - [NVM](#nvm)
+- [Configuration](#configuration)
+- [Packages &amp; Recipes](#packages--recipes)
+  - [Install any package in one command](#install-any-package-in-one-command)
+  - [Create custom recipes](#create-custom-recipes)
+  - [Dump &amp; import packages per machine](#dump--import-packages-per-machine)
+- [Custom Scripts](#custom-scripts)
+- [Init Scripts](#init-scripts)
+- [Symlinks](#symlinks)
+- [Auto Update](#auto-update)
+- [Restorer](#restorer)
+- [Testing](#testing)
 - [Contributing](#contributing)
 - [Roadmap](#roadmap)
-- [Other credits](#other-credits)
 
-## About this
-<!--
-This section must be changed, Dotly was referenced in the top so no other references are necessary. The target of this section must be define the target of the project.
--->
-[.Sloth](https://github.com/gtrabanco/sloth) is a [Dotly fork](https://github.com/CodelyTV/dotly) which widely changes from original project.
+---
 
-Dotly is a [@rgomezcasas](https://github.com/rgomezcasas) idea (supported by [CodelyTV](https://pro.codely.tv)) with the help of a lot of people (see [Dotly Contributors](https://github.com/CodelyTV/dotly/graphs/contributors)).
+## What you can do
 
-## Features
-<!--
-This need a very big improvement
-- No more than 5/10 features, more features should be discovered and users needs samples of the stuff they can do
--->
+.Sloth is a full dotfiles framework with its own CLI. Here are the most useful things you can do with it:
 
-* Can be installed as standalone, not mandatory to be as git submodule (Should be done manually). 
-* Init scripts ([see init-scripts](https://github.com/gtrabanco/dotfiles/tree/main/shell/init.scripts) in [gtrabanco/dotfiles](https://github.com/gtrabanco/dotfiles)). This provides many possibilities as modular loading of custom variables or aliases by machine, loading secrets... Whatever you can imagine.
-* Per machine (or whatever name you want to) export packages `sloth packages dump` (you can use `dot` instead of `sloth`, we also have aliases for this command like `lazy` and `s`).
-* Compatibility with all Dotly scripts.
-* When you install SLOTH a backup of all previous files is done (`.bashrc`, `.zshrc` and `.zshenv`) if you request it.
-* Easy way to create new scripts from Terminal `sloth script create --help`
-* Easy way to install scripts on GitHub from Terminal `sloth script install_remote --help`
-* Auto update
-* We promise to reply all issues and support messages and review PRs.
-* Improved package managers and the way they are executed. You can also create your own wrappers for your package manager.
-* Improved registry (recipes) and how recipes can be updated as if they were packages.
-
-**About autocompletion** Is a known issue that current autocompletion for `dot` command does not work as good as supposed and currently only autocomplete the first argument (option). This will be fixed in the future but suppossed a gain in complexity for autocompletion that I am not interested in develop now. [See PR #146 for more information](https://github.com/gtrabanco/dotSloth/pull/146)
-
-## INSTALLATION
-
-### Linux, macOS, FreeBSD
-
-Using wget
 ```bash
-bash <(wget -qO- https://raw.githubusercontent.com/gtrabanco/sloth/HEAD/installer)
+# 📦 Install a package (uses package manager or builds from source via recipes)
+dot package add zsh
+dot package add nix
+
+# 📖 List all installed packages for this machine
+dot package dump
+
+# 🐚 Configure your shell (bash, zsh, or both)
+dot core install --shell
+
+# 🔗 Apply symlinks (dotbot YAML, platform-aware)
+dot symlinks apply
+
+# 📝 Create a new custom script from a template
+dot script create
+
+# 🔄 Update .Sloth to the latest stable version
+dot core update
+
+# 🚀 Check that everything was installed correctly
+dot self core
 ```
 
-Using curl
-```bash
-bash <(curl -s https://raw.githubusercontent.com/gtrabanco/sloth/HEAD/installer)
+### Shell prompt with git status
+
+.Sloth ships with configurable shell prompts for Bash and Zsh that show your current Git branch, whether your working tree is clean or dirty, untracked files, and whether you're behind/ahead of the remote:
+
 ```
+[main|📝]  →  your current branch + dirty state indicator
+[v2.0.0|↑2] →  tag + 2 commits behind
+```
+
+### Init scripts — modular, lazy loading
+
+Init scripts are loaded at shell startup on demand. Enable the ones you need:
+
+```bash
+dot init status          # See all available scripts and their enabled state
+dot init enable nvm      # Enable NVM to load Node/npm/npx on shell startup
+dot init enable autoupdate  # Check for .Sloth updates asynchronously
+```
+
+Custom init scripts go in `${DOTFILES_PATH}/shell/init.scripts/` — perfect for per-host configuration, loading secrets, or setting environment variables.
+
+### Restore your dotfiles on any machine
+
+Use the built-in restoration script to rebuild your dotfiles on a fresh machine. It supports GitHub, Keybase, iCloud, or any Git URL:
+
+```bash
+bash <(curl -s https://raw.githubusercontent.com/gtrabanco/dotSloth/HEAD/restorer)
+```
+
+## Installing
+
+### One-liner install
+
+```bash
+bash <(curl -s https://raw.githubusercontent.com/gtrabanco/dotSloth/HEAD/installer)
+```
+
+or
+
+```bash
+bash <(wget -qO- https://raw.githubusercontent.com/gtrabanco/dotSloth/HEAD/installer)
+```
+
+Supported on **Linux**, **macOS**, and **FreeBSD**.
+
+> .Sloth can be installed standalone or as a git submodule inside your dotfiles repository.
 
 ### Migration from Dotly
 
-If you have currently dotly in your .dotfiles you can migrate.
-
-Using wget
-```bash
-bash <(wget -qO- https://raw.githubusercontent.com/gtrabanco/sloth/HEAD/dotly-migrator)
-```
-
-Using curl
-```bash
-bash <(curl -s https://raw.githubusercontent.com/gtrabanco/sloth/HEAD/dotly-migrator)
-```
-
-
-<!--
-
-Maybe this section should be in the getting started (at the end)
-
-
-## Restoring dotfiles
-
-In your repository you see a way to restore your dotfiles, anyway you can restory by using the restoration script.
-
-### Linux, macOS, FreeBSD
-
-Using wget
-```bash
-bash <(wget -qO- https://raw.githubusercontent.com/gtrabanco/sloth/HEAD/restorer)
-```
-
-Using curl
-```bash
-bash <(curl -s https://raw.githubusercontent.com/gtrabanco/sloth/HEAD/restorer)
-```
--->
-
-# Getting Started
-
-## After installing using installer
-
-The first thing you must do is restart your terminal.
-
-You can check installation steps that have be done and check those which fail by using `dot self core`.
-
-After that you should create a repository if you want to store your dotfiles as repository in github and init your `${DOTFILES_PATH}` as your repository.
+If you're currently using [Dotly](https://github.com/CodelyTV/dotly), migrate with:
 
 ```bash
-dotfiles
-git remote add origin git@github.com:${GITHUB_USER}/${GITHUB_DOTFILES_REPOSITORY}.git
-git add .
-git commit -m "Initial commit"
-git push origin main
+bash <(curl -s https://raw.githubusercontent.com/gtrabanco/dotSloth/HEAD/dotly-migrator)
 ```
-Replace the variables for your own values or the full url for your repository.
 
-**IMPORTANT** If you make your repository public take care about the information you publish like tokens, password or any other sensible data. The responsability of this is from yourself and not from any .Sloth developer.
+## Getting Started
 
-## Future restoration of your dotfiles
+1. **Restart your terminal** after installation.
+2. **Check the installation**: `dot self core` — shows what was configured and what failed.
+3. **Create your dotfiles repository** to back up your custom configuration:
 
-See the README that is created in your repository or in [`dotfiles_template`](dotfiles_template)
+   ```bash
+   cd "$DOTFILES_PATH"
+   git init
+   git remote add origin git@github.com:${GITHUB_USER}/${GITHUB_DOTFILES_REPOSITORY}.git
+   git add .
+   git commit -m "Initial commit"
+   git push origin main
+   ```
 
+4. **Customise** your config files in `$DOTFILES_PATH/shell/exports.sh` and `$DOTFILES_PATH/shell/paths.sh`.
+
+> [!IMPORTANT]
+> If you make your dotfiles repository public, be careful not to expose secrets, tokens, or passwords. You are responsible for this, not .Sloth developers.
 
 ## Configuration
 
-Next thing you have to do is personalize the configuration. How .Sloth is updated and theme, do that by customize files in `DOTFILES_PATH` variable.
+Personalise your installation by editing files inside `$DOTFILES_PATH`:
 
-If you use VSCode (for example), you can view all files and customize with:
+| File | Purpose |
+|------|---------|
+| `$DOTFILES_PATH/shell/exports.sh` | Environment variables for your machine (`.Sloth` update period, active theme, etc.) |
+| `$DOTFILES_PATH/shell/paths.sh` | Additional directories in `$PATH` |
+| `$DOTFILES_PATH/shell/aliases.sh` | Custom shell aliases |
+| `$DOTFILES_PATH/shell/functions.sh` | Custom shell functions |
+| `$DOTFILES_PATH/shell/bash/themes/` | Bash prompt themes |
+| `$DOTFILES_PATH/shell/zsh/themes/` | Zsh prompt themes |
+
+Edit them all at once:
 
 ```bash
 code "$DOTFILES_PATH"
 ```
 
-Pay attention to those files that are in `${DOTFILES_PATH}/shell`. To be more precise the configuration is in `exports.sh`.
+.Sloth automatically loads `JAVA_HOME`, Python, Ruby, Go, Homebrew, MacPorts, Nix, and other common paths. For anything else, use a [custom recipe](#create-custom-recipes) or an [init script](#init-scripts).
 
-Add any additional PATH where to find binaries in the array in `paths.sh`. **IMPORTANT** There are PATHs that are configured in the .Sloth initialiser like gnu stuff in macOS, brew PATH, macports PATH (if you have it installed) or Nix Package Manager PATH.
+## Packages & Recipes
 
-Other PATHs that are loaded are:
-* `JAVA_HOME`
-* Python
-* Ruby
-* Go
+.Sloth uses **recipes** (like installers) to handle software that needs special setup steps. Each recipe knows how to install, check, update, and uninstall a package.
 
-For other envs use init scripts or make a PR.
-
-## Creating a custom script
-
-The main idea of these framework is try to avoid loading bash functions so you can create your own scripts directly from command line, for that use the themplates. View the help:
+### Install any package in one command
 
 ```bash
-dot script create --help
+dot package add bun      # Bun runtime (downloads from GitHub)
+dot package add nix      # Nix package manager
+dot package add z        # z directory jumper
+dot package add nvm      # Node Version Manager
 ```
 
-There are two kind of scripts that can be created, Dotly compatible scripts and .Sloth scripts. By default these ones are created which are for a simple `echo` around 10ms faster.
+Under the hood, .Sloth tries each recipe in turn. If a recipe matches, it uses it. Otherwise it falls back to your default package manager.
 
-You can create also core scripts which are created in `SLOTH_PATH`. Use only these feature if you have developing a core script that you will send to as with a PR please.
+### Supported package managers
 
-### .Sloth Scripts
-* The parse of the help and version are ignored because is done automatically with .Sloth.
-* .Sloth scripts are included and not executed so the source of core Dotly/.Sloth scripts can be omited.
+| Platform | Package managers |
+|----------|-----------------|
+| **Linux** | apt, brew, snap, dnf, pacman, yum, cargo, pipx, pip, gem, volta, npm |
+| **macOS** | mas, brew, cargo, pipx, pip, volta, npm |
 
-## Fully automated restoration with restoration scripts
+### Create custom recipes
 
-In your `DOTFILES_PATH` you will have a folder called `restoration_scripts` you can add scripts there that will be executed automatically when using `dot core install`. This useful to automate post installation steps that we want to execute when we restore our dotfiles. See examples in [my dotfiles repository](https://github.com/gtrabanco/dotfiles).
+Add your own recipes in `${DOTFILES_PATH}/package/recipes/`. See `deno.sh` as an example — it can be installed via a package manager or built from source, supports updates, and shows version info.
 
-## Creating your own package manager wrapper
+### Create your own package manager wrapper
 
-If you use a package manager that is not in the core or you want to replace how any work, you can by simply add the library in `${DOTFILES_PATH}/package/managers/mypackage_manager_name.sh`. See `brew` wrapper as the better example. It can dump and make a backup of all installed packages, update apps, install new apps and little stuff more.
+If your package manager isn't built in, or you want to replace how one works, add your wrapper in `${DOTFILES_PATH}/package/managers/`. See `brew.sh` for a complete example — it handles dump, install, update, and backup.
 
-## Creating your own recipe
+### Dump & import packages per machine
 
-If you want to create your own recipe to install any package or add it as custom dependency for any reason (for example compilation and postcompilation configuration) you can create your custom recipes in `${DOTFILES_PATH}/package/recipes`. Recipes can be autoupdated, see `deno.sh` as good example of recipe that can be installed by using a package manager or installed from source, updated and show information of the package.
+Save which packages you have installed on each host, then restore them elsewhere:
 
-## Creating your own theme
+```bash
+dot package dump       # Export → creates a file per machine
+dot package import     # Import → restores from a previous dump
+```
 
-Themes are in `${DOTFILES_PATH}/shell/{zsh,bash}/themes`, see `dotly` theme as good example but you can have other installed like [Spaceship Prompt](https://spaceship-prompt.sh/)
+## Custom Scripts
 
-## Init scripts
+The framework encourages creating lightweight scripts rather than loading thousands of Bash functions:
 
-Init scripts can be enabled or disabled and check their status by using `dot init` context. Init scripts are initialized at the end of sloth initilizer and can reduce a lot the performance. There is a notificator for .Sloth updater and nvm init script by default.
+```bash
+dot script create
+dot script install_remote <github-url>
+```
 
-Init scripts should be stored in `${DOTFILES_PATH}/shell/init.scripts` and can be enabled by using `dot init enable`. You will see fzf and you can select multiple with `Shift + Tab`. You will only see those that are disabled.
+.Sloth scripts are included (not executed separately), so they start ~10ms faster than Dotly-compatible scripts.
 
-To check which init scripts are enabled or disables use `dot init status`.
+## Init Scripts
 
-### NVM
+Init scripts are modular pieces of code loaded at shell startup. They reduce the number of functions loaded in every shell session.
 
-There is a recipe for NVM and NVM and default LTS node, npm & npx are installed by executing `dot package add nvm`. You will need to enable init script for NVM by using `dot init enable nvm`
+```bash
+dot init status           # Show all available scripts and their enabled state
+dot init enable           # Interactive fzf picker — enable multiple scripts at once
+dot init enable nvm       # Enable a specific script
+dot init disable nvm      # Disable a script
+```
 
-<hr>
+Custom scripts go in `${DOTFILES_PATH}/shell/init.scripts/`.
+
+## Symlinks
+
+.Sloth uses [dotbot](https://github.com/anishathalye/dotbot) YAML files for symlink management, with platform-aware configs:
+
+```bash
+dot symlinks apply                  # Apply all symlinks
+dot symlinks apply core             # Apply only core symlinks
+dot symlinks apply conf.macos.yaml  # Apply a specific file
+```
+
+Backup modes: `--backup`, `--interactive-backup`, `--ignore-backup`.
+
+## Auto Update
+
+Keep .Sloth itself up to date:
+
+```bash
+dot core update              # Update now (sync mode)
+dot core update --async      # Non-blocking background update
+```
+
+Configure auto-updates in `$DOTFILES_PATH/shell/exports.sh`:
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `SLOTH_AUTO_UPDATE_MODE` | `auto` | `silent` \| `info` \| `prompt` \| `auto` |
+| `SLOTH_AUTO_UPDATE_PERIOD_IN_DAYS` | `7` | Days between update checks |
+| `SLOTH_UPDATE_VERSION` | `stable` | `stable` \| `latest` \| pinned semver tag |
+
+```bash
+dot self update --disable   # Temporarily disable updates
+dot self update --enable    # Re-enable updates
+```
+
+## Restorer
+
+The restorer rebuilds your entire dotfiles setup on a new machine. It clones your repo, updates .Sloth, installs packages, and applies symlinks — with validation, rollback, and progress logging.
+
+```bash
+bash <(curl -s https://raw.githubusercontent.com/gtrabanco/dotSloth/HEAD/restorer)
+```
+
+Add `restoration_scripts/` to your dotfiles repo for post-install automation (scripts that run automatically during restoration).
+
+## Testing
+
+.Sloth has a comprehensive test suite using [BATS-core](https://github.com/bats-core/bats-core):
+
+```bash
+bats tests/                    # All tests
+bats tests/core/git.bats       # A single test file
+bats --recursive tests/        # Recursive run
+```
+
+Currently **158+** tests covering core libraries, package managers, the update system, and integration paths.
+
+---
 
 # Contributing
 
-You can contribute to the project by making a PR, reporting an issue, suggesting a feature, writting about the project or by applying any idea you have. All contributions that respect our [Code of Conduct](https://github.com/gtrabanco/.Sloth/blob/main/.github/code-of-conduct.md) are very welcoming.
+PRs, issues, and feature suggestions are welcome. All contributions that respect our [Code of Conduct](.github/code-of-conduct.md) are appreciated. See the [Roadmap](#roadmap) if you want to know where to focus your efforts.
 
 # Roadmap
 
-View [Wiki](https://github.com/gtrabanco/sloth/wiki#roadmap) if you want to contribute and you do not know what to do or maybe is already a WIP (Work in Progress).
+Check the [project's issue tracker](https://github.com/gtrabanco/dotSloth/issues) for upcoming features and tracked issues.
 
-You can contribute also by using PR to any working branch (Drafted PRs).
+---
 
-
-# Other credits
-Tweet image got from this website:
-- https://bikeroll.net [image source](https://bikeroll.net/es/img/ic_twitter_share.svg)
+*Tweet button image from* https://bikeroll.net *([source](https://bikeroll.net/es/img/ic_twitter_share.svg))*
