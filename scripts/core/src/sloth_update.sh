@@ -285,7 +285,7 @@ sloth_update::sloth_update() {
   git::pull_branch "$remote" "$head_branch" "${SLOTH_UPDATE_GIT_ARGS[@]}" 1>&2 && output::solution "Repository has been updated" || return 40
 
   git::git "${SLOTH_UPDATE_GIT_ARGS[@]}" checkout --force "${SLOTH_GITMODULES_BRANCH:-${SLOTH_DEFAULT_BRANCH:-main}}"
-  git::git "${SLOTH_UPDATE_GIT_ARGS[@]}" reset --hard HEAD "${SLOTH_GITMODULES_BRANCH:-${SLOTH_DEFAULT_BRANCH:-main}}"
+  git::git "${SLOTH_UPDATE_GIT_ARGS[@]}" reset --hard HEAD
 
   touch "${SLOTH_UPDATED_FILE:-${DOTFILES_PATH:-${HOME}}/.sloth_updated}"
   rm -f "${SLOTH_UPDATE_AVAILABE_FILE:-"${DOTFILES_PATH:-${HOME}}/.sloth_update_available"}"

@@ -507,8 +507,8 @@ git::pull_branch() {
   # Clone and track the remote branch to make sure we have the branch
   git::clone_track_branch "$remote" "$branch" "$@" 1>&2
   git::git "$@" checkout --force "$branch" 1>&2
-  git::git "$@" reset --hard "${remote}/${branch}" 1>&2
   git::git "$@" fetch --all --tags --force 1>&2
+  git::git "$@" reset --hard "${remote}/${branch}" 1>&2
   git::git "$@" pull --all -s recursive -X theirs 1>&2
   git::git "$@" reset --hard HEAD 1>&2
 }
