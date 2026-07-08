@@ -64,4 +64,4 @@
 
 - `shfmt -ln bash -sr -ci -i 2 -d` — clean on both branches
 - `shellcheck -s bash` — clean on both branches
-- `bats --recursive tests/` — 23/23 on both branches (159 total across full suite)
+- `bats --recursive tests/` — 22/22 on main (158 total), 23/23 on fix branches (159 total, +1 each)
