@@ -133,6 +133,19 @@ teardown() {
     rm -f "$gi" "$other"
 }
 
+# Distinguishing regression test: glob metacharacters in content. The buggy
+# regex (^${content}$) treats '.' as "any char", so 'foo.bar' in the gitignore
+# causes 'fooXbar' to be considered a duplicate. Fixed code uses grep -Fxq
+# (fixed-string, whole-line) so each entry is compared literally.
+@test "git::add_to_gitignore treats glob metacharacters as literals" {
+    local gi
+    gi=$(temp_file "foo.bar")
+    run git::add_to_gitignore "$gi" "fooXbar"
+    [ "$status" -eq 0 ]
+    grep -q "^fooXbar$" "$gi"
+    rm -f "$gi"
+}
+
 # ── git::check_branch_is_behind ─────────────────────────────────────────────
 
 @test "git::check_branch_is_behind returns 1 when no upstream is configured" {

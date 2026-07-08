@@ -588,11 +588,10 @@ git::add_to_gitignore() {
   shift
 
   if [[ -n "$content" ]]; then
-    grep -q "^${content}$" "$gitignore_file_path" || echo "$content" | tee -a "$gitignore_file_path" > /dev/null 2>&1
-    echo > /dev/null 2>&1
+    grep -Fxq "$content" "$gitignore_file_path" || echo "$content" | tee -a "$gitignore_file_path" > /dev/null 2>&1
   fi
 
-  if ! grep -q "^${content}$" "$gitignore_file_path"; then
+  if ! grep -Fxq "$content" "$gitignore_file_path"; then
     return 1
   fi
 
