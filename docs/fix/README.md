@@ -14,7 +14,7 @@ history lives in git log + closed issues.
 
 | Folder | Topic | Status | Depends on | Issue |
 |--------|-------|--------|------------|-------|
-| _(none)_ | | | | |
+| `296-restorer-rollback-symlinks` | restorer rollback saves symlinks but doesn't restore them | pending | — | #296 |
 
 ## Conventions
 

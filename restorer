@@ -125,7 +125,10 @@ create_rollback_point() {
   if [[ -d "${DOTFILES_PATH:-}" ]]; then
     cp -a "$DOTFILES_PATH" "$ROLLBACK_DIR/dotfiles" 2> /dev/null || true
   fi
-  ls -la "$HOME" 2> /dev/null | grep '^l' > "$ROLLBACK_DIR/symlinks.txt" 2> /dev/null || true
+  # Save symlinks as null-delimited pairs: <target>\0<link_path>\0
+  while IFS= read -r -d '' _link_path; do
+    printf '%s\0%s\0' "$(readlink "$_link_path")" "$_link_path"
+  done < <(find "$HOME" -maxdepth 1 -type l -print0 2> /dev/null) > "$ROLLBACK_DIR/symlinks.txt" 2> /dev/null || true
   _a "Rollback point created at $ROLLBACK_DIR"
 }
 
@@ -136,6 +139,14 @@ rollback() {
   if [[ -d "$rollback_dir/dotfiles" ]] && [[ -n "${DOTFILES_PATH:-}" ]]; then
     rm -rf "$DOTFILES_PATH"
     mv "$rollback_dir/dotfiles" "$DOTFILES_PATH"
+  fi
+  # Restore symlinks from the saved list (null-delimited pairs)
+  if [[ -s "$rollback_dir/symlinks.txt" ]]; then
+    while IFS= read -r -d '' _target && IFS= read -r -d '' _link; do
+      [[ -z "$_target" || -z "$_link" ]] && continue
+      rm -f "$_link" 2> /dev/null || true
+      ln -s "$_target" "$_link" 2> /dev/null || true
+    done < "$rollback_dir/symlinks.txt"
   fi
   _e "Rolled back to pre-restore state."
 }
