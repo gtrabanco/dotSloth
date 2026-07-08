@@ -301,10 +301,20 @@ if
       -d "$init_scripts_path" ]]
 then
 
-  for init_script in $(command -p find "${DOTFILES_PATH}/shell/init.scripts-enabled" -mindepth 1 -maxdepth 1 -not -iname ".*" -not -type d -print0 2> /dev/null | command -p xargs -0 -I _ command realpath --quiet --logical _); do
-    [[ -z "$init_script" ]] && continue
+  for init_script in "${DOTFILES_PATH}/shell/init.scripts-enabled"/*; do
+    [[ -z "$init_script" || ! -e "$init_script" ]] && continue
+    [[ -d "$init_script" ]] && continue
+    [[ "$init_script" == *.* ]] && continue
 
-    { [[ -r "$init_script" ]] && . "$init_script"; } || echo -e "\033[0;31m${init_script} could not be loaded\033[0m"
+    # Resolve symlink target (macOS-compatible, no realpath needed)
+    if [[ -L "$init_script" ]]; then
+      _init_target="$(readlink "$init_script" 2> /dev/null)"
+      [[ -n "$_init_target" ]] && init_script="$_init_target"
+    fi
+
+    [[ -z "$init_script" || ! -r "$init_script" ]] && continue
+
+    { . "$init_script"; } || echo -e "\033[0;31m${init_script} could not be loaded\033[0m"
   done
 fi
 ###### End of User init scripts ######
