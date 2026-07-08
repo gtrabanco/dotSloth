@@ -195,8 +195,13 @@ git::current_commit_hash() {
 # Check if a given commit is a valid commit in the local repository
 #"
 git::is_valid_commit() {
-  local -r commit="${1:-HEAD}"
-  [[ -n "${1:-}" ]] && shift
+  local commit
+  if [[ -n "${1:-}" && "$1" != -* ]]; then
+    commit="$1"
+    shift
+  else
+    commit="HEAD"
+  fi
 
   [[ $(git::git "$@" cat-file -t "$commit") == commit ]]
 }
