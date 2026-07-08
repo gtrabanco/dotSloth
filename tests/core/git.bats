@@ -164,6 +164,34 @@ teardown() {
     rm -rf "$remote_dir"
 }
 
+# ── git::check_branch_is_ahead ──────────────────────────────────────────────
+
+# Distinguishing regression test: a remote is set up, local main is reset to
+# origin/main and given one extra commit (strictly ahead, shared history), and
+# branch.main.merge is wired to the remote-tracking ref, so the fixed code
+# resolves branch=main, finds the upstream, and returns 0 (ahead). Under the
+# bug, $1 (-C) is consumed as the branch name, branch.-C.merge is unset, and
+# the function returns 1 (no upstream) — so a 0 here proves -C was preserved.
+@test "git::check_branch_is_ahead with -C option does not consume -C" {
+    local remote_dir
+    remote_dir=$(temp_dir)
+    git init -q -b main "$remote_dir"
+    git -C "$remote_dir" config user.email "test@test.com"
+    git -C "$remote_dir" config user.name "test"
+    git -C "$remote_dir" commit -qm "remote root" --allow-empty
+
+    git -C "$REPO_DIR" remote add origin "$remote_dir"
+    git -C "$REPO_DIR" fetch -q origin
+    git -C "$REPO_DIR" reset -q --hard origin/main
+    git -C "$REPO_DIR" commit -qm "local ahead" --allow-empty
+    git -C "$REPO_DIR" config branch.main.merge "refs/remotes/origin/main"
+
+    run git::check_branch_is_ahead -C "$REPO_DIR"
+    [ "$status" -eq 0 ]
+
+    rm -rf "$remote_dir"
+}
+
 # ── git::remote_latest_tag_version (mock tier) ─────────────────────────────
 
 @test "git::remote_latest_tag_version parses the latest tag from mocked git output" {
