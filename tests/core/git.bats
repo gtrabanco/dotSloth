@@ -107,6 +107,14 @@ teardown() {
     [ "$status" -ne 0 ]
 }
 
+# Distinguishing regression test: calling is_valid_commit with -C as the first
+# argument (no explicit commit) — the fixed code defaults commit=HEAD (valid),
+# the buggy code consumes -C as the commit name (invalid).
+@test "git::is_valid_commit with -C option does not consume -C" {
+    run git::is_valid_commit -C "$REPO_DIR"
+    [ "$status" -eq 0 ]
+}
+
 # ── git::add_to_gitignore ───────────────────────────────────────────────────
 # Tests use distinct files for $1 and $GITIGNORE_PATH to verify the
 # function writes to its first argument, not the global $GITIGNORE_PATH.
