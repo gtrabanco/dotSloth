@@ -164,6 +164,38 @@ teardown() {
     rm -rf "$remote_dir"
 }
 
+# ── git::check_branch_is_ahead ──────────────────────────────────────────────
+
+@test "git::check_branch_is_ahead returns 1 when no upstream is configured" {
+    run git::check_branch_is_ahead main -C "$REPO_DIR"
+    [ "$status" -ne 0 ]
+}
+
+# Distinguishing regression test: local main is pushed to a bare remote so
+# origin/main == main, then an extra empty commit is added locally — local is
+# now genuinely 1 commit ahead. branch.main.merge is wired to the
+# remote-tracking ref, so the fixed code resolves branch=main, finds the
+# upstream, and returns 0 (ahead). Under the bug, $1 (-C) is consumed as the
+# branch name, branch.-C.merge is unset, and the function returns 1 (no
+# upstream) — so a 0 here proves -C was preserved. (Push-then-commit avoids
+# the "diverged, not ahead" ambiguity a standalone divergent remote would
+# create, since rev-list --count uses the three-dot symmetric difference.)
+@test "git::check_branch_is_ahead with -C option does not consume -C" {
+    local remote_dir
+    remote_dir=$(temp_dir)
+    git init -q -b main --bare "$remote_dir"
+
+    git -C "$REPO_DIR" remote add origin "$remote_dir"
+    git -C "$REPO_DIR" push -q origin main
+    git -C "$REPO_DIR" commit -qm "local ahead" --allow-empty
+    git -C "$REPO_DIR" config branch.main.merge "refs/remotes/origin/main"
+
+    run git::check_branch_is_ahead -C "$REPO_DIR"
+    [ "$status" -eq 0 ]
+
+    rm -rf "$remote_dir"
+}
+
 # ── git::remote_latest_tag_version (mock tier) ─────────────────────────────
 
 @test "git::remote_latest_tag_version parses the latest tag from mocked git output" {

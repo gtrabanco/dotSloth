@@ -304,9 +304,14 @@ git::check_branch_is_behind() {
 # @param string local_branch current branch by default
 #"
 git::check_branch_is_ahead() {
-  local -r branch="${1:-$(git::current_branch "$@")}"
+  local branch
+  if [[ -n "${1:-}" && "$1" != -* ]]; then
+    branch="$1"
+    shift
+  else
+    branch="$(git::current_branch "$@")"
+  fi
   [[ -z "$branch" ]] && return 1
-  [[ -n "${1:-}" ]] && shift
 
   local -r upstream_branch="$(git::git "$@" config --get "branch.${branch}.merge" || echo -n)"
 
