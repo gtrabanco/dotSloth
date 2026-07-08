@@ -14,7 +14,8 @@ history lives in git log + closed issues.
 
 | Folder | Topic | Status | Depends on | Issue |
 |--------|-------|--------|------------|-------|
-| _(none)_ | | | | |
+| `319-is-valid-commit-C-option` | `is_valid_commit` consumes `-C` as commit (twin of #308/#314) | done | — | #319 |
+| `315-add-to-gitignore-regex` | `add_to_gitignore` regex dedup false match on glob metacharacters | done | — | #315 |
 
 ## Conventions
 
