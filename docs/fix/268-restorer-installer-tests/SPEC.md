@@ -74,12 +74,50 @@ because there were no tests.
 
 `git revert` — test-only, no data cleanup needed.
 
-## Effort
+## Affected docs
 
-S — ~1h. Mock harness exists, functions are isolated, bats patterns established.
+- `docs/fix/README.md` — already updated with `pending` entry (done in initial commit)
+- `docs/features/05-testing-framework/SPEC.md:62` — out-of-scope note for restorer/installer may need a "see #268" cross-reference after merge
+
+## Observability
+
+- CI run on the PR shows bats output for `tests/core/restorer.bats` and `tests/core/installer.bats` — green = fix verified
+- `bats --recursive tests/` must pass with zero failures — confirms no regressions in existing test suite
 
 ## Cross-issue notes
 
 - **#273** (gem.bats regression guards) — parallel, unrelated
 - **#296** (restorer rollback symlinks) — already merged; tests will cover the new behavior
 - **#303** (mock harness) — prerequisite, already merged
+
+## Effort
+
+S — ~1h. Mock harness exists, functions are isolated, bats patterns established.
+
+## Decisions made during drafting
+
+- Functions are extracted via awk from the monolithic scripts rather than sourcing the entire script — avoids side effects (git clone, user prompts) at the bottom of each script
+- Only pure-logic and directory-manipulation functions are tested; interactive/network functions are excluded (covered by `--dry-run` manual verification)
+- `command_exists()` test is skipped for installer — already covered by `tests/core/dot.bats`
+
+## Phases
+
+### P1 — Write restorer tests
+
+- [ ] Create `tests/core/restorer.bats` with tests for `has_component()`, `validate_dotfiles()`, `create_rollback_point()`+`rollback()`, `backup_dotfiles_dir()`
+- [ ] Verify: `SLOTH_PATH=/path/to/repo bats tests/core/restorer.bats` — all tests pass
+
+### P2 — Write installer tests
+
+- [ ] Create `tests/core/installer.bats` with tests for `create_dotfiles_dir()`
+- [ ] Verify: `SLOTH_PATH=/path/to/repo bats tests/core/installer.bats` — all tests pass
+
+### P3 — Hardening & PR
+
+- [ ] Run verification gate: `./scripts/core/lint && ./scripts/core/static_analysis`
+- [ ] Run full test suite: `bats --recursive tests/` — all pass, no regressions
+- [ ] Review SPEC for completeness — all sections filled, all claims cite file paths
+- [ ] Commit any remaining changes: `git add -A && git commit -m "test(core): add restorer and installer unit tests for #268"`
+- [ ] Push branch: `git push -u origin fix/268-restorer-installer-tests`
+- [ ] Open PR with body `Closes #268`
+- [ ] Verify CI is green on the PR
