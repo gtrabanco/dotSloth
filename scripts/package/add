@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -euo pipefail
 # FORCE_LEGACY_EXECUTION
 
 echo "Received args to add package $*" >> ~/dotly.log
