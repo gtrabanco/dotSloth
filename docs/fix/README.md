@@ -14,7 +14,7 @@ history lives in git log + closed issues.
 
 | Folder | Topic | Status | Depends on | Issue |
 |--------|-------|--------|------------|-------|
-| _(none)_ | | | | |
+| `300-audit-set-euo-pipefail` | audit standalone scripts for missing set -euo pipefail | pending | — | #300 |
 
 ## Conventions
 
