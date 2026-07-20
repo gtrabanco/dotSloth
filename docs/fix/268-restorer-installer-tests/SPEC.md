@@ -105,20 +105,20 @@ S — ~1h. Mock harness exists, functions are isolated, bats patterns establishe
 
 ### P1 — Write restorer tests
 
-- [ ] Create `tests/core/restorer.bats` with tests for `has_component()`, `validate_dotfiles()`, `create_rollback_point()`+`rollback()`, `backup_dotfiles_dir()`
-- [ ] Verify: `SLOTH_PATH=/path/to/repo bats tests/core/restorer.bats` — all tests pass
+- [x] Create `tests/core/restorer.bats` with tests for `has_component()`, `validate_dotfiles()`, `create_rollback_point()`+`rollback()`, `backup_dotfiles_dir()`
+- [x] Verify: `SLOTH_PATH=/path/to/repo bats tests/core/restorer.bats` — all tests pass
 
 ### P2 — Write installer tests
 
-- [ ] Create `tests/core/installer.bats` with tests for `create_dotfiles_dir()`
-- [ ] Verify: `SLOTH_PATH=/path/to/repo bats tests/core/installer.bats` — all tests pass
+- [x] Create `tests/core/installer.bats` with tests for `create_dotfiles_dir()`
+- [x] Verify: `SLOTH_PATH=/path/to/repo bats tests/core/installer.bats` — all tests pass
 
 ### P3 — Hardening & PR
 
-- [ ] Run verification gate: `./scripts/core/lint && ./scripts/core/static_analysis`
-- [ ] Run full test suite: `bats --recursive tests/` — all pass, no regressions
-- [ ] Review SPEC for completeness — all sections filled, all claims cite file paths
-- [ ] Commit any remaining changes: `git add -A && git commit -m "test(core): add restorer and installer unit tests for #268"`
-- [ ] Push branch: `git push -u origin fix/268-restorer-installer-tests`
-- [ ] Open PR with body `Closes #268`
-- [ ] Verify CI is green on the PR
+- [x] Run verification gate: `./scripts/core/lint && ./scripts/core/static_analysis`
+- [x] Run full test suite: `bats --recursive tests/` — all pass, no regressions
+- [x] Review SPEC for completeness — all sections filled, all claims cite file paths
+- [x] Commit any remaining changes: `git add -A && git commit -m "test(core): add restorer and installer unit tests for #268"`
+- [x] Push branch: `git push -u origin fix/268-restorer-installer-tests`
+- [x] Open PR with body `Closes #268`
+- [x] Verify CI is green on the PR
