@@ -111,6 +111,15 @@ teardown() {
   [ "$status" -ne 0 ]
 }
 
+@test "validate_dotfiles returns 1 for a git repo with no commits" {
+  local no_head_repo
+  no_head_repo=$(temp_dir)
+  git init -q "$no_head_repo"
+  run validate_dotfiles "$no_head_repo"
+  [ "$status" -ne 0 ]
+  rm -rf "$no_head_repo"
+}
+
 # ── create_rollback_point() + rollback() ──────────────────────────────────
 
 @test "create_rollback_point creates a rollback directory with dotfiles copy" {

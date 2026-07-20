@@ -99,6 +99,7 @@ S — ~1h. Mock harness exists, functions are isolated, bats patterns establishe
 - Functions are extracted via awk from the monolithic scripts rather than sourcing the entire script — avoids side effects (git clone, user prompts) at the bottom of each script
 - Only pure-logic and directory-manipulation functions are tested; interactive/network functions are excluded (covered by `--dry-run` manual verification)
 - `command_exists()` test is skipped for installer — already covered by `tests/core/dot.bats`
+- `_extract_func()` helper duplicated in both test files rather than extracted to a shared helper — bats files load independently and only 2 consumers exist; extract when a 3rd consumer appears
 
 ## Phases
 
