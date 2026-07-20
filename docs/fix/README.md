@@ -14,7 +14,7 @@ history lives in git log + closed issues.
 
 | Folder | Topic | Status | Depends on | Issue |
 |--------|-------|--------|------------|-------|
-| _(none)_ | | | | |
+| `268-restorer-installer-tests` | tests for restorer and installer bootstrap | done · [#324](https://github.com/gtrabanco/dotSloth/pull/324) | — | #268 |
 
 ## Conventions
 
