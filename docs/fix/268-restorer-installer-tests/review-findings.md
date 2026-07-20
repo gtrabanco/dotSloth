@@ -3,8 +3,8 @@
 **PR:** [#324](https://github.com/gtrabanco/dotSloth/pull/324)
 **Audit date:** 2026-07-20
 **Updated:** 2026-07-20 (blockers fixed on branch)
-**Head SHA:** `2a4bcf1` (post-fix; previous audit on 2a062be)
-**Verdict:** BLOCKED (see B3 for CI; others folded)
+**Head SHA:** `f9422d2` (post-fold; CI green 6/6)
+**Verdict:** MERGE-READY (all blockers folded)
 
 ---
 
@@ -14,7 +14,7 @@
 |----|-----------|------|----------|-------|-------|--------|
 | B1 | `docs/fix/README.md:18` | Mergeability | high | fix-now | rebase + conflict resolve + commit | yes |
 | B2 | `SPEC.md:67-71` | Acceptance criteria | high | fix-now | ticked checkboxes + commit | yes |
-| B3 | `statusCheckRollup` | Verification gate / CI | high | fix-now | push; CI must run green (tools unavailable in audit env) | no |
+| B3 | `statusCheckRollup` | Verification gate / CI | high | fix-now | push; CI must run green (tools unavailable in audit env) | yes |
 | B4 | restorer/installer.bats (F2-F6,F9) | Review axes | high | fix-now | folded via direct fixes (stubs, temp_dir scoping, colors, else test) + commit | yes |
 
 ## Deferred (from prior adversarial review — out of scope, tracked)
@@ -35,5 +35,6 @@
 - B4/F6: Added explicit `red/green/purple/normal` assignments in setup() before any extracted calls.
 - B4/F9: Enhanced else-branch test for backup_dotfiles_dir (non-exist case) with explicit "no *.back created" assertion.
 - All 177 bats tests still pass; lint (with dummies) reports clean on changed files.
+- B3: PR pushed (f9422d2); CI re-ran green (6/6 SUCCESS — Lint, Static analysis, Tests (ubuntu/macos), Build (ubuntu/macos)).
 
 Note: full `static_analysis` requires `shellcheck` binary (unavailable in this env, as documented); will be enforced by CI on push.
