@@ -64,11 +64,11 @@ because there were no tests.
 
 ## Acceptance criteria
 
-- [ ] `tests/core/restorer.bats` created with ≥4 test cases
-- [ ] `tests/core/installer.bats` created with ≥2 test cases
-- [ ] All tests pass: `bats tests/core/restorer.bats tests/core/installer.bats`
-- [ ] No existing tests broken: `bats --recursive tests/`
-- [ ] shfmt + shellcheck clean on any new/modified files
+- [x] `tests/core/restorer.bats` created with ≥4 test cases
+- [x] `tests/core/installer.bats` created with ≥2 test cases
+- [x] All tests pass: `bats tests/core/restorer.bats tests/core/installer.bats`
+- [x] No existing tests broken: `bats --recursive tests/`
+- [x] shfmt + shellcheck clean on any new/modified files
 
 ## Rollback
 

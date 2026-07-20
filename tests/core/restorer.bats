@@ -30,12 +30,18 @@ _extract_func() {
 }
 
 setup() {
-  # Extract all functions we need from the restorer script.
-  # Helper output functions used by the target functions:
-  eval "$(_extract_func '_w')"
-  eval "$(_extract_func '_a')"
-  eval "$(_extract_func '_e')"
-  eval "$(_extract_func '_s')"
+  # Provide color vars referenced by extracted _e/_s/_a (defined at top level in restorer, not in extracted funcs)
+  red='\033[0;31m'
+  green='\033[0;32m'
+  purple='\033[0;35m'
+  normal='\033[0m'
+
+  # Extract only logic helpers from the restorer script and eval them.
+  # Output helpers (_w/_a/_e/_s) are no-op stubs to reduce eval surface (they are pure side-effects for messaging).
+  _w() { :; }
+  _a() { :; }
+  _e() { :; }
+  _s() { :; }
   eval "$(_extract_func 'current_timestamp')"
   # Target functions:
   eval "$(_extract_func 'has_component')"
@@ -172,23 +178,25 @@ teardown() {
 # ── backup_dotfiles_dir() ─────────────────────────────────────────────────
 
 @test "backup_dotfiles_dir renames existing dir to timestamped backup" {
-  local test_dir
-  test_dir=$(temp_dir)
+  local parent
+  parent=$(temp_dir)
+  local test_dir="$parent/dotfiles"
+  mkdir -p "$test_dir"
   printf 'content' > "$test_dir/file.txt"
 
   backup_dotfiles_dir "$test_dir"
 
   # Original dir should be gone (moved)
   [ ! -d "$test_dir" ]
-  # Backup should exist with .back suffix — find it
+  # Backup should exist with .back suffix — find it scoped to our parent temp
   local found
   found=$(ls -d "${test_dir}".*.back 2>/dev/null | head -1)
   [ -n "$found" ]
   [ -f "$found/file.txt" ]
-  rm -rf "$found" 2>/dev/null || true
+  rm -rf "$parent" 2>/dev/null || true
 }
 
-@test "backup_dotfiles_dir creates parent dir for non-existent path" {
+@test "backup_dotfiles_dir creates parent dir for non-existent path (else branch)" {
   local test_parent
   test_parent=$(temp_dir)
   local new_path="$test_parent/sub/dir"
@@ -197,5 +205,9 @@ teardown() {
   backup_dotfiles_dir "$new_path"
   # Function creates the parent directory, not the target itself
   [ -d "${new_path%/*}" ]
+  # Confirm else branch: no backup was created (if-branch would have renamed)
+  local found
+  found=$(ls -d "${new_path}".*.back 2>/dev/null | head -1 || true)
+  [ -z "$found" ]
   rm -rf "$test_parent"
 }

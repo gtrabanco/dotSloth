@@ -29,11 +29,17 @@ _extract_func() {
 }
 
 setup() {
-  # Extract helper output functions used by create_dotfiles_dir
-  eval "$(_extract_func '_w')"
-  eval "$(_extract_func '_a')"
-  eval "$(_extract_func '_e')"
-  eval "$(_extract_func '_s')"
+  # Provide color vars referenced by extracted _e/_s/_a (defined at top level in installer)
+  red='\033[0;31m'
+  green='\033[0;32m'
+  purple='\033[0;35m'
+  normal='\033[0m'
+
+  # Extract only logic helpers; output helpers are no-op stubs (reduces eval surface)
+  _w() { :; }
+  _a() { :; }
+  _e() { :; }
+  _s() { :; }
   eval "$(_extract_func 'current_timestamp')"
   # Target functions:
   eval "$(_extract_func 'create_dotfiles_dir')"
@@ -44,15 +50,15 @@ setup() {
 
 teardown() {
   clear_mocks
-  # Clean up any temp dirs we may have left
-  rm -rf /tmp/dotSloth-installer-test-* 2>/dev/null || true
 }
 
 # ── create_dotfiles_dir() ─────────────────────────────────────────────────
 
 @test "create_dotfiles_dir backs up an existing directory" {
-  local test_dir
-  test_dir=$(temp_dir)
+  local parent
+  parent=$(temp_dir)
+  local test_dir="$parent/existing"
+  mkdir -p "$test_dir"
   printf 'existing' > "$test_dir/file.txt"
 
   create_dotfiles_dir "$test_dir"
@@ -60,21 +66,23 @@ teardown() {
   # The function: mv old -> backup, then mkdir -p at original path.
   # So the original path exists again but as a new empty directory.
   [ -d "$test_dir" ]
-  # Backup should exist with .back suffix
+  # Backup should exist with .back suffix (scoped to our parent)
   local found
   found=$(ls -d "${test_dir}".*.back 2>/dev/null | head -1)
   [ -n "$found" ]
   [ -f "$found/file.txt" ]
-  rm -rf "$found" 2>/dev/null || true
+  rm -rf "$parent" 2>/dev/null || true
 }
 
 @test "create_dotfiles_dir creates a new directory when path does not exist" {
-  local test_dir="/tmp/dotSloth-installer-test-$$"
+  local parent
+  parent=$(temp_dir)
+  local test_dir="$parent/newdir"
 
   [ ! -d "$test_dir" ]
   create_dotfiles_dir "$test_dir"
   [ -d "$test_dir" ]
-  rm -rf "$test_dir"
+  rm -rf "$parent"
 }
 
 @test "create_dotfiles_dir creates parent directories when needed" {
