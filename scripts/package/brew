@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
 #shellcheck disable=1091
 . "${SLOTH_PATH:-}/scripts/core/src/_main.sh"
@@ -28,7 +29,7 @@ if ! platform::command_exists brew; then
   exit 4
 fi
 
-case $1 in
+case "${1:-}" in
   "list_installed")
     brew leaves
     ;;
