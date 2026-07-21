@@ -37,6 +37,7 @@ else
   package_name=""
   skip_recipe=false
   package_manager=""
+  force=false
   while [[ $# -gt 0 ]]; do
     case "${1:-}" in
       --skipe-recipe | -s)
