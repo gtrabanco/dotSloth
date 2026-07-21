@@ -107,7 +107,10 @@ if [[ -f "$HOME/.cargo/env" ]]; then
 fi
 
 # Check if package is installed
-! $force && package::is_installed "$package_name" && log::success "$package_name already installed" && exit 0
+if [[ "$force" != "true" ]] && package::is_installed "$package_name"; then
+  log::success "$package_name already installed"
+  exit 0
+fi
 
 # If there is a recipe for the package use it
 if ! ${skip_recipe:-false} &&
