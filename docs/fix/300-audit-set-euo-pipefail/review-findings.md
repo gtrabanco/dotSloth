@@ -6,7 +6,7 @@
 | ID | Sev | Location | Summary | Folded | SHA |
 |----|-----|----------|---------|--------|-----|
 | R2-1 | H | install:58 | `force` not initialized in else block; bare `$force` refs fail under `-u` | yes | |
-| R2-2 | H | install:109 | `! $force && package::is_installed ... && exit 0` — set -e regression: script exits when package not installed and force=false | no | |
+| R2-2 | H | install:109 | `! $force && package::is_installed ... && exit 0` — set -e regression: script exits when package not installed and force=false | yes | |
 | R2-3 | M | add:78 | pipefail regression: `echo \| str::to_lower \| xargs` crashes on intermediate failure | no | |
 | R2-4 | M | install:79 | pipefail regression: same pattern as R2-3 | no | |
 | R2-5 | M | install:26 | `${package_manager}` unbound under `-u` in docopts branch | no | |
