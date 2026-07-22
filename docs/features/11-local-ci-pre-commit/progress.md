@@ -11,3 +11,10 @@
 - Gotchas: Gate scripts require `SLOTH_PATH` and `DOTFILES_PATH` to be set; worktree needs explicit env vars
 - Files: `Makefile`, `scripts/self/pre-commit`
 - Next: P3 — Update CI (`.github/workflows/ci.yml`) — add format job on macOS + Ubuntu matrix
+
+## P3 — 2026-07-22
+- Done: Added `format` CI job to `.github/workflows/ci.yml` running `shfmt -d` on macOS + Ubuntu matrix
+- Remains: none
+- Gotchas: Format job installs shfmt via Go (same pattern as lint job); uses `-d` (diff) mode for check, not `-w` (write)
+- Files: `.github/workflows/ci.yml`
+- Next: P4 — Update CLAUDE.md with merge gate constraint
