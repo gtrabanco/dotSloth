@@ -140,7 +140,7 @@ repos:
     hooks:
       - id: shfmt-format
         name: shfmt (format)
-        entry: shfmt --write --lnv bash
+        entry: shfmt --write --language-dialect bash
         language: system
         files: \.(ba|z)?sh$
         types_or: [bash, shell]
@@ -151,7 +151,7 @@ repos:
     hooks:
       - id: shfmt-lint
         name: shfmt (lint)
-        entry: shfmt --diff --lnv bash -sr -ci -i 2
+        entry: shfmt --diff --language-dialect bash -sr -ci -i 2
         language: system
         files: \.(ba|z)?sh$
         types_or: [bash, shell]
@@ -271,11 +271,11 @@ Wait — `lint` and `format` are different:
 
 They serve the same purpose conceptually but `lint` has extra logic. For CI redundancy: if `make format` passes locally AND CI `format` job passes, then formatting is guaranteed. We can keep both.
 
-Actually, reviewing `scripts/self/lint` again: it uses `shfmt -lnv bash -sr -ci -i 2 -d` (diff mode with specific flags). The key flags are `-sr` (sort imports — no-op in bash but kept for consistency) `--ci` (consider case-insensitive) `--i 2` (indent 2 spaces).
+Actually, reviewing `scripts/self/lint` again: it uses `shfmt -ln bash -sr -ci -i 2 -d` (diff mode with specific flags). The key flags are `-sr` (sort imports — no-op in bash but kept for consistency) `--ci` (consider case-insensitive) `--i 2` (indent 2 spaces).
 
-The pre-commit hook should use EXACTLY the same flags: `shfmt --diff --lnv bash -sr -ci -i 2`.
+The pre-commit hook should use EXACTLY the same flags: `shfmt --diff --language-dialect bash -sr -ci -i 2`.
 
-So the pre-commit lint hook = `shfmt --diff --lnv bash -sr -ci -i 2`, and the Makefile `lint` target = `bash scripts/self/lint` (which does the same).
+So the pre-commit lint hook = `shfmt --diff --language-dialect bash -sr -ci -i 2`, and the Makefile `lint` target = `bash scripts/self/lint` (which does the same).
 
 ### CLAUDE.md merge gate
 
