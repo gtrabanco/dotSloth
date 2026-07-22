@@ -151,7 +151,7 @@ repos:
     hooks:
       - id: shfmt-lint
         name: shfmt (lint)
-        entry: shfmt --diff --lnv bash
+        entry: shfmt --diff --lnv bash -sr -ci -i 2
         language: system
         files: \.(ba|z)?sh$
         types_or: [bash, shell]
