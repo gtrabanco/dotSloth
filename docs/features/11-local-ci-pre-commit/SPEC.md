@@ -101,7 +101,7 @@ repos:
         entry: shfmt --write
         language: system
         files: \.sh$
-        stages: [commit]
+        stages: [pre-commit]
 
   # Hook 2: Lint — check format compliance
   - repo: local
@@ -112,7 +112,7 @@ repos:
         language: system
         files: \.sh$
         pass_filenames: false
-        stages: [commit]
+        stages: [pre-commit]
         # Must run AFTER format; use args to target changed files only
         args: []  # will include files to check
 
@@ -124,7 +124,7 @@ repos:
         entry: bash -c "make test"
         language: system
         pass_filenames: false
-        stages: [commit]
+        stages: [pre-commit]
 ```
 
 Wait — that approach is redundant. Better: use a single **validate** entry that runs the Makefile-based checks, and separate format/lint as specific hooks:
@@ -144,7 +144,7 @@ repos:
         language: system
         files: \.(ba|z)?sh$
         types_or: [bash, shell]
-        stages: [commit]
+        stages: [pre-commit]
 
   # 2. Lint: verify formatting (fails if shfmt --diff produces output)
   - repo: local
