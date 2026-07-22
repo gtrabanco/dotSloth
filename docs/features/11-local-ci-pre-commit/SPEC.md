@@ -178,7 +178,7 @@ Key decisions:
 
 Pre-commit does not auto-install `shfmt` or `bats-core` by default. To make the experience smooth for contributors:
 
-- Add `additional_dependencies` to each `local` hook pointing to `mvdan.cc/sh/v3/cmd/shfmt@latest` for shfmt hooks
+- Add `additional_dependencies` to each `local` hook pointing to `mvdan.cc/sh/v3/cmd/shfmt@v3.8.0` for shfmt hooks
 - For bats, pre-commit has a `language: python` hook option, but that's unnecessary — we add a README note telling contributors to install bats-core via their package manager, OR add a wrapper script
 
 Better approach: add `pre-commit install` to the project's `Makefile` as a one-line install target, and document in README that contributors should run:
@@ -197,7 +197,7 @@ So:
 3. `scripts/self/pre-commit` — a convenience wrapper that runs `pre-commit run` (similar to `scripts/self/lint`, `scripts/self/test`)
 4. Document installation: `pip install pre-commit` + `shfmt` + `bats-core`
 
-For shfmt installation: `go install mvdan.cc/sh/v3/cmd/shfmt@latest` (as CI already does) or `brew install shfmt`. We add a note in README and `scripts/self/pre-commit` checks for dependencies.
+For shfmt installation: `go install mvdan.cc/sh/v3/cmd/shfmt@v3.8.0` (as CI already does) or `brew install shfmt`. We add a note in README and `scripts/self/pre-commit` checks for dependencies.
 
 ### Makefile updates
 

@@ -104,7 +104,7 @@ jobs:
           echo "PATH=$PATH:$HOME/go/bin" >> $GITHUB_ENV
 
       - name: 📥 Install shfmt
-        run: go install mvdan.cc/sh/v3/cmd/shfmt@latest
+        run: go install mvdan.cc/sh/v3/cmd/shfmt@v3.8.0
 
       - name: 💅 Lint bash files and apply linting patches
         run: |
