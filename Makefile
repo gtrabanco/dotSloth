@@ -70,6 +70,13 @@ format:
 lint:
 	@bash scripts/self/lint
 
+.PHONY: pre-commit-install
+pre-commit-install:
+	@command -v pre-commit &>/dev/null || (echo "ERROR: pre-commit not found. Install with:" >&2 && \
+		echo "  pip install pre-commit" >&2 && exit 1)
+	@pre-commit install
+	@echo "pre-commit hooks installed"
+
 .PHONY: pre-commit-pre-push
 pre-commit-pre-push:
 	@command -v pre-commit &>/dev/null || (echo "ERROR: pre-commit not found. Install with:" >&2 && \
