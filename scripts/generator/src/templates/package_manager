@@ -59,7 +59,7 @@ XXX_PACKAGE_MANAGER_NAME_XXX::force_install() {
 
   XXX_PACKAGE_MANAGER_NAME_XXX::is_installed "${_args[@]}" &&
     return
-  
+
   return 1
 }
 
@@ -74,7 +74,7 @@ XXX_PACKAGE_MANAGER_NAME_XXX::uninstall() {
 XXX_PACKAGE_MANAGER_NAME_XXX::package_exists() {
   [[ -n "${1:-}" ]] &&
     XXX_PACKAGE_MANAGER_NAME_XXX::is_available &&
-    XXX_PACKAGE_MANAGER_NAME_XXX exists "$1" >/dev/null 2>&1
+    XXX_PACKAGE_MANAGER_NAME_XXX exists "$1" > /dev/null 2>&1
 }
 
 # REQUIRED TO USE `up` or `up XXX_PACKAGE_MANAGER_NAME_XXX`
@@ -95,7 +95,7 @@ XXX_PACKAGE_MANAGER_NAME_XXX::update_apps() {
 
   ! XXX_PACKAGE_MANAGER_NAME_XXX::is_available &&
     return 1
-    
+
   outdated_apps=($(XXX_PACKAGE_MANAGER_NAME_XXX outdated))
 
   if [ -n "${outdated_apps[*]}" ]; then
