@@ -2,39 +2,42 @@
 
 ## P1 — Core infrastructure
 
-- [ ] Create `scripts/package/src/lib/yaml.sh` with `set -euo pipefail` header and
-      function declarations for `yaml::write_value`, `yaml::write_array`,
-      `yaml::write_document`, `yaml::read_value`, `yaml::read_array`.
-- [ ] Implement `yaml::write_value` — writes `key = "value"` lines with optional
+- [x] Create `scripts/package/src/lib/yaml.sh` with
+      function declarations for `yaml::write_value`, `yaml::write_array_item`,
+      `yaml::write_array`, `yaml::write_document`, `yaml::read_value`,
+      `yaml::read_array`. (Library — no `set -euo pipefail`, per sourced-lib convention.)
+- [x] Implement `yaml::write_value` — writes `key = "value"` lines with optional
       comment prefix (`# comment\nkey = "value"`).
-- [ ] Implement `yaml::write_array` — writes `key:\n  - item\n  - item` format.
+- [x] Implement `yaml::write_array` — writes `key:\n  - item\n  - item` format.
       Handle inline arrays (`key: [a, b, c]`) and block arrays (`key:\n  - item`).
-- [ ] Implement `yaml::write_document` — orchestrates comment header, key-value
+- [x] Implement `yaml::write_document` — orchestrates comment header, key-value
       pairs, and array sections. Writes to specified file path.
-- [ ] Implement `yaml::read_value` — single-line parser: strips leading spaces,
-      splits on first `=`, returns value (removes surrounding quotes if present).
-- [ ] Implement `yaml::read_array` — parser for both inline (`[a, b, c]`) and
+- [x] Implement `yaml::read_value` — single-line parser: strips leading spaces,
+      splits on first `:`, returns value (removes surrounding quotes if present).
+- [x] Implement `yaml::read_array` — parser for both inline (`[a, b, c]`) and
       block (`\n  - item`) array formats. Returns newline-separated list.
-- [ ] Validate `yaml.sh` with `shfmt` and `shellcheck` — no warnings.
+- [x] Validate `yaml.sh` with `shfmt` and `shellcheck` — no warnings.
 
-- [ ] Create `scripts/package/src/wrappers/skills-add-bunx.sh` with argument
+- [x] Create `scripts/package/src/wrappers/skills-add-bunx.sh` with argument
       parsing: `<provider> [#<branch>] --agent <agent> [-g] [-y]`. Delegates to
       `bunx skills add` with constructed arguments.
-- [ ] Implement directory diffing: snapshot `$HOME/.agents/skills/` before install,
+- [x] Implement directory diffing: snapshot `$HOME/.agents/skills/` before install,
       diff after install to detect new skill directory path.
-- [ ] Implement `.skill-lock.json` write: create valid JSON with provider, branch,
+- [x] Implement `.skill-lock.json` write: create valid JSON with provider, branch,
       agents, command, and installed_at fields. Use `date -u +%Y-%m-%dT%H:%M:%SZ`
       for timestamp. Handle macOS `date` (no `+` format flag) and Linux.
-- [ ] Create `scripts/package/src/wrappers/skills-add-npx.sh` — identical structure
+- [x] Create `scripts/package/src/wrappers/skills-add-npx.sh` — identical structure
       to `skills-add-bunx.sh` but delegates to `npx skills add`.
-- [ ] Validate wrapper scripts with `shfmt` and `shellcheck` — no warnings.
+- [x] Validate wrapper scripts with `shfmt` and `shellcheck` — no warnings.
 
-- [ ] Create `scripts/package/src/package_managers/skills.sh` with `set -euo pipefail`
-      header, source `_main.sh`, source `yaml.sh`.
-- [ ] Implement `skills::setup` — no-op function (skills have no setup step).
-- [ ] Implement `skills::dump` — function signature only (full implementation in P2).
-- [ ] Implement `skills::import` — function signature only (full implementation in P3).
-- [ ] Validate `skills.sh` with `shfmt` and `shellcheck` — no warnings.
+- [x] Create `scripts/package/src/package_managers/skills.sh` with
+      `skills::title`, `skills::is_available`, `skills::setup`, and no-op stubs
+      for `skills::dump` and `skills::import`. (Sourced library — follows brew.sh
+      convention, no `set -euo pipefail` or `source _main.sh`.)
+- [x] Implement `skills::setup` — no-op function (skills have no setup step).
+- [x] Implement `skills::dump` — function signature only (full implementation in P2).
+- [x] Implement `skills::import` — function signature only (full implementation in P3).
+- [x] Validate `skills.sh` with `shfmt` and `shellcheck` — no warnings.
 
 **Completion gate**:
 - [ ] `bash scripts/self/static_analysis` passes
