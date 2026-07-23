@@ -6,7 +6,7 @@ set -euo pipefail
 dot::load_library "dump.sh"
 
 if platform::command_exists npm; then
-  script::depends_on jq
+	script::depends_on jq
 fi
 
 ##? Dump all installed packages from:
@@ -27,43 +27,43 @@ docs::parse "$@"
 HOSTNAME="$(hostname -s)"
 
 if ! ${silent:-false}; then
-  output::question_default "Do you want to use current hostname (if not write other name)" "$HOSTNAME" "HOSTNAME"
-  output::empty_line
+	output::question_default "Do you want to use current hostname (if not write other name)" "$HOSTNAME" "HOSTNAME"
+	output::empty_line
 fi
 
 for package_manager in $(package::get_available_package_managers); do
-  dump_file_path=""
-  dump_file_path="$(dump::file_path "$package_manager" "${HOSTNAME:-$(hostname -s)}")"
+	dump_file_path=""
+	dump_file_path="$(dump::file_path "$package_manager" "${HOSTNAME:-$(hostname -s)}")"
 
-  [[ -z "$dump_file_path" ]] && output::error "No dump file for \`$package_manager\`" && continue
+	[[ -z "$dump_file_path" ]] && output::error "No dump file for \`$package_manager\`" && continue
 
-  if
-    [[ $package_manager == "npm" ]] &&
-      package::get_available_package_managers | grep -q "^volta$"
-  then
-    continue
-  fi
+	if
+		[[ $package_manager == "npm" ]] &&
+			package::get_available_package_managers | grep -q "^volta$"
+	then
+		continue
+	fi
 
-  if ! package::command_exists "$package_manager" "dump" 2> /dev/null; then
-    continue
-  fi
+	if ! package::command_exists "$package_manager" "dump" 2>/dev/null; then
+		continue
+	fi
 
-  package::load_manager "$package_manager" || {
-    output::error "Error while loading $(eval echo "\$${package_manager}_title")" &&
-      output::empty_line &&
-      continue
-  }
+	package::load_manager "$package_manager" || {
+		output::error "Error while loading $(eval echo "\$${package_manager}_title")" &&
+			output::empty_line &&
+			continue
+	}
 
-  {
-    output::empty_line &&
-      output::h2 "🚀 Starting $(eval echo "\$${package_manager}_title") apps dump" &&
-      package::command "$package_manager" "dump" "$dump_file_path" &&
-      output::answer "$(eval echo "\$${package_manager}_title") apps dumped on \`${dump_file_path}\`" &&
-      output::empty_line
-  } || {
-    output::error "Error while exporting $(eval echo "\$${package_manager}_title") apps see \`dot core debug\`" &&
-      output::empty_line
-  }
+	{
+		output::empty_line &&
+			output::h2 "🚀 Starting $(eval echo "\$${package_manager}_title") apps dump" &&
+			package::command "$package_manager" "dump" "$dump_file_path" &&
+			output::answer "$(eval echo "\$${package_manager}_title") apps dumped on \`${dump_file_path}\`" &&
+			output::empty_line
+	} || {
+		output::error "Error while exporting $(eval echo "\$${package_manager}_title") apps see \`dot core debug\`" &&
+			output::empty_line
+	}
 
 done
 
