@@ -359,12 +359,14 @@ n/a — merging the PR is sufficient. Rollback: revert PR.
 
 ## Deliverables
 
-- `.pre-commit-config.yaml` — pre-commit framework configuration with three hooks
-- `Makefile` updates — new `format`, `lint`, `pre-commit-install`, `pre-commit-pre-push` targets
-- `.github/workflows/ci.yml` update — new `format` job on macOS + Ubuntu matrix
-- `CLAUDE.md` update — merge gate constraint
-- `docs/features/ROADMAP.md` update — feature 11 registration
-- `scripts/self/pre-commit` wrapper (optional convenience alias)
+| Deliverable | Description | Verification |
+|---|---|---|
+| `.pre-commit-config.yaml` | Pre-commit framework configuration with three hooks | `pre-commit run --all-files` passes (AC 1-2) |
+| `Makefile` targets | New `format`, `lint`, `pre-commit-install`, `pre-commit-pre-push` targets | `make format` && `make lint` && `make test` && `make pre-commit-pre-push` return 0 (AC 3-6) |
+| `.github/workflows/ci.yml` | New `format` job on macOS + Ubuntu matrix | CI `format` job is green; existing `lint` and `test` jobs preserved (AC 7-8) |
+| `CLAUDE.md` | Merge gate constraint | Merge gate section present in CLAUDE.md (AC 9) |
+| `docs/features/ROADMAP.md` | Feature 11 registration | Row exists with status `planned` (AC 10) |
+| `scripts/self/pre-commit` | Optional convenience alias | `scripts/self/pre-commit` is executable
 
 ## Post-merge next feature
 
