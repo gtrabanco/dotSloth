@@ -98,7 +98,7 @@ jobs:
         run: go install mvdan.cc/sh/v3/cmd/shfmt@v3.8.0
 
       - name: 💅 Check formatting
-        run: shfmt -d -ln bash -sr -ci -i 2 ./scripts ./bin ./shell ./dotfiles_template _raycast
+        run: shfmt -d -ln bash -sr -ci -i 2 ./scripts ./bin ./dotfiles_template _raycast
 
   static-analysis:
     runs-on: ubuntu-latest
