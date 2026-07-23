@@ -18,6 +18,7 @@ every row must have a folder (or be explicitly marked "scheduled").
 | 08 | `test-coverage-expansion` | done | — | Add tests for sloth_update.sh auto-updater flow + critical path coverage · [#293](https://github.com/gtrabanco/dotSloth/pull/293) | [#267](https://github.com/gtrabanco/dotSloth/issues/267) |
 | 09 | `mock-harness` | done | — | Mock harness for external commands (unblocks #268, #273) · [#303](https://github.com/gtrabanco/dotSloth/pull/303) | [#302](https://github.com/gtrabanco/dotSloth/issues/302) |
 | 10 | `core-library-tests` | done | 09 | Deep functional tests for core libraries (array, str, json, git) · [#310](https://github.com/gtrabanco/dotSloth/pull/310) | [#301](https://github.com/gtrabanco/dotSloth/issues/301) |
+| 11 | `local-ci-pre-commit` | planned | — | Add pre-commit hooks (format → lint → test), local Makefile targets, CI format job, and merge gate constraint | — |
 
 ## Status legend
 

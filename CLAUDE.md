@@ -115,6 +115,12 @@ Never work on `main` directly. Create a worktree first (`feat/<NN>-<slug>` or `f
 
 Never stack PRs. A PR's base is always `main`. If a feature is too large, split it into independently shippable slices — never by internal phases.
 
+**Merge gate (AI only).** Before assisting with a merge of any unit PR:
+1. Run `make format`, `make lint`, and `make test` locally — all must pass
+2. Verify CI checks are green on the PR
+3. Ask the human user explicitly before merging — never auto-merge
+4. Only when both local checks and CI are green, proceed with the merge (after user confirmation)
+
 ## Commit format
 
 ```
