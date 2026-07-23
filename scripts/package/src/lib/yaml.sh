@@ -12,11 +12,7 @@ yaml::write_value() {
     printf '%*s' "$((indent * 2))" ''
   fi
 
-  if [[ -z "$value" ]]; then
-    printf '%s: ""\n' "$key"
-  else
-    printf '%s: %s\n' "$key" "$value"
-  fi
+  printf '%s: %s\n' "$key" "$value"
 }
 
 yaml::write_array_item() {
@@ -36,12 +32,18 @@ yaml::write_array_item() {
 yaml::write_array() {
   local key indent item
   key="${1:-}"
-  indent="${3:-0}"
+  shift
+
+  indent=0
+  if [[ $# -gt 0 ]]; then
+    local last_arg="${*: -1}"
+    if [[ "$last_arg" =~ ^[0-9]+$ ]]; then
+      indent="$last_arg"
+      set -- "${@:1:$#-1}"
+    fi
+  fi
 
   [[ -z "$key" ]] && return 1
-
-  shift 2
-  shift "$((indent > 0 ? 0 : 0))"
 
   if [[ $indent -gt 0 ]]; then
     printf '%*s' "$((indent * 2))" ''

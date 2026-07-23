@@ -40,39 +40,39 @@
 - [x] Validate `skills.sh` with `shfmt` and `shellcheck` — no warnings.
 
 **Completion gate**:
-- [ ] `bash scripts/self/static_analysis` passes
-- [ ] `bash scripts/core/lint` passes
+- [x] `bash scripts/self/static_analysis` passes
+- [x] `bash scripts/core/lint` passes
 
 ## P2 — Dump flow
 
-- [ ] Implement `skills::_discover_skills_with_lockfiles` — scans `$HOME/.agents/skills/`
+- [x] Implement `skills::_discover_skills_with_lockfiles` — scans `$HOME/.agents/skills/`
       for directories, reads `.skill-lock.json` per directory, returns structured
       data (provider, branch, agents, command, name).
-- [ ] Handle `.skill-lock.json` parse errors — skip with warning, continue scanning.
-- [ ] Handle `.skill-lock.json` with missing required fields — fill defaults
+- [x] Handle `.skill-lock.json` parse errors — skip with warning, continue scanning.
+- [x] Handle `.skill-lock.json` with missing required fields — fill defaults
       (branch: null, agents: ["unknown"]).
-- [ ] Implement `skills::_discover_skills_from_package_json` — for skills without
+- [x] Implement `skills::_discover_skills_from_package_json` — for skills without
       lockfiles, reads `package.json` from skill directory, matches dependency keys
       against `<skill-name>` or `<skill-name>#<branch>` patterns using bash regex.
-- [ ] Handle `package.json` parse errors — skip with warning (no JSON library
+- [x] Handle `package.json` parse errors — skip with warning (no JSON library
       available, use grep/sed-based extraction).
-- [ ] Handle `package.json` not present — skip with warning, log skill name.
-- [ ] Implement `skills::_merge_discoveries` — primary results + fallback results,
+- [x] Handle `package.json` not present — skip with warning, log skill name.
+- [x] Implement `skills::_merge_discoveries` — primary results + fallback results,
       mark fallback entries with `discovered_by: package-json` and
       `command: unknown` or detected command.
-- [ ] Emit warning for each fallback-discovered skill: "Skill X discovered via
+- [x] Emit warning for each fallback-discovered skill: "Skill X discovered via
       package.json fallback — not all install details may be accurate."
-- [ ] Implement `skills::_group_by_provider` — deduplicates skills by provider name,
+- [x] Implement `skills::_group_by_provider` — deduplicates skills by provider name,
       groups agents across skills within a provider.
-- [ ] Implement `skills::dump` — orchestrates discovery, merging, grouping, and
+- [x] Implement `skills::dump` — orchestrates discovery, merging, grouping, and
       calls `yaml::write_document` to produce `$DOTFILES_PATH/agents/skill-lock.yaml`.
-- [ ] Handle `$HOME/.agents/` not existing — produce valid YAML with empty providers
+- [x] Handle `$HOME/.agents/` not existing — produce valid YAML with empty providers
       list and comment "No agents directory found."
-- [ ] Log dump summary: "Dumped N skills (M primary, K fallback) across P provider groups."
+- [x] Log dump summary: "Dumped N skills (M primary, K fallback) across P provider groups."
 
 **Completion gate**:
-- [ ] `bash scripts/self/static_analysis` passes
-- [ ] `bash scripts/core/lint` passes
+- [x] `bash scripts/self/static_analysis` passes
+- [x] `bash scripts/core/lint` passes
 - [ ] Manual test: `skills::dump` on populated `$HOME/.agents/skills/` produces valid YAML
 
 ## P3 — Import flow

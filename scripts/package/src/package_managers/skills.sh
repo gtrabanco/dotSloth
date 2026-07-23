@@ -1,9 +1,54 @@
 #!/usr/bin/env bash
-# shellcheck disable=SC2034
+# shellcheck disable=SC2034,SC1091
 
 skills_title='🧩 Skills'
 SKILLS_DIR="${HOME}/.agents/skills"
-SKILLS_DUMP_FILE_PATH="${SKILLS_DUMP_FILE_PATH:-${DOTFILES_PATH:-${HOME}/.agents}/agents/skill-lock.yaml}"
+
+if [[ -n "${DOTFILES_PATH:-}" ]]; then
+  SKILLS_DUMP_FILE_PATH="${SKILLS_DUMP_FILE_PATH:-${DOTFILES_PATH}/agents/skill-lock.yaml}"
+else
+  SKILLS_DUMP_FILE_PATH="${SKILLS_DUMP_FILE_PATH:-${HOME}/.agents/skill-lock.yaml}"
+fi
+
+. "${SLOTH_PATH:-}/scripts/package/src/lib/yaml.sh"
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+_json_read_value() {
+  local file key value
+  file="${1:-}"
+  key="${2:-}"
+  [[ -z "$file" || -z "$key" || ! -f "$file" ]] && return 1
+  value="$(grep -o "\"${key}\"[[:space:]]*:[[:space:]]*\"[^\"]*\"" "$file" | head -1 | sed 's/.*: *"//; s/"//')"
+  printf '%s' "$value"
+}
+
+_json_read_array_flat() {
+  local file key line
+  file="${1:-}"
+  key="${2:-}"
+  [[ -z "$file" || -z "$key" || ! -f "$file" ]] && return 1
+
+  line="$(tr '\n' ' ' < "$file" | grep -o "\"${key}\"[[:space:]]*:\[[^]]*\]" | head -1)"
+  [[ -z "$line" ]] && return 1
+
+  line="${line#*\[}"
+  line="${line%\]}"
+  echo "$line" | sed 's/[[:space:]]*"//g; s/"[[:space:]]*//g' | tr ',' '\n' | paste -sd ',' -
+}
+
+_dump_log() {
+  local level msg
+  level="${1:-info}"
+  msg="${2:-}"
+  printf '[skills::dump] [%s] %s\n' "$level" "$msg" >&2
+}
+
+# ---------------------------------------------------------------------------
+# Public API
+# ---------------------------------------------------------------------------
 
 skills::title() {
   echo -n "🧩 Skills"
@@ -17,8 +62,150 @@ skills::setup() {
   :
 }
 
+# ---------------------------------------------------------------------------
+# P2: Discovery — primary (lockfile)
+# ---------------------------------------------------------------------------
+
+skills::_discover_skills_with_lockfiles() {
+  local lock_file provider branch name cmd agents_csv
+
+  [[ ! -d "$SKILLS_DIR" ]] && return 0
+
+  while IFS= read -r -d '' skill_dir; do
+    name="$(basename "$skill_dir")"
+    lock_file="${skill_dir}/.skill-lock.json"
+
+    [[ ! -f "$lock_file" ]] && continue
+
+    provider="$(_json_read_value "$lock_file" "provider")"
+    branch="$(_json_read_value "$lock_file" "branch")"
+    cmd="$(_json_read_value "$lock_file" "command")"
+    agents_csv="$(_json_read_array_flat "$lock_file" "agents")"
+
+    if [[ -z "$provider" ]]; then
+      _dump_log "warn" "Skipping '${name}': .skill-lock.json has no 'provider' field"
+      continue
+    fi
+
+    [[ -z "$cmd" ]] && cmd="unknown"
+    [[ -z "$branch" ]] && branch=""
+    [[ -z "$agents_csv" ]] && agents_csv="unknown"
+
+    printf '%s|%s|%s|%s|%s|lockfile\n' "$provider" "$branch" "$name" "$cmd" "$agents_csv"
+  done < <(find "$SKILLS_DIR" -mindepth 1 -maxdepth 1 -type d -print0 2> /dev/null)
+}
+
+# ---------------------------------------------------------------------------
+# P2: Discovery — fallback (package.json)
+# ---------------------------------------------------------------------------
+
+skills::_discover_skills_from_package_json() {
+  local pkg_file name provider branch
+
+  [[ ! -d "$SKILLS_DIR" ]] && return 0
+
+  while IFS= read -r -d '' skill_dir; do
+    name="$(basename "$skill_dir")"
+    lock_file="${skill_dir}/.skill-lock.json"
+    pkg_file="${skill_dir}/package.json"
+
+    [[ -f "$lock_file" ]] && continue
+    [[ ! -f "$pkg_file" ]] && continue
+
+    provider="$(_json_read_value "$pkg_file" "name")"
+    if [[ -z "$provider" ]]; then
+      _dump_log "warn" "Skipping '${name}': package.json has no 'name' field"
+      continue
+    fi
+
+    branch="$(git -C "$skill_dir" rev-parse --abbrev-ref HEAD 2> /dev/null || echo "master")"
+
+    _dump_log "warn" "Skill '${name}' discovered via package.json fallback — not all install details may be accurate."
+    printf '%s|%s|%s|%s|%s|package-json\n' "$provider" "$branch" "$name" "unknown" "unknown"
+  done < <(find "$SKILLS_DIR" -mindepth 1 -maxdepth 1 -type d -print0 2> /dev/null)
+}
+
+# ---------------------------------------------------------------------------
+# P2: Dump — orchestrate
+# ---------------------------------------------------------------------------
+
 skills::dump() {
-  :
+  local dump_file="$SKILLS_DUMP_FILE_PATH"
+  local temp_file
+  local primary_count=0 fallback_count=0
+
+  mkdir -p "$(dirname "$dump_file")"
+  temp_file="$(mktemp)" || return 1
+  trap 'rm -f "$temp_file"' RETURN
+
+  skills::_discover_skills_with_lockfiles > "$temp_file"
+  primary_count="$(grep -c '|lockfile$' "$temp_file" 2> /dev/null || echo 0)"
+
+  skills::_discover_skills_from_package_json >> "$temp_file"
+  fallback_count="$(grep -c '|package-json$' "$temp_file" 2> /dev/null || echo 0)"
+
+  if [[ ! -s "$temp_file" ]]; then
+    _dump_log "info" "No skills found — writing empty lockfile."
+    {
+      yaml::write_value "format" "skill-lock-v1"
+      echo "providers: []"
+    } | yaml::write_document "$dump_file" "# Agent skills lockfile — generated by dot package dump"
+    return 0
+  fi
+
+  (
+    yaml::write_value "format" "skill-lock-v1"
+    echo "providers:"
+
+    # Collect unique provider names (with branch suffix)
+    local provider_keys=""
+    while IFS='|' read -r p b _ _ _ _; do
+      if [[ -n "$b" ]]; then
+        provider_keys+="${p}#${b}"$'\n'
+      else
+        provider_keys+="${p}"$'\n'
+      fi
+    done < "$temp_file"
+    provider_keys="$(echo "$provider_keys" | sort -u | grep -v '^$')"
+
+    echo "$provider_keys" | while IFS= read -r provider_key; do
+      [[ -z "$provider_key" ]] && continue
+
+      yaml::write_array_item "name: ${provider_key}" 1
+      echo "    skills:"
+
+      # Collect skills for this provider
+      local p_orig="${provider_key%%#*}"
+      local b_orig="${provider_key#*#}"
+      [[ "$b_orig" == "$provider_key" ]] && b_orig=""
+
+      while IFS='|' read -r p b name cmd agents_csv source; do
+        local match_key="${p}"
+        [[ -n "$b" ]] && match_key="${p}#${b}"
+
+        if [[ "$match_key" != "$provider_key" ]]; then
+          continue
+        fi
+
+        echo "      - name: ${name}"
+        echo "        command: ${cmd}"
+        echo "        agents:"
+        if [[ "$agents_csv" != "unknown" && -n "$agents_csv" ]]; then
+          echo "$agents_csv" | tr ',' '\n' | while IFS= read -r agent; do
+            agent="${agent#"${agent%%[![:space:]]*}"}"
+            agent="${agent%"${agent##*[![:space:]]}"}"
+            [[ -n "$agent" ]] && echo "          - ${agent}"
+          done
+        else
+          echo "          - unknown"
+        fi
+      done < "$temp_file"
+    done
+  ) | yaml::write_document "$dump_file" "# Agent skills lockfile — generated by dot package dump"
+
+  local provider_count
+  provider_count="$(grep -c '^- name:' "$dump_file" 2> /dev/null || echo 0)"
+  _dump_log "info" "Dumped ${primary_count} primary and ${fallback_count} fallback skills across ${provider_count} provider groups."
 }
 
 skills::import() {
