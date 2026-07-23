@@ -35,7 +35,7 @@ XXX_RECIPE_NAME_XXX::uninstall() {
   ! XXX_RECIPE_NAME_XXX::is_installed &&
     output::solution "XXX_RECIPE_NAME_XXX uninstalled" &&
     return 0
-  
+
   ourput::error "XXX_RECIPE_NAME_XXX could not be uninstalled"
   return 1
 }
@@ -44,7 +44,7 @@ XXX_RECIPE_NAME_XXX::uninstall() {
 XXX_RECIPE_NAME_XXX::force_install() {
   local _args
   mapfile -t _args < <(array::substract "--force" "$@")
-  
+
   XXX_RECIPE_NAME_XXX::uninstall "${_args[@]}"
   XXX_RECIPE_NAME_XXX::install "${_args[@]}"
 

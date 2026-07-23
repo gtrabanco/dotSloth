@@ -59,6 +59,30 @@ uninstall:
 	@echo "Uninstalling .Sloth"
 	rm -rf ~/.bashrc ~/.bash_profile ~/.zshrc ~/.zshenv ~/.zimrc ~/.zlogin ~/.inputrc
 
+.PHONY: format
+format:
+	@shfmt -w -ln bash -sr -ci -i 2 ./scripts ./bin ./shell ./dotfiles_template _raycast 2>/dev/null || \
+		(echo "ERROR: shfmt not found. Install with:" >&2 && \
+		 echo "  macOS: brew install shfmt" >&2 && \
+		 echo "  Ubuntu: sudo apt-get install shfmt" >&2 && exit 1)
+
+.PHONY: lint
+lint:
+	@bash scripts/self/lint
+
+.PHONY: pre-commit-install
+pre-commit-install:
+	@command -v pre-commit &>/dev/null || (echo "ERROR: pre-commit not found. Install with:" >&2 && \
+		echo "  pip install pre-commit" >&2 && exit 1)
+	@pre-commit install
+	@echo "pre-commit hooks installed"
+
+.PHONY: pre-commit-pre-push
+pre-commit-pre-push:
+	@command -v pre-commit &>/dev/null || (echo "ERROR: pre-commit not found. Install with:" >&2 && \
+		echo "  pip install pre-commit" >&2 && exit 1)
+	@pre-commit run --all-files
+
 .PHONY: test
 test:
 	@command -v bats &>/dev/null || (echo "ERROR: bats-core not found. Install with:" >&2 && echo "  macOS: brew install bats-core" >&2 && echo "  Ubuntu: sudo apt-get install bats" >&2 && exit 1)

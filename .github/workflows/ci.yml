@@ -73,6 +73,33 @@ jobs:
           echo "DOTLY_ENV: $DOTLY_ENV"
           cat "$HOME/dotly.log"
 
+  format:
+    runs-on: ${{ matrix.os }}
+    name: 💅 Format
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - macos-latest
+          - ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
+        with:
+          go-version: '^1.16.1'
+
+      - name: Set needed environment variables
+        run: |
+          echo "SLOTH_PATH=$PWD" >> $GITHUB_ENV
+          echo "DOTLY_PATH=$PWD" >> $GITHUB_ENV
+          echo "PATH=$PATH:$HOME/go/bin" >> $GITHUB_ENV
+
+      - name: 📥 Install shfmt
+        run: go install mvdan.cc/sh/v3/cmd/shfmt@v3.8.0
+
+      - name: 💅 Check formatting
+        run: shfmt -d -ln bash -sr -ci -i 2 ./scripts ./bin ./dotfiles_template _raycast
+
   static-analysis:
     runs-on: ubuntu-latest
     name: 💿 Static analysis

@@ -1,0 +1,29 @@
+repos:
+  - repo: local
+    hooks:
+      - id: shfmt-format
+        name: shfmt (format)
+        entry: shfmt -w -ln bash -sr -ci -i 2
+        language: system
+        files: \.sh$
+        exclude: ^shell/zsh/
+        stages: [pre-commit]
+
+  - repo: local
+    hooks:
+      - id: shfmt-lint
+        name: shfmt (lint)
+        entry: shfmt -d -ln bash -sr -ci -i 2
+        language: system
+        files: \.sh$
+        exclude: ^shell/zsh/
+        stages: [pre-commit]
+
+  - repo: local
+    hooks:
+      - id: bats-test
+        name: bats (test)
+        entry: make test
+        language: system
+        pass_filenames: false
+        stages: [pre-commit]

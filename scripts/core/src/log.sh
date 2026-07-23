@@ -59,7 +59,7 @@ _log() {
 _header() {
   local TOTAL_CHARS=60
   local total=$TOTAL_CHARS-2
-  local size=${#1:-}
+  local size=${#1}
   local left=$(((total - size) / 2))
   local right=$((total - size - left))
   #shellcheck disable=SC2059
