@@ -1,0 +1,568 @@
+#!/usr/bin/env bash
+# shellcheck disable=SC2034,SC1091
+
+skills_title='🧩 Skills'
+SKILLS_DIR="${HOME}/.agents/skills"
+
+if [[ -n "${DOTFILES_PATH:-}" ]]; then
+  SKILLS_DUMP_FILE_PATH="${SKILLS_DUMP_FILE_PATH:-${DOTFILES_PATH}/agents/skill-lock.yaml}"
+else
+  SKILLS_DUMP_FILE_PATH="${SKILLS_DUMP_FILE_PATH:-${HOME}/.agents/skill-lock.yaml}"
+fi
+
+. "${SLOTH_PATH:-}/scripts/package/src/lib/yaml.sh"
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+_json_read_value() {
+  local file key value
+  file="${1:-}"
+  key="${2:-}"
+  [[ -z "$file" || -z "$key" || ! -f "$file" ]] && return 1
+  value="$(grep -o "\"${key}\"[[:space:]]*:[[:space:]]*\"[^\"]*\"" "$file" | head -1 | sed 's/.*: *"//; s/"//')"
+  printf '%s' "$value"
+}
+
+_json_read_array_flat() {
+  local file key line
+  file="${1:-}"
+  key="${2:-}"
+  [[ -z "$file" || -z "$key" || ! -f "$file" ]] && return 1
+
+  line="$(tr '\n' ' ' < "$file" | grep -o "\"${key}\"[[:space:]]*:[[:space:]]*\[[^]]*\]" | head -1)"
+  [[ -z "$line" ]] && return 1
+
+  line="${line#*\[}"
+  line="${line%\]}"
+  echo "$line" | sed 's/[[:space:]]*"//g; s/"[[:space:]]*//g' | tr ',' '\n' | paste -sd ',' -
+}
+
+_dump_log() {
+  local level msg
+  level="${1:-info}"
+  msg="${2:-}"
+  printf '[skills::dump] [%s] %s\n' "$level" "$msg" >&2
+}
+
+# ---------------------------------------------------------------------------
+# Public API
+# ---------------------------------------------------------------------------
+
+skills::title() {
+  echo -n "🧩 Skills"
+}
+
+skills::is_available() {
+  return 0
+}
+
+skills::setup() {
+  :
+}
+
+# ---------------------------------------------------------------------------
+# P2: Discovery — primary (lockfile)
+# ---------------------------------------------------------------------------
+
+skills::_discover_skills_with_lockfiles() {
+  local lock_file provider branch name cmd agents_csv
+
+  [[ ! -d "$SKILLS_DIR" ]] && return 0
+
+  while IFS= read -r -d '' skill_dir; do
+    name="$(basename "$skill_dir")"
+    lock_file="${skill_dir}/.skill-lock.json"
+
+    [[ ! -f "$lock_file" ]] && continue
+
+    provider="$(_json_read_value "$lock_file" "provider")"
+    branch="$(_json_read_value "$lock_file" "branch")"
+    cmd="$(_json_read_value "$lock_file" "command")"
+    agents_csv="$(_json_read_array_flat "$lock_file" "agents")"
+
+    if [[ -z "$provider" ]]; then
+      _dump_log "warn" "Skipping '${name}': .skill-lock.json has no 'provider' field"
+      continue
+    fi
+
+    [[ -z "$cmd" ]] && cmd="unknown"
+    [[ -z "$branch" ]] && branch=""
+    [[ -z "$agents_csv" ]] && agents_csv="unknown"
+
+    printf '%s|%s|%s|%s|%s|lockfile\n' "$provider" "$branch" "$name" "$cmd" "$agents_csv"
+  done < <(find "$SKILLS_DIR" -mindepth 1 -maxdepth 1 -type d -print0 2> /dev/null)
+}
+
+# ---------------------------------------------------------------------------
+# P2: Discovery — fallback (package.json)
+# ---------------------------------------------------------------------------
+
+skills::_discover_skills_from_package_json() {
+  local pkg_file name provider branch
+
+  [[ ! -d "$SKILLS_DIR" ]] && return 0
+
+  while IFS= read -r -d '' skill_dir; do
+    name="$(basename "$skill_dir")"
+    lock_file="${skill_dir}/.skill-lock.json"
+    pkg_file="${skill_dir}/package.json"
+
+    [[ -f "$lock_file" ]] && continue
+    [[ ! -f "$pkg_file" ]] && continue
+
+    provider="$(_json_read_value "$pkg_file" "name")"
+    if [[ -z "$provider" ]]; then
+      _dump_log "warn" "Skipping '${name}': package.json has no 'name' field"
+      continue
+    fi
+
+    branch="$(git -C "$skill_dir" rev-parse --abbrev-ref HEAD 2> /dev/null || echo "master")"
+
+    _dump_log "warn" "Skill '${name}' discovered via package.json fallback — not all install details may be accurate."
+    printf '%s|%s|%s|%s|%s|package-json\n' "$provider" "$branch" "$name" "unknown" "unknown"
+  done < <(find "$SKILLS_DIR" -mindepth 1 -maxdepth 1 -type d -print0 2> /dev/null)
+}
+
+# ---------------------------------------------------------------------------
+# P2: Dump — orchestrate
+# ---------------------------------------------------------------------------
+
+skills::dump() {
+  local dump_file="$SKILLS_DUMP_FILE_PATH"
+  local temp_file
+  local primary_count=0 fallback_count=0
+
+  mkdir -p "$(dirname "$dump_file")"
+  temp_file="$(mktemp)" || return 1
+  trap 'rm -f "$temp_file"' RETURN
+
+  skills::_discover_skills_with_lockfiles > "$temp_file"
+  primary_count="$(grep -c '|lockfile$' "$temp_file" 2> /dev/null || echo 0)"
+
+  skills::_discover_skills_from_package_json >> "$temp_file"
+  fallback_count="$(grep -c '|package-json$' "$temp_file" 2> /dev/null || echo 0)"
+
+  if [[ ! -s "$temp_file" ]]; then
+    _dump_log "info" "No skills found — writing empty lockfile."
+    {
+      yaml::write_value "format" "skill-lock-v1"
+      echo "providers: []"
+    } | yaml::write_document "$dump_file" "# Agent skills lockfile — generated by dot package dump"
+    return 0
+  fi
+
+  (
+    yaml::write_value "format" "skill-lock-v1"
+    echo "providers:"
+
+    # Collect unique provider names (with branch suffix)
+    local provider_keys=""
+    while IFS='|' read -r p b _ _ _ _; do
+      if [[ -n "$b" ]]; then
+        provider_keys+="${p}#${b}"$'\n'
+      else
+        provider_keys+="${p}"$'\n'
+      fi
+    done < "$temp_file"
+    provider_keys="$(echo "$provider_keys" | sort -u | grep -v '^$')"
+
+    echo "$provider_keys" | while IFS= read -r provider_key; do
+      [[ -z "$provider_key" ]] && continue
+
+      yaml::write_array_item "name: ${provider_key}" 1
+      echo "    skills:"
+
+      # Collect skills for this provider
+      local p_orig="${provider_key%%#*}"
+      local b_orig="${provider_key#*#}"
+      [[ "$b_orig" == "$provider_key" ]] && b_orig=""
+
+      while IFS='|' read -r p b name cmd agents_csv source; do
+        local match_key="${p}"
+        [[ -n "$b" ]] && match_key="${p}#${b}"
+
+        if [[ "$match_key" != "$provider_key" ]]; then
+          continue
+        fi
+
+        echo "      - name: ${name}"
+        echo "        command: ${cmd}"
+        echo "        agents:"
+        if [[ "$agents_csv" != "unknown" && -n "$agents_csv" ]]; then
+          echo "$agents_csv" | tr ',' '\n' | while IFS= read -r agent; do
+            agent="${agent#"${agent%%[![:space:]]*}"}"
+            agent="${agent%"${agent##*[![:space:]]}"}"
+            [[ -n "$agent" ]] && echo "          - ${agent}"
+          done
+        else
+          echo "          - unknown"
+        fi
+      done < "$temp_file"
+    done
+  ) | yaml::write_document "$dump_file" "# Agent skills lockfile — generated by dot package dump"
+
+  local provider_count
+  provider_count="$(grep -c '^- name:' "$dump_file" 2> /dev/null || echo 0)"
+  _dump_log "info" "Dumped ${primary_count} primary and ${fallback_count} fallback skills across ${provider_count} provider groups."
+}
+
+# ---------------------------------------------------------------------------
+# P3: Import helpers
+# ---------------------------------------------------------------------------
+
+_import_log() {
+  local level msg
+  level="${1:-info}"
+  msg="${2:-}"
+  printf '[skills::import] [%s] %s\n' "$level" "$msg" >&2
+}
+
+# Emit a completed skill entry: provider|branch|skill_name|command|agents_csv
+_emit_import_skill() {
+  local p_name="$1" s_name="$2" s_cmd="$3" s_agents="$4"
+  if [[ -n "$s_name" && -n "$p_name" ]]; then
+    local provider="${p_name%%#*}"
+    local branch=""
+    [[ "$p_name" != "${p_name%%#*}" ]] && branch="${p_name#*#}"
+    [[ -z "$s_cmd" ]] && s_cmd="unknown"
+    [[ -z "$s_agents" ]] && s_agents="unknown"
+    printf '%s|%s|%s|%s|%s\n' "$provider" "$branch" "$s_name" "$s_cmd" "$s_agents"
+  fi
+}
+
+# ---------------------------------------------------------------------------
+# P3: YAML parsing — primary (yaml.sh-based)
+# ---------------------------------------------------------------------------
+
+# Emit a parse error with line number
+_emit_parse_error() {
+  local line_num="$1" msg="$2"
+  _import_log "error" "Line ${line_num}: ${msg}"
+}
+
+skills::_parse_yaml_document() {
+  local file="$1"
+  [[ ! -f "$file" ]] && return 1
+
+  local fmt
+  fmt="$(yaml::read_value "$file" "format")" || {
+    _import_log "error" "Failed to read 'format' from ${file}"
+    return 1
+  }
+
+  local provider_name="" skill_name="" cmd="" agents=""
+  local in_providers=false in_skills=false in_agents=false
+  local line stripped indent leading
+  local line_num=0
+
+  while IFS= read -r line; do
+    ((++line_num))
+    [[ "$line" == \#* || -z "$line" ]] && continue
+
+    leading="${line%%[![:space:]]*}"
+    indent="${#leading}"
+    stripped="${line:indent}"
+
+    if [[ $indent -eq 0 ]]; then
+      if [[ "$stripped" == "providers:"* ]]; then
+        in_providers=true
+      elif $in_providers; then
+        _emit_import_skill "$provider_name" "$skill_name" "$cmd" "$agents"
+        break
+      else
+        _emit_parse_error "$line_num" "Unexpected top-level entry: '${stripped}'"
+      fi
+      continue
+    fi
+
+    $in_providers || continue
+
+    if [[ $indent -eq 2 && "$stripped" == "- name:"* ]]; then
+      _emit_import_skill "$provider_name" "$skill_name" "$cmd" "$agents"
+      skill_name=""
+      cmd=""
+      agents=""
+      in_agents=false
+      provider_name="${stripped#- name:}"
+      provider_name="${provider_name## }"
+      in_skills=false
+      continue
+    fi
+
+    if [[ $indent -eq 2 ]]; then
+      _emit_parse_error "$line_num" "Expected '- name:' at indent 2, got: '${stripped}'"
+      continue
+    fi
+
+    if [[ $indent -eq 4 ]]; then
+      if [[ "$stripped" == "skills:"* ]]; then
+        in_skills=true
+        in_agents=false
+      else
+        _emit_parse_error "$line_num" "Expected 'skills:' at indent 4, got: '${stripped}'"
+      fi
+      continue
+    fi
+
+    $in_skills || continue
+
+    if [[ $indent -eq 6 && "$stripped" == "- name:"* ]]; then
+      _emit_import_skill "$provider_name" "$skill_name" "$cmd" "$agents"
+      skill_name=""
+      cmd=""
+      agents=""
+      in_agents=false
+      skill_name="${stripped#- name:}"
+      skill_name="${skill_name## }"
+      continue
+    fi
+
+    if [[ $indent -eq 6 ]]; then
+      _emit_parse_error "$line_num" "Expected '- name:' at indent 6, got: '${stripped}'"
+      continue
+    fi
+
+    if [[ $indent -eq 8 ]]; then
+      if [[ "$stripped" == "command:"* ]]; then
+        cmd="${stripped#command:}"
+        cmd="${cmd## }"
+      elif [[ "$stripped" == "agents:"* ]]; then
+        in_agents=true
+        agents=""
+      else
+        _emit_parse_error "$line_num" "Expected 'command:' or 'agents:' at indent 8, got: '${stripped}'"
+      fi
+      continue
+    fi
+
+    if $in_agents && [[ $indent -eq 10 && "$stripped" == "- "* ]]; then
+      local agent="${stripped#- }"
+      agent="${agent## }"
+      if [[ -z "$agents" ]]; then
+        agents="$agent"
+      else
+        agents="${agents},${agent}"
+      fi
+    elif $in_agents && [[ $indent -eq 10 ]]; then
+      _emit_parse_error "$line_num" "Expected '- <agent>' at indent 10, got: '${stripped}'"
+    fi
+  done < "$file"
+
+  _emit_import_skill "$provider_name" "$skill_name" "$cmd" "$agents"
+}
+
+# ---------------------------------------------------------------------------
+# P3: YAML parsing — fallback (raw line-by-line)
+# ---------------------------------------------------------------------------
+
+skills::_parse_yaml_raw() {
+  local file="$1"
+  [[ ! -f "$file" ]] && return 1
+
+  local provider_name="" skill_name="" cmd="" agents=""
+  local current_indent=0 prev_indent=0
+  local line stripped indent leading
+
+  while IFS= read -r line; do
+    [[ "$line" == \#* || -z "$line" ]] && continue
+
+    leading="${line%%[![:space:]]*}"
+    indent="${#leading}"
+    stripped="${line:indent}"
+
+    # Track provider name
+    if [[ "$stripped" =~ ^-\ *name:\ *(.+)$ ]]; then
+      local value="${BASH_REMATCH[1]}"
+      if [[ $indent -le 2 ]]; then
+        _emit_import_skill "$provider_name" "$skill_name" "$cmd" "$agents"
+        skill_name=""
+        cmd=""
+        agents=""
+        provider_name="$value"
+      elif [[ $indent -ge 4 ]]; then
+        _emit_import_skill "$provider_name" "$skill_name" "$cmd" "$agents"
+        skill_name=""
+        cmd=""
+        agents=""
+        skill_name="$value"
+      fi
+      continue
+    fi
+
+    # Track command
+    if [[ "$stripped" =~ ^command:\ *(.+)$ ]] && [[ -n "$skill_name" ]]; then
+      cmd="${BASH_REMATCH[1]}"
+      continue
+    fi
+
+    # Track agents
+    if [[ "$stripped" == "agents:"* ]] && [[ -n "$skill_name" ]]; then
+      in_agents=true
+      agents=""
+      continue
+    fi
+
+    if [[ -n "$skill_name" && "$stripped" =~ ^-\ *(.+)$ ]] && [[ $indent -ge 6 ]]; then
+      local agent="${BASH_REMATCH[1]}"
+      if [[ -z "$agents" ]]; then
+        agents="$agent"
+      else
+        agents="${agents},${agent}"
+      fi
+    fi
+  done < "$file"
+
+  _emit_import_skill "$provider_name" "$skill_name" "$cmd" "$agents"
+}
+
+# ---------------------------------------------------------------------------
+# P3: Execute single install
+# ---------------------------------------------------------------------------
+
+skills::_execute_single_install() {
+  local command_prefix="$1"
+  local provider="$2"
+  local branch="$3"
+  local agent="$4"
+  local skill_name="${5:-}"
+
+  if [[ -n "$skill_name" ]]; then
+    local existing_lock="${SKILLS_DIR}/${skill_name}/.skill-lock.json"
+    if [[ -f "$existing_lock" ]]; then
+      _import_log "info" "Already installed: skill '${skill_name}'"
+      return 0
+    fi
+  fi
+
+  local cmd_parts=()
+  IFS=' ' read -ra cmd_parts <<< "$command_prefix"
+
+  cmd_parts+=("$provider")
+  [[ -n "$branch" ]] && cmd_parts+=("#${branch}")
+  cmd_parts+=("--agent" "$agent")
+
+  "${cmd_parts[@]}"
+  return $?
+}
+
+# ---------------------------------------------------------------------------
+# P3: Verify install
+# ---------------------------------------------------------------------------
+
+skills::_verify_install() {
+  local skill_name="$1"
+  local skill_dir="${SKILLS_DIR}/${skill_name}"
+
+  [[ -d "$skill_dir" ]] || return 1
+  [[ -f "${skill_dir}/.skill-lock.json" ]] || {
+    _import_log "warn" "Skill '${skill_name}' installed but .skill-lock.json not found"
+    return 0
+  }
+  return 0
+}
+
+# ---------------------------------------------------------------------------
+# P3: Import — main
+# ---------------------------------------------------------------------------
+
+skills::import() {
+  local import_file="$SKILLS_DUMP_FILE_PATH"
+  local total=0 succeeded=0 failed=0
+
+  if [[ ! -f "$import_file" ]]; then
+    _import_log "error" "No skill-lock.yaml found at ${import_file}"
+    return 1
+  fi
+
+  local fmt
+  fmt="$(yaml::read_value "$import_file" "format" 2> /dev/null || echo "")"
+  if [[ "$fmt" != "skill-lock-v1" ]]; then
+    _import_log "error" "Invalid or missing format field in ${import_file} (expected 'skill-lock-v1')"
+    return 1
+  fi
+
+  local parsed
+  parsed="$(skills::_parse_yaml_document "$import_file")" || {
+    _import_log "warn" "Primary parser failed — attempting fallback parser..."
+    parsed="$(skills::_parse_yaml_raw "$import_file")" || {
+      _import_log "error" "Failed to parse ${import_file} — both parsers failed"
+      return 1
+    }
+  }
+
+  [[ -z "$parsed" ]] && {
+    _import_log "warn" "No entries found in ${import_file}"
+    return 0
+  }
+
+  while IFS='|' read -r provider branch skill_name cmd agents_csv; do
+    [[ -z "$provider" ]] && continue
+    ((++total))
+
+    if [[ -z "$skill_name" || -z "$cmd" ]]; then
+      _import_log "warn" "Skipping entry: missing required fields (provider=${provider}, skill=${skill_name})"
+      ((++failed))
+      continue
+    fi
+
+    local cmd_tool="${cmd%% *}"
+    if ! command -v "$cmd_tool" &> /dev/null; then
+      _import_log "error" "Command '${cmd_tool}' not found — skipping ${skill_name}"
+      ((++failed))
+      continue
+    fi
+
+    local entry_ok=true
+
+    if [[ -n "$agents_csv" && "$agents_csv" != "unknown" ]]; then
+      local saved_ifs="$IFS"
+      local IFS=','
+      for agent in $agents_csv; do
+        IFS="$saved_ifs"
+        agent="${agent#"${agent%%[![:space:]]*}"}"
+        agent="${agent%"${agent##*[![:space:]]}"}"
+        [[ -z "$agent" ]] && continue
+
+        if skills::_execute_single_install "$cmd" "$provider" "$branch" "$agent" "$skill_name"; then
+          if skills::_verify_install "$skill_name"; then
+            _import_log "info" "Installed '${skill_name}' for agent '${agent}'"
+          else
+            _import_log "warn" "'${skill_name}' installed for '${agent}' but verification incomplete"
+          fi
+        else
+          _import_log "error" "Failed to install '${skill_name}' for agent '${agent}'"
+          entry_ok=false
+        fi
+      done
+      IFS="$saved_ifs"
+    else
+      if skills::_execute_single_install "$cmd" "$provider" "$branch" "" "$skill_name"; then
+        if skills::_verify_install "$skill_name"; then
+          _import_log "info" "Installed '${skill_name}'"
+        else
+          _import_log "warn" "'${skill_name}' installed but verification incomplete"
+        fi
+      else
+        _import_log "error" "Failed to install '${skill_name}'"
+        entry_ok=false
+      fi
+    fi
+
+    if $entry_ok; then
+      ((++succeeded))
+    else
+      ((++failed))
+    fi
+  done <<< "$parsed"
+
+  local msg
+  msg="Import complete: ${total} total, ${succeeded} succeeded, ${failed} failed."
+  _import_log "info" "$msg"
+  printf '%s\n' "$msg"
+
+  [[ $total -eq 0 ]] && return 1
+  [[ $succeeded -gt 0 ]] && return 0
+  return 1
+}

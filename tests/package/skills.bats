@@ -1,0 +1,337 @@
+#!/usr/bin/env bats
+# bats file=true
+
+# Test for scripts/package/src/package_managers/skills.sh — Skills package manager
+
+load "../helpers/setup"
+
+setup() {
+    local skills_dir skills_dump_file dotfiles_dir
+    skills_dir="$(mktemp -d)"
+    skills_dump_file="$(mktemp)"
+    SKILLS_DIR="$skills_dir"
+    SKILLS_DUMP_FILE_PATH="$skills_dump_file"
+    export SKILLS_DIR SKILLS_DUMP_FILE_PATH
+    if [[ -z "${DOTFILES_PATH:-}" ]]; then
+        dotfiles_dir="$(mktemp -d)"
+        DOTFILES_PATH="$dotfiles_dir"
+        export DOTFILES_PATH
+    fi
+}
+
+teardown() {
+    rm -rf "${SKILLS_DIR}" 2> /dev/null || true
+    rm -f "${SKILLS_DUMP_FILE_PATH}" 2> /dev/null || true
+}
+
+# ── Public API function existence ─────────────────────────────────────────
+
+@test "skills::title is defined" {
+    run bash -c "source '$SLOTH_PATH/scripts/package/src/package_managers/skills.sh'; declare -f skills::title"
+    [ "$status" -eq 0 ]
+}
+
+@test "skills::is_available is defined" {
+    run bash -c "source '$SLOTH_PATH/scripts/package/src/package_managers/skills.sh'; declare -f skills::is_available"
+    [ "$status" -eq 0 ]
+}
+
+@test "skills::setup is defined" {
+    run bash -c "source '$SLOTH_PATH/scripts/package/src/package_managers/skills.sh'; declare -f skills::setup"
+    [ "$status" -eq 0 ]
+}
+
+@test "skills::dump is defined" {
+    run bash -c "source '$SLOTH_PATH/scripts/package/src/package_managers/skills.sh'; declare -f skills::dump"
+    [ "$status" -eq 0 ]
+}
+
+@test "skills::import is defined" {
+    run bash -c "source '$SLOTH_PATH/scripts/package/src/package_managers/skills.sh'; declare -f skills::import"
+    [ "$status" -eq 0 ]
+}
+
+# ── Discovery helpers ─────────────────────────────────────────────────────
+
+@test "_discover_skills_with_lockfiles: returns empty when SKILLS_DIR does not exist" {
+    rm -rf "${SKILLS_DIR}"
+    run bash -c "
+        source '$SLOTH_PATH/scripts/package/src/package_managers/skills.sh'
+        SKILLS_DIR='${SKILLS_DIR}'
+        skills::_discover_skills_with_lockfiles
+    "
+    [ "$status" -eq 0 ]
+    [ -z "$output" ]
+}
+
+@test "_discover_skills_with_lockfiles: returns empty when no lockfiles exist" {
+    mkdir -p "${SKILLS_DIR}/my-skill"
+    run bash -c "
+        source '$SLOTH_PATH/scripts/package/src/package_managers/skills.sh'
+        SKILLS_DIR='${SKILLS_DIR}'
+        skills::_discover_skills_with_lockfiles
+    "
+    [ "$status" -eq 0 ]
+    [ -z "$output" ]
+}
+
+@test "_discover_skills_with_lockfiles: parses valid .skill-lock.json" {
+    mkdir -p "${SKILLS_DIR}/test-skill"
+    cat > "${SKILLS_DIR}/test-skill/.skill-lock.json" << 'EOF'
+{
+  "provider": "owner/repo",
+  "branch": "main",
+  "agents": ["claude", "codex"],
+  "command": "bunx skills add",
+  "installed_at": "2025-01-01T00:00:00Z"
+}
+EOF
+    run bash -c "
+        source '$SLOTH_PATH/scripts/package/src/package_managers/skills.sh'
+        SKILLS_DIR='${SKILLS_DIR}'
+        skills::_discover_skills_with_lockfiles
+    "
+    [ "$status" -eq 0 ]
+    echo "$output" | grep -q "owner/repo|main|test-skill|bunx skills add|claude,codex"
+}
+
+@test "_discover_skills_with_lockfiles: handles missing fields with defaults" {
+    mkdir -p "${SKILLS_DIR}/minimal-skill"
+    cat > "${SKILLS_DIR}/minimal-skill/.skill-lock.json" << 'EOF'
+{
+  "provider": "owner/repo"
+}
+EOF
+    run bash -c "
+        source '$SLOTH_PATH/scripts/package/src/package_managers/skills.sh'
+        SKILLS_DIR='${SKILLS_DIR}'
+        skills::_discover_skills_with_lockfiles
+    "
+    [ "$status" -eq 0 ]
+    echo "$output" | grep -q "owner/repo||minimal-skill|unknown|unknown"
+}
+
+@test "_discover_skills_with_lockfiles: skips lockfile missing provider" {
+    mkdir -p "${SKILLS_DIR}/no-provider"
+    cat > "${SKILLS_DIR}/no-provider/.skill-lock.json" << 'EOF'
+{"agents": ["claude"]}
+EOF
+    run bash -c "
+        source '$SLOTH_PATH/scripts/package/src/package_managers/skills.sh'
+        SKILLS_DIR='${SKILLS_DIR}'
+        skills::_discover_skills_with_lockfiles 2>/dev/null
+    "
+    [ "$status" -eq 0 ]
+    [ -z "$output" ]  # skipped with warning (to stderr)
+}
+
+# ── Dump flow ─────────────────────────────────────────────────────────────
+
+@test "dump: produces valid YAML when no skills directory exists" {
+    rm -rf "${SKILLS_DIR}"
+    run bash -c "
+        source '$SLOTH_PATH/scripts/package/src/package_managers/skills.sh'
+        source '$SLOTH_PATH/scripts/package/src/lib/yaml.sh'
+        SKILLS_DIR='${SKILLS_DIR}'
+        SKILLS_DUMP_FILE_PATH='${SKILLS_DUMP_FILE_PATH}'
+        skills::dump
+    "
+    [ "$status" -eq 0 ]
+    grep -q "format: skill-lock-v1" "${SKILLS_DUMP_FILE_PATH}"
+    grep -q "providers: \[\]" "${SKILLS_DUMP_FILE_PATH}"
+}
+
+@test "dump: produces YAML with provider and skill data" {
+    mkdir -p "${SKILLS_DIR}/my-skill"
+    cat > "${SKILLS_DIR}/my-skill/.skill-lock.json" << 'EOF'
+{
+  "provider": "owner/repo",
+  "branch": "main",
+  "agents": ["claude"],
+  "command": "bunx skills add",
+  "installed_at": "2025-01-01T00:00:00Z"
+}
+EOF
+    run bash -c "
+        source '$SLOTH_PATH/scripts/package/src/package_managers/skills.sh'
+        source '$SLOTH_PATH/scripts/package/src/lib/yaml.sh'
+        SKILLS_DIR='${SKILLS_DIR}'
+        SKILLS_DUMP_FILE_PATH='${SKILLS_DUMP_FILE_PATH}'
+        skills::dump
+    "
+    [ "$status" -eq 0 ]
+    grep -q "format: skill-lock-v1" "${SKILLS_DUMP_FILE_PATH}"
+    grep -q "owner/repo" "${SKILLS_DUMP_FILE_PATH}"
+    grep -q "my-skill" "${SKILLS_DUMP_FILE_PATH}"
+    grep -q "bunx skills add" "${SKILLS_DUMP_FILE_PATH}"
+    grep -q "claude" "${SKILLS_DUMP_FILE_PATH}"
+}
+
+@test "dump: handles fallback via package.json" {
+    mkdir -p "${SKILLS_DIR}/fallback-skill"
+    cat > "${SKILLS_DIR}/fallback-skill/package.json" << 'EOF'
+{"name": "owner/fallback-repo"}
+EOF
+    mkdir -p "${SKILLS_DIR}/lockfile-skill"
+    cat > "${SKILLS_DIR}/lockfile-skill/.skill-lock.json" << 'EOF'
+{
+  "provider": "owner/lockfile",
+  "branch": "",
+  "agents": ["claude"],
+  "command": "bunx skills add",
+  "installed_at": "2025-01-01T00:00:00Z"
+}
+EOF
+    run bash -c "
+        source '$SLOTH_PATH/scripts/package/src/package_managers/skills.sh'
+        source '$SLOTH_PATH/scripts/package/src/lib/yaml.sh'
+        SKILLS_DIR='${SKILLS_DIR}'
+        SKILLS_DUMP_FILE_PATH='${SKILLS_DUMP_FILE_PATH}'
+        skills::dump 2>&1
+    "
+    [ "$status" -eq 0 ]
+    grep -q "format: skill-lock-v1" "${SKILLS_DUMP_FILE_PATH}"
+    grep -q "owner/lockfile" "${SKILLS_DUMP_FILE_PATH}"
+}
+
+# ── Import flow ──────────────────────────────────────────────────────────
+
+@test "import: fails with clear error when no YAML file exists" {
+    rm -f "${SKILLS_DUMP_FILE_PATH}"
+    run bash -c "
+        source '$SLOTH_PATH/scripts/package/src/package_managers/skills.sh'
+        SKILLS_DUMP_FILE_PATH='${SKILLS_DUMP_FILE_PATH}'
+        skills::import
+    "
+    [ "$status" -eq 1 ]
+    echo "$output" | grep -qi "no skill-lock.yaml found"
+}
+
+@test "import: fails with version error on invalid format" {
+    echo 'format: unknown-v1' > "${SKILLS_DUMP_FILE_PATH}"
+    run bash -c "
+        source '$SLOTH_PATH/scripts/package/src/package_managers/skills.sh'
+        SKILLS_DUMP_FILE_PATH='${SKILLS_DUMP_FILE_PATH}'
+        skills::import
+    "
+    [ "$status" -eq 1 ]
+    echo "$output" | grep -qi "invalid or missing format"
+}
+
+@test "import: returns 0 when YAML has no entries" {
+    cat > "${SKILLS_DUMP_FILE_PATH}" << 'EOF'
+format: skill-lock-v1
+providers: []
+EOF
+    run bash -c "
+        source '$SLOTH_PATH/scripts/package/src/package_managers/skills.sh'
+        SKILLS_DUMP_FILE_PATH='${SKILLS_DUMP_FILE_PATH}'
+        skills::import
+    "
+    [ "$status" -eq 0 ]
+}
+
+# ── Verify install helper ────────────────────────────────────────────────
+
+@test "_verify_install: returns 0 when skill directory and lockfile exist" {
+    mkdir -p "${SKILLS_DIR}/existing-skill"
+    touch "${SKILLS_DIR}/existing-skill/.skill-lock.json"
+    run bash -c "
+        source '$SLOTH_PATH/scripts/package/src/package_managers/skills.sh'
+        SKILLS_DIR='${SKILLS_DIR}'
+        skills::_verify_install 'existing-skill'
+    "
+    [ "$status" -eq 0 ]
+}
+
+@test "_verify_install: returns 1 when skill directory does not exist" {
+    run bash -c "
+        source '$SLOTH_PATH/scripts/package/src/package_managers/skills.sh'
+        SKILLS_DIR='${SKILLS_DIR}'
+        skills::_verify_install 'nonexistent-skill'
+    "
+    [ "$status" -eq 1 ]
+}
+
+# ── Execute single install ───────────────────────────────────────────────
+
+@test "_execute_single_install: idempotent when .skill-lock.json already exists" {
+    mkdir -p "${SKILLS_DIR}/already-installed"
+    touch "${SKILLS_DIR}/already-installed/.skill-lock.json"
+    run bash -c "
+        source '$SLOTH_PATH/scripts/package/src/package_managers/skills.sh'
+        SKILLS_DIR='${SKILLS_DIR}'
+        skills::_execute_single_install 'bunx skills add' 'owner/repo' '' 'claude' 'already-installed' 2>&1
+    "
+    [ "$status" -eq 0 ]
+    echo "$output" | grep -qi "already installed"
+}
+
+# ── YAML parser ──────────────────────────────────────────────────────────
+
+@test "_parse_yaml_document: parses valid skill-lock YAML" {
+    cat > "${SKILLS_DUMP_FILE_PATH}" << 'EOF'
+format: skill-lock-v1
+providers:
+  - name: owner/repo
+    skills:
+      - name: my-skill
+        command: bunx skills add
+        agents:
+          - claude
+          - codex
+EOF
+    run bash -c "
+        source '$SLOTH_PATH/scripts/package/src/package_managers/skills.sh'
+        SKILLS_DUMP_FILE_PATH='${SKILLS_DUMP_FILE_PATH}'
+        skills::_parse_yaml_document '${SKILLS_DUMP_FILE_PATH}'
+    "
+    [ "$status" -eq 0 ]
+    echo "$output" | grep -F "owner/repo||my-skill|bunx skills add|claude,codex"
+}
+
+@test "_parse_yaml_document: parses multi-provider YAML" {
+    cat > "${SKILLS_DUMP_FILE_PATH}" << 'EOF'
+format: skill-lock-v1
+providers:
+  - name: owner/repo-a
+    skills:
+      - name: skill-a
+        command: bunx skills add
+        agents:
+          - claude
+  - name: owner/repo-b
+    skills:
+      - name: skill-b
+        command: npx skills add
+        agents:
+          - codex
+EOF
+    run bash -c "
+        source '$SLOTH_PATH/scripts/package/src/package_managers/skills.sh'
+        SKILLS_DUMP_FILE_PATH='${SKILLS_DUMP_FILE_PATH}'
+        skills::_parse_yaml_document '${SKILLS_DUMP_FILE_PATH}'
+    "
+    [ "$status" -eq 0 ]
+    echo "$output" | grep -q "skill-a"
+    echo "$output" | grep -q "skill-b"
+}
+
+@test "_parse_yaml_document: reports line numbers on malformed entries" {
+    cat > "${SKILLS_DUMP_FILE_PATH}" << 'EOF'
+format: skill-lock-v1
+providers:
+  - name: owner/repo
+    skills:
+      - name: my-skill
+        badfield: unexpected
+        command: bunx skills add
+EOF
+    run bash -c "
+        source '$SLOTH_PATH/scripts/package/src/package_managers/skills.sh'
+        SKILLS_DUMP_FILE_PATH='${SKILLS_DUMP_FILE_PATH}'
+        skills::_parse_yaml_document '${SKILLS_DUMP_FILE_PATH}' 2>&1
+    "
+    echo "$output" | grep -qi "line 6"
+    echo "$output" | grep -qi "badfield"
+}
