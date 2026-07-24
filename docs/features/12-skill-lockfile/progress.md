@@ -31,3 +31,15 @@
   - `skills::import` — orchestrates: format validation → parser selection → per-entry iteration with agent loop → failure aggregation → summary
   - Edge cases: missing YAML file (error), invalid format (version error), missing required fields (skip with warning), `bunx`/`npx` not found (per-entry error), empty agents (install without `--agent`), all-fail (exit 1), partial success (exit 0)
 - Gate: static_analysis ✓, lint ✓
+
+## P4: Testing & Hardening
+- Status: done
+- Goal: Integration tests, code hardening, gate verification
+- Result:
+  - `tests/package/skills.bats` — 22 tests covering: function existence (5), discovery helpers (6), dump flow (3), import flow (3), verify install (2), execute single install (1), YAML parser (3)
+  - YAML parse error line numbers (`_emit_parse_error` with `line_num` tracking in `_parse_yaml_document`)
+  - Reimport idempotency (`_execute_single_install` checks existing `.skill-lock.json` and skips)
+  - Command availability detection (`command -v $cmd_tool` in `skills::import`)
+  - Missing-command guard in both wrapper scripts
+  - `_json_read_array_flat` regex fix (accepts optional spaces after colon)
+- Gate: static_analysis ✓, lint ✓, `make test` ✓ (all 199 tests / 0 failures)

@@ -4,6 +4,11 @@ set -euo pipefail
 
 SKILLS_DIR="${HOME}/.agents/skills"
 
+if ! command -v npx &> /dev/null; then
+  echo "Error: 'npx' not found — install node/npm first (https://nodejs.org)" >&2
+  exit 1
+fi
+
 usage() {
   cat << EOF
 Usage: $(basename "$0") <provider> [#<branch>] --agent <agent> [-g] [-y]

@@ -4,6 +4,11 @@ set -euo pipefail
 
 SKILLS_DIR="${HOME}/.agents/skills"
 
+if ! command -v bunx &> /dev/null; then
+  echo "Error: 'bunx' not found — install bun first (https://bun.sh)" >&2
+  exit 1
+fi
+
 usage() {
   cat << EOF
 Usage: $(basename "$0") <provider> [#<branch>] --agent <agent> [-g] [-y]

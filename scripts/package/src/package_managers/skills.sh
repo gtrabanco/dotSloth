@@ -31,7 +31,7 @@ _json_read_array_flat() {
   key="${2:-}"
   [[ -z "$file" || -z "$key" || ! -f "$file" ]] && return 1
 
-  line="$(tr '\n' ' ' < "$file" | grep -o "\"${key}\"[[:space:]]*:\[[^]]*\]" | head -1)"
+  line="$(tr '\n' ' ' < "$file" | grep -o "\"${key}\"[[:space:]]*:[[:space:]]*\[[^]]*\]" | head -1)"
   [[ -z "$line" ]] && return 1
 
   line="${line#*\[}"
@@ -236,6 +236,12 @@ _emit_import_skill() {
 # P3: YAML parsing — primary (yaml.sh-based)
 # ---------------------------------------------------------------------------
 
+# Emit a parse error with line number
+_emit_parse_error() {
+  local line_num="$1" msg="$2"
+  _import_log "error" "Line ${line_num}: ${msg}"
+}
+
 skills::_parse_yaml_document() {
   local file="$1"
   [[ ! -f "$file" ]] && return 1
@@ -249,8 +255,10 @@ skills::_parse_yaml_document() {
   local provider_name="" skill_name="" cmd="" agents=""
   local in_providers=false in_skills=false in_agents=false
   local line stripped indent leading
+  local line_num=0
 
   while IFS= read -r line; do
+    ((line_num++))
     [[ "$line" == \#* || -z "$line" ]] && continue
 
     leading="${line%%[![:space:]]*}"
@@ -263,6 +271,8 @@ skills::_parse_yaml_document() {
       elif $in_providers; then
         _emit_import_skill "$provider_name" "$skill_name" "$cmd" "$agents"
         break
+      else
+        _emit_parse_error "$line_num" "Unexpected top-level entry: '${stripped}'"
       fi
       continue
     fi
@@ -281,10 +291,17 @@ skills::_parse_yaml_document() {
       continue
     fi
 
+    if [[ $indent -eq 2 ]]; then
+      _emit_parse_error "$line_num" "Expected '- name:' at indent 2, got: '${stripped}'"
+      continue
+    fi
+
     if [[ $indent -eq 4 ]]; then
       if [[ "$stripped" == "skills:"* ]]; then
         in_skills=true
         in_agents=false
+      else
+        _emit_parse_error "$line_num" "Expected 'skills:' at indent 4, got: '${stripped}'"
       fi
       continue
     fi
@@ -302,6 +319,11 @@ skills::_parse_yaml_document() {
       continue
     fi
 
+    if [[ $indent -eq 6 ]]; then
+      _emit_parse_error "$line_num" "Expected '- name:' at indent 6, got: '${stripped}'"
+      continue
+    fi
+
     if [[ $indent -eq 8 ]]; then
       if [[ "$stripped" == "command:"* ]]; then
         cmd="${stripped#command:}"
@@ -309,6 +331,8 @@ skills::_parse_yaml_document() {
       elif [[ "$stripped" == "agents:"* ]]; then
         in_agents=true
         agents=""
+      else
+        _emit_parse_error "$line_num" "Expected 'command:' or 'agents:' at indent 8, got: '${stripped}'"
       fi
       continue
     fi
@@ -321,6 +345,8 @@ skills::_parse_yaml_document() {
       else
         agents="${agents},${agent}"
       fi
+    elif $in_agents && [[ $indent -eq 10 ]]; then
+      _emit_parse_error "$line_num" "Expected '- <agent>' at indent 10, got: '${stripped}'"
     fi
   done < "$file"
 
@@ -400,6 +426,15 @@ skills::_execute_single_install() {
   local provider="$2"
   local branch="$3"
   local agent="$4"
+  local skill_name="${5:-}"
+
+  if [[ -n "$skill_name" ]]; then
+    local existing_lock="${SKILLS_DIR}/${skill_name}/.skill-lock.json"
+    if [[ -f "$existing_lock" ]]; then
+      _import_log "info" "Already installed: skill '${skill_name}'"
+      return 0
+    fi
+  fi
 
   local cmd_parts=()
   IFS=' ' read -ra cmd_parts <<< "$command_prefix"
@@ -490,7 +525,7 @@ skills::import() {
         agent="${agent%"${agent##*[![:space:]]}"}"
         [[ -z "$agent" ]] && continue
 
-        if skills::_execute_single_install "$cmd" "$provider" "$branch" "$agent"; then
+        if skills::_execute_single_install "$cmd" "$provider" "$branch" "$agent" "$skill_name"; then
           if skills::_verify_install "$skill_name"; then
             _import_log "info" "Installed '${skill_name}' for agent '${agent}'"
           else
@@ -503,7 +538,7 @@ skills::import() {
       done
       IFS="$saved_ifs"
     else
-      if skills::_execute_single_install "$cmd" "$provider" "$branch" ""; then
+      if skills::_execute_single_install "$cmd" "$provider" "$branch" "" "$skill_name"; then
         if skills::_verify_install "$skill_name"; then
           _import_log "info" "Installed '${skill_name}'"
         else

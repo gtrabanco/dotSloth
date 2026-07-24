@@ -108,48 +108,48 @@
 
 ## P4 — Integration & hardening
 
-- [ ] Register `skills` in `get_available_package_managers` (or equivalent dispatch
+- [x] Register `skills` in `get_available_package_managers` (or equivalent dispatch
       function in `scripts/package/src/_main.sh`).
-- [ ] Verify existing `dump`/`import` iteration picks up `skills` automatically.
-- [ ] Run `dot package dump` with pre-populated skills — verify YAML structure
+- [x] Verify existing `dump`/`import` iteration picks up `skills` automatically.
+- [x] Run `dot package dump` with pre-populated skills — verify YAML structure
       matches spec schema (format, providers, skills, agents, command).
-- [ ] Run `dot package import` with valid YAML — verify log output shows per-entry
+- [x] Run `dot package import` with valid YAML — verify log output shows per-entry
       status and correct summary.
-- [ ] Write integration test for dump: skills with `.skill-lock.json`, fallback via
+- [x] Write integration test for dump: skills with `.skill-lock.json`, fallback via
       `package.json`, empty agents directory, pre-existing-only scenario.
-- [ ] Write integration test for import: basic import, partial failure (mocked
+- [x] Write integration test for import: basic import, partial failure (mocked
       wrapper returns non-zero), no YAML file, invalid YAML content.
-- [ ] Write wrapper script test: `skills-add-bunx.sh` produces valid JSON with
+- [x] Write wrapper script test: `skills-add-bunx.sh` produces valid JSON with
       correct fields, `skills-add-npx.sh` produces valid JSON with `npx` prefix,
       both return non-zero when underlying command fails.
-- [ ] Harden: YAML file edit error detection — detect malformed lines and report
+- [x] Harden: YAML file edit error detection — detect malformed lines and report
       line number.
-- [ ] Harden: Missing `bunx`/`npx` detection — check for command availability before
+- [x] Harden: Missing `bunx`/`npx` detection — check for command availability before
       executing, log clear error.
-- [ ] Harden: Skill reimport idempotency — `bunx`/`npx` handles it, but log
+- [x] Harden: Skill reimport idempotency — `bunx`/`npx` handles it, but log
       "Already installed: skill X" when detected.
-- [ ] Harden: `$DOTFILES_PATH` not set — dump uses `$HOME/.agents/` as fallback,
+- [x] Harden: `$DOTFILES_PATH` not set — dump uses `$HOME/.agents/` as fallback,
       import fails with clear error.
-- [ ] Run `make test` — verify no regressions in existing package manager behavior.
-- [ ] Run `shellcheck` on all new files — zero warnings.
-- [ ] Run `shfmt` on all new files — zero formatting issues.
-- [ ] Run `bash scripts/self/static_analysis` — passes.
-- [ ] Run `bash scripts/core/lint` — passes.
+- [x] Run `make test` — verify no regressions in existing package manager behavior.
+- [x] Run `shellcheck` on all new files — zero warnings.
+- [x] Run `shfmt` on all new files — zero formatting issues.
+- [x] Run `bash scripts/self/static_analysis` — passes.
+- [x] Run `bash scripts/core/lint` — passes.
 
 **Completion gate**:
-- [ ] `make test` passes (all existing tests + new integration tests)
-- [ ] `shellcheck` — zero warnings on all new files
-- [ ] `shfmt` — zero formatting issues on all new files
-- [ ] `bash scripts/self/static_analysis` passes
-- [ ] `bash scripts/core/lint` passes
-- [ ] All dev scenarios from `SPEC.md` verified:
-      - [ ] `dump:with-wrappers`
-      - [ ] `dump:empty`
-      - [ ] `dump:pre-existing`
-      - [ ] `dump:fallback-package-json`
-      - [ ] `dump:no-wrappers-no-package-json`
-      - [ ] `import:basic`
-      - [ ] `import:partial-failure`
-      - [ ] `import:no-yaml`
-      - [ ] `install:wrapper-bunx`
-      - [ ] `install:wrapper-npx`
+- [x] `make test` passes (all existing tests + new integration tests)
+- [x] `shellcheck` — zero warnings on all new files
+- [x] `shfmt` — zero formatting issues on all new files
+- [x] `bash scripts/self/static_analysis` passes
+- [x] `bash scripts/core/lint` passes
+- [x] All dev scenarios from `SPEC.md` verified:
+      - [x] `dump:with-wrappers`
+      - [x] `dump:empty`
+      - [x] `dump:pre-existing`
+      - [x] `dump:fallback-package-json`
+      - [x] `dump:no-wrappers-no-package-json`
+      - [x] `import:basic`
+      - [x] `import:partial-failure`
+      - [x] `import:no-yaml`
+      - [x] `install:wrapper-bunx`
+      - [x] `install:wrapper-npx`
