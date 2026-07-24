@@ -258,7 +258,7 @@ skills::_parse_yaml_document() {
   local line_num=0
 
   while IFS= read -r line; do
-    ((line_num++))
+    ((++line_num))
     [[ "$line" == \#* || -z "$line" ]] && continue
 
     leading="${line%%[![:space:]]*}"
@@ -499,18 +499,18 @@ skills::import() {
 
   while IFS='|' read -r provider branch skill_name cmd agents_csv; do
     [[ -z "$provider" ]] && continue
-    ((total++))
+    ((++total))
 
     if [[ -z "$skill_name" || -z "$cmd" ]]; then
       _import_log "warn" "Skipping entry: missing required fields (provider=${provider}, skill=${skill_name})"
-      ((failed++))
+      ((++failed))
       continue
     fi
 
     local cmd_tool="${cmd%% *}"
     if ! command -v "$cmd_tool" &> /dev/null; then
       _import_log "error" "Command '${cmd_tool}' not found — skipping ${skill_name}"
-      ((failed++))
+      ((++failed))
       continue
     fi
 
@@ -551,9 +551,9 @@ skills::import() {
     fi
 
     if $entry_ok; then
-      ((succeeded++))
+      ((++succeeded))
     else
-      ((failed++))
+      ((++failed))
     fi
   done <<< "$parsed"
 
