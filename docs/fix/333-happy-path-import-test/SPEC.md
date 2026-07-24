@@ -163,15 +163,15 @@ No data-side cleanup needed. No schema changes. No archives affected.
 
 ### P2 — Hardening & PR
 
-- [ ] Squash the single phase commit into a clean commit with message:
+- [x] Squash the single phase commit into a clean commit with message:
       `test(package): add happy-path integration test for skills::import`
-- [ ] Push the branch to remote:
+- [x] Push the branch to remote:
       `git push origin fix/333-happy-path-import-test`
-- [ ] Open a PR against `main` with title:
+- [x] Open a PR against `main` with title:
       `test(package): add happy-path integration test for skills::import`
-- [ ] In the PR body, add:
+- [x] In the PR body, add:
       `Closes #333`
-- [ ] Request review from the team
+- [x] Request review from the team (sole collaborator is author — n/a)
 - [ ] After approval, merge to `main`
 - [ ] Remove the row from `docs/fix/README.md`
 
