@@ -17,7 +17,7 @@ history lives in git log + closed issues.
 | `268-restorer-installer-tests` | tests for restorer and installer bootstrap | done · [#324](https://github.com/gtrabanco/dotSloth/pull/324) | — | #268 |
 | `300-audit-set-euo-pipefail` | audit standalone scripts for missing set -euo pipefail | pending | — | #300 |
 | `329-bun-dump-readonly-error` | fix `dot package dump` crash with custom manager files lacking dump function | done · [#331](https://github.com/gtrabanco/dotSloth/pull/331) | — | #329 |
-| `333-happy-path-import-test` | add happy-path integration test for skills::import | pending | — | #333 |
+| `333-happy-path-import-test` | add happy-path integration test for skills::import | done | — | #333 |
 
 ## Conventions
 
