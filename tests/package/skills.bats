@@ -243,6 +243,7 @@ providers:
           - claude
 EOF
     run bash -c "
+        export PATH='${SLOTH_PATH}/tests/helpers/mocks:${PATH}'
         source '${SLOTH_PATH}/scripts/package/src/package_managers/skills.sh'
         SKILLS_DUMP_FILE_PATH='${SKILLS_DUMP_FILE_PATH}'
         SKILLS_DIR='${SKILLS_DIR}'
