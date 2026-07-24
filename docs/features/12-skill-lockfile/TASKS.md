@@ -77,33 +77,33 @@
 
 ## P3 — Import flow
 
-- [ ] Implement `skills::import` — checks for `$DOTFILES_PATH/agents/skill-lock.yaml`,
+- [x] Implement `skills::import` — checks for `$DOTFILES_PATH/agents/skill-lock.yaml`,
       reads and parses the YAML document.
-- [ ] Handle missing YAML file — fail with clear error: "No skill-lock.yaml found at
+- [x] Handle missing YAML file — fail with clear error: "No skill-lock.yaml found at
       $DOTFILES_PATH/agents/skill-lock.yaml."
-- [ ] Implement `skills::_parse_yaml_document` — calls `yaml::read_value` and
+- [x] Implement `skills::_parse_yaml_document` — calls `yaml::read_value` and
       `yaml::read_array` to extract `format`, provider list, skill specs, and agent list.
-- [ ] Implement `skills::_parse_yaml_raw` — fallback line-by-line parser that
+- [x] Implement `skills::_parse_yaml_raw` — fallback line-by-line parser that
       extracts raw key-value pairs for validation. Used when `yaml.sh` parsing
       fails on malformed YAML.
-- [ ] Validate `format` field — must equal `skill-lock-v1` or fail with version error.
-- [ ] Validate required fields per entry — provider name, skill name, command, agents.
+- [x] Validate `format` field — must equal `skill-lock-v1` or fail with version error.
+- [x] Validate required fields per entry — provider name, skill name, command, agents.
       Skip invalid entries with warning.
-- [ ] Implement `skills::_execute_single_install` — constructs command from recorded
+- [x] Implement `skills::_execute_single_install` — constructs command from recorded
       `command` field + provider/branch/skill, executes, captures exit code.
   > NOTE: This function must NOT have `set -euo pipefail` — per arch.md, core
   > libraries intentionally omit `set -e` so failures don't propagate to caller.
-- [ ] Implement failure aggregation — track total, succeeded, failed, per-entry
+- [x] Implement failure aggregation — track total, succeeded, failed, per-entry
       status. Log each entry's result.
-- [ ] Implement `skills::_verify_install` — after install, check skill directory
+- [x] Implement `skills::_verify_install` — after install, check skill directory
       exists in `$HOME/.agents/skills/` and `.skill-lock.json` was created.
-- [ ] Report summary to stdout — "Import complete: N total, S succeeded, F failed."
-- [ ] Exit 0 if any success, exit 1 only if ALL installations fail.
-- [ ] Handle `bunx`/`npx` not found — log error per entry, continue with next.
+- [x] Report summary to stdout — "Import complete: N total, S succeeded, F failed."
+- [x] Exit 0 if any success, exit 1 only if ALL installations fail.
+- [x] Handle `bunx`/`npx` not found — log error per entry, continue with next.
 
 **Completion gate**:
-- [ ] `bash scripts/self/static_analysis` passes
-- [ ] `bash scripts/core/lint` passes
+- [x] `bash scripts/self/static_analysis` passes
+- [x] `bash scripts/core/lint` passes
 - [ ] Manual test: `skills::import` on valid YAML produces correct install commands
 
 ## P4 — Integration & hardening
