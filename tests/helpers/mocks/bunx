@@ -35,7 +35,7 @@ main() {
     cat > "${SKILLS_DIR}/${skill_name}/.skill-lock.json" <<-EOF
 {
   "provider": "${provider}",
-  "installed_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+  "installed_at": "$(date +%s)",
   "agents": ["${agent}"],
   "command": "bunx skills add"
 }
