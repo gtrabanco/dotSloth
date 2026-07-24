@@ -231,6 +231,29 @@ EOF
     [ "$status" -eq 0 ]
 }
 
+@test "import: installs skills from valid YAML lockfile" {
+    cat > "${SKILLS_DUMP_FILE_PATH}" << 'EOF'
+format: skill-lock-v1
+providers:
+  - name: test-owner/test-skill
+    skills:
+      - name: test-skill
+        command: bunx skills add
+        agents:
+          - claude
+EOF
+    run bash -c "
+        source '${SLOTH_PATH}/scripts/package/src/package_managers/skills.sh'
+        SKILLS_DUMP_FILE_PATH='${SKILLS_DUMP_FILE_PATH}'
+        SKILLS_DIR='${SKILLS_DIR}'
+        skills::import
+    "
+    [ "$status" -eq 0 ]
+    [[ -d "${SKILLS_DIR}/test-skill" ]]
+    [[ -f "${SKILLS_DIR}/test-skill/.skill-lock.json" ]]
+    echo "$output" | grep -F "Import complete: 1 total, 1 succeeded, 0 failed."
+}
+
 # ── Verify install helper ────────────────────────────────────────────────
 
 @test "_verify_install: returns 0 when skill directory and lockfile exist" {
