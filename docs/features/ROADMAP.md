@@ -2,23 +2,24 @@
 
 The single source of truth for feature **numbering, ordering, and dependencies**.
 Every feature folder under `docs/features/<NN>-<slug>/` must have a row here, and
-every row must have a folder (or be explicitly marked "scheduled").
+every row must have a corresponding folder.
 
 ## Features
 
-| NN | Slug | Status | Depends on | Summary | Issue |
-|----|------|--------|------------|---------|-------|
-| 01 | `rust-tooling` | planned | — | Migrar docpars/docopts a tooling propio en Rust con clap-rs | [#236](https://github.com/gtrabanco/dotSloth/issues/236) |
-| 02 | `rust-dot-cli` | planned | 01 | Migrar comando `dot` a Rust con clap-rs para parsing robusto | [#237](https://github.com/gtrabanco/dotSloth/issues/237) |
-| 03 | `rust-up-cli` | planned | 01 | Migrar comando `up` a Rust con manejo robusto, timeouts, feedback | [#238](https://github.com/gtrabanco/dotSloth/issues/238) |
-| 04 | `upstream-sync` | done | — | Sincronizar mejoras upstream de CodelyTV/dotly | [#239](https://github.com/gtrabanco/dotSloth/issues/239) · [#283](https://github.com/gtrabanco/dotSloth/pull/283) |
-| 05 | `testing-framework` | done | — | Implementar sistema de testing completo con bats-core · [#251](https://github.com/gtrabanco/dotSloth/pull/251) | [#240](https://github.com/gtrabanco/dotSloth/issues/240) |
-| 06 | `pm-timeouts` | done | — | Mejorar sistema de package managers con timeouts configurables · [#294](https://github.com/gtrabanco/dotSloth/pull/294) | [#241](https://github.com/gtrabanco/dotSloth/issues/241) |
-| 07 | `restorer-v2` | done | — | Mejorar restorer con validación, rollback, restauración parcial · [#295](https://github.com/gtrabanco/dotSloth/pull/295) | [#242](https://github.com/gtrabanco/dotSloth/issues/242) |
-| 08 | `test-coverage-expansion` | done | — | Add tests for sloth_update.sh auto-updater flow + critical path coverage · [#293](https://github.com/gtrabanco/dotSloth/pull/293) | [#267](https://github.com/gtrabanco/dotSloth/issues/267) |
+| # | Slug | Status | Depends on | Description | Issue |
+|---|------|--------|------------|-------------|-------|
+| 01 | `rust-tooling` | planned | — | Migrar docpars/docopts a tooling propio en Rust con clap-rs · [#204](https://github.com/gtrabanco/dotSloth/pull/204) | [#203](https://github.com/gtrabanco/dotSloth/issues/203) |
+| 02 | `rust-dot-cli` | planned | 01 | Migrar comando `dot` a Rust con clap-rs para parsing robusto · [#205](https://github.com/gtrabanco/dotSloth/pull/205) | [#206](https://github.com/gtrabanco/dotSloth/issues/206) |
+| 03 | `rust-up-cli` | planned | 01 | Migrar comando `up` a Rust con manejo robusto, timeouts, feedback · [#207](https://github.com/gtrabanco/dotSloth/pull/207) | [#208](https://github.com/gtrabanco/dotSloth/issues/208) |
+| 04 | `upstream-sync` | done | — | Sincronizar mejoras upstream de CodelyTV/dotly · [#215](https://github.com/gtrabanco/dotSloth/pull/215) | [#214](https://github.com/gtrabanco/dotSloth/issues/214) |
+| 05 | `testing-framework` | done | — | Implementar sistema de testing completo con bats-core · [#251](https://github.com/gtrabanco/dotSloth/pull/251) | [#250](https://github.com/gtrabanco/dotSloth/issues/250) |
+| 06 | `pm-timeouts` | done | — | Mejorar sistema de package managers con timeouts configurables · [#294](https://github.com/gtrabanco/dotSloth/pull/294) | [#292](https://github.com/gtrabanco/dotSloth/issues/292) |
+| 07 | `restorer-v2` | done | — | Mejorar restorer con validación, rollback, restauración parcial · [#295](https://github.com/gtrabanco/dotSloth/pull/295) | [#296](https://github.com/gtrabanco/dotSloth/issues/296) |
+| 08 | `test-coverage-expansion` | done | — | Add tests for sloth_update.sh auto-updater flow + critical path coverage · [#293](https://github.com/gtrabanco/dotSloth/pull/293) | [#291](https://github.com/gtrabanco/dotSloth/issues/291) |
 | 09 | `mock-harness` | done | — | Mock harness for external commands (unblocks #268, #273) · [#303](https://github.com/gtrabanco/dotSloth/pull/303) | [#302](https://github.com/gtrabanco/dotSloth/issues/302) |
 | 10 | `core-library-tests` | done | 09 | Deep functional tests for core libraries (array, str, json, git) · [#310](https://github.com/gtrabanco/dotSloth/pull/310) | [#301](https://github.com/gtrabanco/dotSloth/issues/301) |
 | 11 | `local-ci-pre-commit` | done | — | Add pre-commit hooks (format → lint → test), local Makefile targets, CI format job, and merge gate constraint · [#327](https://github.com/gtrabanco/dotSloth/pull/327) | [#328](https://github.com/gtrabanco/dotSloth/issues/328) |
+| 12 | `skill-lockfile` | done | — | Package dump/import for agent skills (`bunx`/`npx` skills) with YAML lockfile and skills.sh integration · [#330](https://github.com/gtrabanco/dotSloth/issues/330) | [#330](https://github.com/gtrabanco/dotSloth/issues/330) |
 
 ## Status legend
 
