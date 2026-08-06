@@ -19,7 +19,7 @@ every row must have a corresponding folder.
 | 09 | `mock-harness` | done | — | Mock harness for external commands (unblocks #268, #273) · [#303](https://github.com/gtrabanco/dotSloth/pull/303) | [#302](https://github.com/gtrabanco/dotSloth/issues/302) |
 | 10 | `core-library-tests` | done | 09 | Deep functional tests for core libraries (array, str, json, git) · [#310](https://github.com/gtrabanco/dotSloth/pull/310) | [#301](https://github.com/gtrabanco/dotSloth/issues/301) |
 | 11 | `local-ci-pre-commit` | done | — | Add pre-commit hooks (format → lint → test), local Makefile targets, CI format job, and merge gate constraint · [#327](https://github.com/gtrabanco/dotSloth/pull/327) | [#328](https://github.com/gtrabanco/dotSloth/issues/328) |
-| 12 | `skill-lockfile` | done | — | Package dump/import for agent skills (`bunx`/`npx` skills) with YAML lockfile and skills.sh integration · [#330](https://github.com/gtrabanco/dotSloth/issues/330) | [#330](https://github.com/gtrabanco/dotSloth/issues/330) |
+| 12 | `skill-lockfile` | done | — | Package dump/import for agent skills (`bunx`/`npx` skills) with YAML lockfile and skills.sh integration · [#332](https://github.com/gtrabanco/dotSloth/pull/332) · [#330](https://github.com/gtrabanco/dotSloth/issues/330) | [#330](https://github.com/gtrabanco/dotSloth/issues/330) |
 
 ## Status legend
 
