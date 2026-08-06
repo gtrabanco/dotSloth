@@ -2,20 +2,8 @@
   "mcpServers": {
     "filesystem": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-filesystem", "$PWD"],
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "."],
       "disabled": false
-    },
-    "fetch": {
-      "command": "uvx",
-      "args": ["mcp-server-fetch"],
-      "lifecycle": "lazy"
-    },
-    "github": {
-      "disabled": false
-    },
-    "gitmcp-docs": {
-      "url": "https://gitmcp.io/docs",
-      "lifecycle": "lazy"
     },
     "serena": {
       "command": "uvx",
