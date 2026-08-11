@@ -304,7 +304,7 @@ then
   for init_script in "${DOTFILES_PATH}/shell/init.scripts-enabled"/*; do
     [[ -z "$init_script" || ! -e "$init_script" ]] && continue
     [[ -d "$init_script" ]] && continue
-    [[ "$init_script" == *.* ]] && continue
+
 
     # Resolve symlink target (macOS-compatible, no realpath needed)
     if [[ -L "$init_script" ]]; then
@@ -314,7 +314,7 @@ then
 
     [[ -z "$init_script" || ! -r "$init_script" ]] && continue
 
-    { . "$init_script"; } || echo -e "\033[0;31m${init_script} could not be loaded\033[0m"
+    { source "$init_script"; } || echo -e "\033[0;31m${init_script} could not be loaded\033[0m"
   done
 fi
 ###### End of User init scripts ######
