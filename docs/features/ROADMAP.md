@@ -23,6 +23,8 @@ every row must have a corresponding folder.
 
 ## Status legend
 
+- `idea` — a roadmap row exists, but product design has not been completed. Next action: `/design-feature <slug>`.
+- `defined` — `SPEC.md` exists with its product half complete and `Design status: designed`. Next action: `/plan-feature <slug>`.
 - `planned` — in the roadmap, not started
 - `in-progress` — branch open, phases executing
 - `done` — built and its PR open (the last step opened the PR); **merge state lives
@@ -33,6 +35,7 @@ every row must have a corresponding folder.
 - Numbers are assigned in order and never reused.
 - A feature that depends on another cannot start until its dependency is **merged**
   (not merely `done` — a `done` dep with an open PR isn't on `main` yet).
+- A unit is executable only when `planned` or above. Sub-`planned` work returns to design (`idea`) or planning (`defined`) before execution.
 - Keep this table consistent with the feature folders (the `audit-docs` skill
   checks for drift).
 - Each feature should have a corresponding GitHub issue referenced in the Issue column.

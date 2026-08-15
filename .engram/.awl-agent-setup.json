@@ -1,0 +1,7 @@
+{
+  "schemaVersion": 2,
+  "backends": [
+    "pi"
+  ],
+  "configuredAt": "2026-08-15T16:20:44.799Z"
+}

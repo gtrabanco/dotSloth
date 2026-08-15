@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|Read",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .agentic-workflow/hooks/adapters/pre-tool-guard.sh"
+          }
+        ]
+      }
+    ]
+  }
+}

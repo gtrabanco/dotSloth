@@ -3,6 +3,10 @@
 **Status:** frozen
 **Generated:** 2026-07-31
 **Revision:** 645dce7 (HEAD of main)
+**Contradiction check:** 2026-08-15 at `3e3eaa903a52ac5e78e6fe33f197f3eaed46bab1` with a non-clean working tree
+**Snapshot 2:** 2026-08-15 at `34d8e873cf5af76d56ee9cd75b3a3d5656dc37d9` (HEAD of main)
+**Contradictions resolved:** RS-C001
+**Active unit branch:** `feat/12-skill-lockfile-p2-closeout` at `3e3eaa903a52ac5e78e6fe33f197f3eaed46bab1`
 
 ---
 
@@ -41,11 +45,12 @@ Each fact carries direct evidence (file:line or command output).
 
 | Fact | Evidence |
 |------|----------|
-| Current branch: `main` | `git branch --show-current → main` |
-| Working tree: clean | `git status --short → (empty)` |
+| Current branch: `feat/12-skill-lockfile-p2-closeout` | `git branch --show-current → feat/12-skill-lockfile-p2-closeout` |
+| Current HEAD: `3e3eaa903a52ac5e78e6fe33f197f3eaed46bab1` — "chore: awl state" | `git rev-parse HEAD` |
+| Canonical revision (`main`): `34d8e873cf5af76d56ee9cd75b3a3d5656dc37d9` (HEAD of main) | `git rev-parse origin/main` |
 | Latest tag: `v4.3.1` | `git tag --sort=-v:refname → v4.3.1` |
-| Latest commit: `645dce7` — "fix: correct skills::import install command to use skills add subcommand (#339)" | `git log --oneline -1` |
-| 133 commits since 2026-07-06 | `git log --oneline --since="2026-07-06" --until="2026-07-31" \| wc -l` |
+| 146 commits between 2026-07-06 and 2026-07-31 (13 previously + 1 since original snapshot) | `git log --oneline --since="2026-07-06" --until="2026-07-31T23:59:59Z" \| wc -l` |
+| Working tree: non-clean (7 modified/added paths) | `git status --short --branch` |
 
 ### Open work (GitHub)
 
@@ -154,9 +159,23 @@ Reasoning based on observed evidence.
 | Is a product-audit due? | Ship report says "every 5 merged units or pre-release" — 5+ units have merged since last audit |
 | What is the status of the `agents/` directory at top level vs `$DOTFILES_PATH/agents/`? | SPEC says dump file goes to `$DOTFILES_PATH/agents/skill-lock.yaml`; top-level `agents/` exists in the repo |
 | Is fix #300 (set -euo pipefail audit) still relevant? | pending status in fix README; last touched in commit `2c021ff` |
+| Which verification-gate declaration is authoritative? | `CLAUDE.md:51-60` declares lint + static analysis, while `docs/features/SHIP_DECISIONS.md:43` declares static analysis + lint + tests. |
+| What is the current executable test count and result? | Static inspection found 203 `@test` declarations; `bats`, `shfmt`, and `shellcheck` are unavailable locally, so the gate could not be rerun. |
+| Are the MCP entries agent-local tooling or project dependencies? | `CLAUDE.md:174-176` says there are no MCP dependencies, while tracked `opencode.jsonc:3-36` declares five MCP entries. |
 
 ---
 
 ## Contradictions
 
-None recorded. Snapshot is frozen.
+The prior snapshot remains intact. These conflicts were observed against the repository and forge on 2026-08-15; no frozen fact, accepted decision, planned-work row, documentation claim, or inference above was silently rewritten.
+
+| ID | Affected section | Preserved record | Conflicting evidence | Resolution required |
+|---|---|---|---|---|
+| `RS-C001` | Repository Facts — Git state | Branch `main`, clean tree, latest commit `645dce7`, and 133 commits in the recorded date window. | **RESOLVED (2026-08-15):** Accepted active unit branch (`feat/12-skill-lockfile-p2-closeout` at `3e3eaa9`) alongside canonical `main` at `34d8e87`; 146 commits in the 2026-07-06…2026-07-31 window; working tree non-clean. Ledger now records both. | |
+| `RS-C002` | Repository Facts — Open work | 0 open pull requests. | GitHub PR read/list returned open PR [#340](https://github.com/gtrabanco/dotSloth/pull/340), head `feat/12-skill-lockfile-p2-closeout` at `3e3eaa9`, base `main`. | Refresh forge state without changing the merge policy decision. |
+| `RS-C003` | Repository Facts — Directory structure | Ten directories under `scripts/`, including `self`. | `find scripts -mindepth 1 -maxdepth 1 -printf '%y %f -> %l'` returned nine directories and `scripts/self` as a symlink to `core`. | Decide whether contexts count logical entries or physical directories, then record that definition with evidence. |
+| `RS-C004` | Repository Facts / Accepted Decisions — Verification | Three-stage gate: static analysis → lint → tests. | `docs/features/SHIP_DECISIONS.md:43` still records three stages, but `CLAUDE.md:51-60` currently declares only `./scripts/core/lint && ./scripts/core/static_analysis`; local execution is additionally blocked because `shfmt`, `shellcheck`, and `bats` are unavailable. | Resolve the authoritative gate declaration; do not infer success from unavailable tooling. |
+| `RS-C005` | Accepted Decisions / Planned work / Inference — Feature 12 | Feature 12 is `designed`, has no linked issue, and is inferred absent from the roadmap. | `docs/features/ROADMAP.md:22` records feature 12 as `done` with issue #330 and PR #332; git history contains `f2a29a3` and `d381bae` for its roadmap close-out; GitHub reports issue #330 and close-out PR #340 open. | Reconcile the historical design decision, current roadmap state, and forge close-out state without rewriting their chronology. |
+| `RS-C006` | Documentation / Inference — MCP | `CLAUDE.md` states no MCP server dependencies, and the ledger infers the same. | Tracked `opencode.jsonc:3-36` declares `filesystem`, `fetch`, `github`, `gitmcp-docs`, and `serena` MCP entries. | Classify these entries as project dependencies or agent-local tooling, then align the guide and ledger. |
+
+Snapshot status remains **contradicted** until RS-C002 through RS-C006 are resolved by `/resolve-repository-state`.
