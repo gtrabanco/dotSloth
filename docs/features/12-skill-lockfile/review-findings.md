@@ -5,6 +5,6 @@ Rows reconstructed from the `/audit-pr` BLOCKED verdict on PR #340
 the audit-pr delivery contract.
 
 | id | file:line | axis | severity | class | route | folded |
-| F1 | .github/workflows/ci.yml (paths-ignore: docs/**) | review-verify | med | fix-now | fix-now | no |
-| F2 | PR #340 body — `Closes #330` backticked (docs/features/12-skill-lockfile/SPEC.md) | workflow | med | fix-now | fix-now | no |
-| F3 | Makefile — no `gate` target; docs gate is `static_analysis`+`lint` | review-verify | low | fix-now | fix-now | no |
+| F1 | .github/workflows/ci.yml (paths-ignore: docs/**) | review-verify | med | fix-now | fix-now | no | *Known: project-wide CI config ignores all docs/* — not scoped to this feature |
+| F2 | PR #340 body — `Closes #330` backticked (docs/features/12-skill-lockfile/SPEC.md) | workflow | med | fix-now | fix-now | yes |
+| F3 | Makefile — no `gate` target; docs gate is `static_analysis`+`lint` | review-verify | low | fix-now | fix-now | yes |
