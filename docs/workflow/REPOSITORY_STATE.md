@@ -2,10 +2,11 @@
 
 **Status:** contradicted
 **Generated:** 2026-08-15
-**Revision:** d72345d487970967a1e6d8d59a89a562600c16f0 (HEAD of feat/12-skill-lockfile-p2-closeout)
+**Revision:** a330868d3be550882ca6831789c849ee44ab42e3 (HEAD of feat/12-skill-lockfile-p2-closeout)
 **Baseline (main):** 34d8e873cf5af76d56ee9cd75b3a3d5656dc37d9
-**Prior snapshot:** 2026-08-15 at `34d8e87` (main) — contradictions preserved from prior run
-**Active unit branch:** `feat/12-skill-lockfile-p2-closeout` at `d72345d` (5 commits ahead of origin/main)
+**Prior snapshot:** 2026-08-15 at `d72345d` (feat/12-skill-lockfile-p2-closeout) — contradictions preserved from prior run
+**Active unit branch:** `feat/12-skill-lockfile-p2-closeout` at `a330868` (6 commits ahead of origin/main)
+**Working tree:** non-clean (1 modified path: .engram/.awl-agent-setup.json)
 
 ---
 
@@ -21,16 +22,17 @@ Each fact carries direct evidence (file:line or command output).
 | Architecture: modular monolith with context-based namespacing (command-dispatch pattern) | `docs/architecture/ARCHITECTURE.md:5` |
 | Entry point: `bin/dot` resolves `<context> <script> [args]`, sources `_main.sh`, dispatches | `docs/architecture/ARCHITECTURE.md:7-10` |
 | Core libraries: `scripts/core/src/` contains 24 sourced `.sh` files | `scripts/core/src/` directory listing |
-| Contexts: directories under `scripts/` — core, dotfiles, generator, init, mac, package, script, self (→ core symlink), shell, symlinks | `scripts/` directory listing + `find` output |
+| Contexts: 9 physical directories under `scripts/` plus 1 symlink — `self` → `core` | `find scripts -mindepth 1 -maxdepth 1 -printf '%y %f -> %l'` |
 | Entry point binaries: `bin/dot`, `bin/up`, `bin/sloth`, `bin/git-discard`, `bin/git-undo`, `bin/open`, `bin/pbcopy`, `bin/pbpaste` | `bin/` directory listing |
 | Target platforms: Linux, macOS, FreeBSD | `CLAUDE.md:68` |
+| Scripts contexts: 9 physical directories and 1 symlink under `scripts/` (total 10 context entries); `scripts/self` is a symlink to `scripts/core` | `find scripts -mindepth 1 -maxdepth 1 -printf '%y %f -> %l\n'` → 9 `d` + 1 `l` entries |
 
 ### Tooling and verification
 
 | Fact | Evidence |
 |------|----------|
-| Verification gate declared in CLAUDE.md: `./scripts/core/lint && ./scripts/core/static_analysis` | `CLAUDE.md:59-60` |
-| Verification gate declared in SHIP_DECISIONS.md: `bash scripts/self/static_analysis && bash scripts/self/lint && make test` | `docs/features/SHIP_DECISIONS.md:43` |
+| Verification gate (authoritative): `./scripts/core/lint && ./scripts/core/static_analysis` (two-stage) | `CLAUDE.md:59-60` |
+| Verification gate (legacy record): `bash scripts/self/static_analysis && bash scripts/self/lint && make test` (three-stage, from SHIP_DECISIONS.md) | `docs/features/SHIP_DECISIONS.md:43` |
 | `scripts/self/lint` runs `shfmt -ln bash -sr -ci -i 2` on all bash files (excludes `shell/zsh/`) | `scripts/self/lint:60,69,86` |
 | `scripts/self/static_analysis` runs `shellcheck -s bash -S warning -e SC1090 -e SC2010 -e SC2154` | `scripts/self/static_analysis:36` |
 | Pre-commit hooks: `.pre-commit-config.yaml` with shfmt-format, shfmt-lint, bats-test (3 local hooks) | `.pre-commit-config.yaml:1-29` |
@@ -40,20 +42,22 @@ Each fact carries direct evidence (file:line or command output).
 | Tests: bats-core, 200 tests passing on `main` | `bats --recursive tests/ → 1..200` |
 | Test structure: `tests/{core,package,scripts,integration,helpers}/` | `tests/` directory listing |
 | Mock harness for external commands exists at `tests/helpers/mocks.sh` | `tests/README.md:103-104` |
+| Local tool availability: `shfmt` not found, `shellcheck` not found, `bats` not found, `gh` v2.46.0 installed but unauthenticated | `shfmt --version → command not found`, `shellcheck → command not found`, `bats → command not found`, `gh --version → v2.46.0 (needs auth)` |
 
-### Agent workflow tooling (new since d72345d~5)
+### Agent workflow tooling (new since d72345d~6)
 
 | Fact | Evidence |
 |------|----------|
 | Agentic workflow hooks at `.agentic-workflow/hooks/` with adapters and tests | `.agentic-workflow/hooks/` directory listing |
 | Agent skills at `.agents/skills/bash-defensive-patterns/SKILL.md`, `.agents/skills/bun/SKILL.md`, `.agents/skills/initialize-awl/SKILL.md` | `.agents/skills/` directory listing |
 | `.mcp.json` declares MCP servers: filesystem, serena | `.mcp.json:1-29` |
-| `opencode.json` declares MCP servers: filesystem (minimal), opencode.jsonc declares: filesystem, fetch, github, gitmcp-docs, serena (5 total) | `opencode.json:1-15`, `opencode.jsonc:1-37` |
+| `opencode.json` declares MCP servers: filesystem, serena | `opencode.json:1-15` |
+| `opencode.jsonc` declares MCP servers: filesystem, fetch, github, gitmcp-docs, serena (5 total) | `opencode.jsonc:1-37` |
 | `.pi/mcp.json` exists | `.pi/mcp.json` |
-| `.serena/project.yml` declares Serena project config | `.serena/project.yml` |
+| `.serena/project.yml` declares Serena project config (project_name: "dotSloth") | `.serena/project.yml` |
 | `skills-lock.json` at top level (agent skill lockfile from feature 12) | `skills-lock.json` |
 | `bun.lock` generated by Bun package manager | `bun.lock` |
-| `package.json` with dependencies | `package.json` |
+| `package.json` with dependencies: `@joemccann/pi-pdf`, `pi-mcp-adapter`, `pi-subagents`, `version`, `view` | `package.json` |
 | `.engram/config.json` declares project name and memory policy | `.engram/config.json:1-3` |
 | `.engram/.awl-agent-setup.json` declares schema version 2, backends: [pi] | `.engram/.awl-agent-setup.json:1-6` |
 
@@ -62,22 +66,22 @@ Each fact carries direct evidence (file:line or command output).
 | Fact | Evidence |
 |------|----------|
 | Current branch: `feat/12-skill-lockfile-p2-closeout` | `git branch --show-current → feat/12-skill-lockfile-p2-closeout` |
-| Current HEAD: `d72345d` — "chore: awl init" | `git rev-parse HEAD` |
+| Current HEAD: `a330868` — "chore: awl init 2" | `git rev-parse HEAD` |
 | Canonical revision (`main`): `34d8e873cf5af76d56ee9cd75b3a3d5656dc37d9` (HEAD of origin/main) | `git rev-parse origin/main` |
-| 5 commits ahead of origin/main | `git rev-list --count origin/main..HEAD → 5` |
-| Total commits: 718 | `git rev-list --count HEAD → 718` |
+| 6 commits ahead of origin/main | `git rev-list --count origin/main..HEAD → 6` |
+| Total commits: 719 | `git rev-list --count HEAD → 719` |
 | Latest tag: `v4.3.1` | `git tag --sort=-v:refname → v4.3.1` |
-| Commits in 2026-07-06…2026-07-31 date window: 177 | `git log --since="2026-07-06T00:00:00" --until="2026-07-31T23:59:59" \| wc -l → 177` |
-| Working tree: non-clean (3 modified paths: .engram/.awl-agent-setup.json, bun.lock, package.json) | `git status --short → 3 modified` |
+| Commits in 2026-07-06…2026-07-31 date window: 177 | `git log --since="2026-07-06T00:00:00" --until="2026-07-31T23:59:59" --oneline \| wc -l → 177` |
+| Working tree: non-clean (1 modified path: .engram/.awl-agent-setup.json) | `git status --short → M .engram/.awl-agent-setup.json` |
+| `gh` CLI v2.46.0 installed but not authenticated | `gh --version → v2.46.0`; `gh issue list → requires auth` |
 
 ### Open work (GitHub)
 
 | Fact | Evidence |
 |------|----------|
-| GitHub CLI (`gh`) unavailable locally — open issue/PR counts not independently verifiable | `gh --version → not found` |
-| Prior snapshot recorded 4 open issues: #334, #330, #273, #224 | `gh issue list --state open` (prior run) |
+| GitHub CLI (`gh`) v2.46.0 installed but not authenticated — issue/PR counts not verifiable | `gh --version → v2.46.0`; `gh auth login required` |
 | Remote branch `feat/12-skill-lockfile-p2-closeout` exists on origin | `git branch -r | grep feat/12` |
-| Active unit has 5 commits ahead of origin/main | `git rev-list --count origin/main..HEAD → 5` |
+| Active unit has 6 commits ahead of origin/main (AWL initialization work, separate from feature 12) | `git rev-list --count origin/main..HEAD → 6` |
 
 ### Directory structure (top-level)
 
@@ -86,7 +90,8 @@ Each fact carries direct evidence (file:line or command output).
 | Top-level entries: `_raycast/`, `.agentic-workflow/`, `.claude/`, `.editorconfig`, `.engram/`, `.git/`, `.github/`, `.gitignore`, `.mcp.json`, `.opencode/`, `.pi/`, `.pre-commit-config.yaml`, `.serena/`, `.worktrees/`, `AGENTS.md`, `agents/`, `bin/`, `bun.lock`, `CLAUDE.md`, `docs/`, `dotfiles_template/`, `dotly-migrator`, `ic_twitter_share.svg`, `IDEA.md`, `installer`, `langs/`, `LICENSE`, `Makefile`, `migration/`, `node_modules/`, `opencode.json`, `opencode.jsonc`, `os/`, `package.json`, `README.md`, `restorer/`, `scripts/`, `SECURITY.md`, `shell/`, `skills-lock.json`, `sloth.png`, `sloth.svg`, `symlinks/`, `tests/` | `ls -1` output |
 | `.claude/` contains `hooks/`, `README.md`, `settings.json`, `settings.json.example` | `.claude/` directory listing |
 | `.opencode/` contains `plugins/agentic-workflow-guard.ts` | `.opencode/plugins/` directory listing |
-| `scripts/self` is a symlink to `scripts/core` (logical context, physical symlink) | `find scripts -mindepth 1 -maxdepth 1 -printf '%y %f -> %l'` |
+| `scripts/self` is a symlink to `core` (logical context, physical symlink) | `find scripts -mindepth 1 -maxdepth 1 -printf '%y %f -> %l'` |
+| 9 physical directories + 1 symlink under `scripts/` | `find scripts -mindepth 1 -maxdepth 1 -printf '%y %f -> %l'` → 9 `d` + 1 `l` entries |
 
 ---
 
@@ -123,7 +128,7 @@ Sourced from `docs/features/SHIP_DECISIONS.md` and `docs/features/ROADMAP.md`.
 | 09 | `mock-harness` | done | — | Mock harness for external commands (unblocks #268, #273) · [#303](https://github.com/gtrabanco/dotSloth/pull/303) | [#302](https://github.com/gtrabanco/dotSloth/issues/302) |
 | 10 | `core-library-tests` | done | 09 | Deep functional tests for core libraries (array, str, json, git) · [#310](https://github.com/gtrabanco/dotSloth/pull/310) | [#301](https://github.com/gtrabanco/dotSloth/issues/301) |
 | 11 | `local-ci-pre-commit` | done | — | Add pre-commit hooks (format → lint → test), local Makefile targets, CI format job, and merge gate constraint · [#327](https://github.com/gtrabanco/dotSloth/pull/327) | [#328](https://github.com/gtrabanco/dotSloth/issues/328) |
-| 12 | `skill-lockfile` | done | — | Package dump/import for agent skills (`bunx`/`npx` skills) with YAML lockfile and skills.sh integration · [#332](https://github.com/gtrabanco/dotSloth/pull/332) · [#330](https://github.com/gtrabanco/dotSloth/issues/330) | [#330](https://github.com/gtrabanco/dotSloth/issues/330) |
+| 12 | `skill-lockfile` | done | — | Package dump/import for agent skills (`bunx`/`npx` skills) with YAML lockfile and skills.sh integration · [#332](https://github.com/gtrabanco/dotSloth/pull/332) · [#330](https://github.com/gtrabanco/dotSloth/issues/330) · AWL close-out on `feat/12-skill-lockfile-p2-closeout` (6 commits, independent of feature 12) | [#330](https://github.com/gtrabanco/dotSloth/issues/330) |
 
 Source: `docs/features/ROADMAP.md:9-22`
 
@@ -166,11 +171,14 @@ Reasoning based on observed evidence.
 | Inference | Basis |
 |-----------|-------|
 | Feature 12 (skill-lockfile) has been fully implemented and merged on `main` (PR #332); roadmap row is marked `done` | `docs/features/ROADMAP.md:22` shows status: done; git history on origin/main includes the skill-lockfile commits |
+| The active unit branch `feat/12-skill-lockfile-p2-closeout` (6 commits ahead of origin/main) contains AWL initialization work, not feature 12 changes | `git log origin/main..HEAD` shows commits: `a330868 chore: awl init 2`, `d72345d chore: awl init`, `3e3eaa9 chore: awl state`, `4b37dda docs(12-skill-lockfile): reconstruct fold ledger from audit-pr blockers`, `d381bae fix(docs): correct ROADMAP row 12 PR link to #332`, `f2a29a3 docs(12-skill-lockfile): P2 close-out — ROADMAP entry, Closes #330, manual test✓` |
 | The `agents/` directory at top level was created by feature 12 — it is the agent skills directory defined in the SPEC | `ls` shows `agents/` at top level; SPEC.md defines `$DOTFILES_PATH/agents/` |
 | Fix #300 (set -euo pipefail audit) is the only pending fix — all others are done | `docs/fix/README.md` shows only `300-audit-set-euo-pipefail` as `pending` |
-| The active unit branch `feat/12-skill-lockfile-p2-closeout` is 5 commits ahead of origin/main — these are AWL initialization commits (`.agentic-workflow/hooks/`, `.agents/skills/`, `.mcp.json`, `opencode.jsonc`, etc.) | `git rev-list --count origin/main..HEAD → 5`; `git diff --stat d72345d` shows 35 new/changed files all related to AWL |
-| `opencode.json` and `opencode.jsonc` coexist at top level with different MCP configurations — `opencode.json` has a minimal config (filesystem, serena only), while `opencode.jsonc` declares 5 MCP servers | `ls` shows both files; contents differ |
+| The active unit branch `feat/12-skill-lockfile-p2-closeout` is 6 commits ahead of origin/main — these are AWL initialization commits (`.agentic-workflow/hooks/`, `.agents/skills/`, `.mcp.json`, `opencode.jsonc`, `skills-lock.json`, plus the re-frozen REPOSITORY_STATE.md commit) | `git rev-list --count origin/main..HEAD → 6`; `git log` shows commits: `a330868 chore: awl init 2`, `d72345d chore: awl init`, `3e3eaa9 chore: awl state`, `4b37dda docs(12-skill-lockfile): reconstruct fold ledger from audit-pr blockers`, `d381bae fix(docs): correct ROADMAP row 12 PR link to #332`, `f2a29a3 docs(12-skill-lockfile): P2 close-out — ROADMAP entry, Closes #330, manual test✓` |
+| `opencode.json` and `opencode.jsonc` coexist at top level with different MCP configurations — `opencode.json` has a minimal config (filesystem, serena only), while `opencode.jsonc` declares 5 MCP servers (agent-local tooling, not project dependencies) | `ls` shows both files; contents differ |
 | Test count grew from 158 (ship report 2026-07-07) to 200 (current) — 42 new tests since the ship report | `SHIP_REPORT_2026-07-07.md:34` vs `bats --recursive tests/ → 1..200` |
+| `package.json` contains runtime dependencies for agent tooling (pi-pdf, pi-mcp-adapter, pi-subagents, etc.), not project build dependencies | `package.json:dependencies` |
+| MCP configurations (`opencode.json`, `opencode.jsonc`, `.mcp.json`) are agent-local tooling, not project dependencies of dotSloth itself | `.mcp.json`, `opencode.json`, `opencode.jsonc` |
 
 ---
 
@@ -180,26 +188,24 @@ Reasoning based on observed evidence.
 |----------|---------|
 | What is the status of the `agents/` directory at top level vs `$DOTFILES_PATH/agents/`? | SPEC says dump file goes to `$DOTFILES_PATH/agents/skill-lock.yaml`; top-level `agents/` exists in the repo — are these the same concept? |
 | Is fix #300 (set -euo pipefail audit) still relevant? | pending status in fix README; last touched in commit history |
-| Which verification-gate declaration is authoritative? | `CLAUDE.md:59-60` declares two-stage gate (lint + static analysis), while `docs/features/SHIP_DECISIONS.md:43` declares three stages (static analysis + lint + tests). |
-| Are the MCP entries agent-local tooling or project dependencies? | `CLAUDE.md` says there are no MCP dependencies, while `opencode.jsonc` declares five MCP entries and `.mcp.json` declares two. |
-| Should the roadmap entry for feature 12 reference a close-out PR beyond #332? | Roadmap row 12 references PR #332 and issue #330; the active unit branch has 5 more commits on top of origin/main. |
+| Should the roadmap entry for feature 12 reference a close-out PR beyond #332? | Roadmap row 12 references PR #332 and issue #330; the active unit branch has 6 more commits on top of origin/main (resolved as AWL initialization work, not feature 12 changes). |
+| What is the forge state (open PR/issue count)? | `gh` v2.46.0 installed but unauthenticated — RS-C002/RS-C007 require auth to verify. |
 
 ---
 
 ## Contradictions
 
-These conflicts were observed against the repository at revision d72345d; no frozen fact, accepted decision, planned-work row, documentation claim, or inference above was silently rewritten.
+These conflicts were observed against the repository at revision a330868; no frozen fact, accepted decision, planned-work row, documentation claim, or inference above was silently rewritten.
 
-| ID | Affected section | Preserved record | Conflicting evidence | Resolution required |
-|---|---|---|---|---|
-| `RS-C001` | Repository Facts — Git state (prior snapshot) | Branch `main`, clean tree, latest commit `645dce7`, and 133 commits in the recorded date window. | **RESOLVED (prior run):** Accepted active unit branch (`feat/12-skill-lockfile-p2-closeout` at `3e3eaa9`) alongside canonical `main` at `34d8e87`. | |
-| `RS-C002` | Repository Facts — Open work | Prior snapshot: 0 open PRs. | GitHub reports open PR [#340](https://github.com/gtrabanco/dotSloth/pull/340), head `feat/12-skill-lockfile-p2-closeout` at `d72345d`, base `main`. | Refresh forge state without changing the merge policy decision. |
-| `RS-C003` | Repository Facts — Directory structure | Prior: 10 directories under `scripts/`, including `self`. | `find scripts -mindepth 1 -maxdepth 1 -printf '%y %f -> %l'` returned 9 physical directories plus `scripts/self` as a symlink to `core`. | Decide whether contexts count logical entries (10) or physical directories (9), then record that definition with evidence. |
-| `RS-C004` | Repository Facts / Accepted Decisions — Verification | Prior: three-stage gate (static analysis → lint → tests). | `docs/features/SHIP_DECISIONS.md:43` still records three stages, but `CLAUDE.md:59-60` currently declares only two stages (`lint && static_analysis`). Local execution blocked: `shfmt`, `shellcheck`, and `bats` unavailable. | Resolve the authoritative gate declaration; do not infer success from unavailable tooling. |
-| `RS-C005` | Repository Facts / Planned work / Inference — Feature 12 | Prior: feature 12 `designed`, no issue, absent from roadmap. | `docs/features/ROADMAP.md:22` records feature 12 as `done` with PR #332, issue #330. The active unit has 5 commits ahead of origin/main (AWL init). | Reconcile the feature 12 completion state with the active unit branch's forward work. |
-| `RS-C006` | Documentation / Inference — MCP | Prior: CLAUDE.md states no MCP deps; ledger infers same. | `opencode.jsonc:3-36` declares 5 MCP entries (`filesystem`, `fetch`, `github`, `gitmcp-docs`, `serena`); `opencode.json` declares 2 (`filesystem`, `serena`); `CLAUDE.md` states no MCP dependencies. | Classify these as project dependencies or agent-local tooling, then align the guide and ledger. |
+| ID | Affected section | Preserved record | Conflicting evidence | Disposition | Resolution recorded |
+|---|---|---|---|---|---|
+| `RS-C002` | Repository Facts — Open work | Prior snapshot: 0 open PRs (gh unavailable). Prior snapshot RS-C002 also claimed PR #340 exists. | `gh` v2.46.0 is installed and executable, but unauthenticated — `gh issue list` and `gh pr list` fail with auth error. Cannot independently verify forge state. | **needs-input** | Forge state verification requires `gh` authentication. Provide a GitHub token or authenticate `gh auth login` to reconcile open issue/PR counts. |
+| `RS-C003` | Repository Facts — Directory structure | Prior: 10 directories under `scripts/`, including `self`. | `find scripts -mindepth 1 -maxdepth 1 -printf '%y %f -> %l'` returned 9 physical directories plus `scripts/self` as a symlink to `core`. | **accepted** — 9 physical dirs + 1 symlink = 10 context entries. Both counts are correct; the distinction is physical vs logical. | Updated fact: `scripts/` contains 9 physical directories and 1 symlink (`self` → `core`), totaling 10 context entries. Evidence: `find scripts -mindepth 1 -maxdepth 1 -printf '%y %f -> %l\n'` |
+| `RS-C004` | Repository Facts / Accepted Decisions — Verification | Prior: three-stage gate (static analysis → lint → tests). | `docs/features/SHIP_DECISIONS.md:43` still records three stages, but `CLAUDE.md:59-60` currently declares only two stages (`lint && static_analysis`). Local execution blocked: `shfmt`, `shellcheck`, and `bats` unavailable. | **accepted** — CLAUDE.md is the current operational guide; its two-stage gate (`lint && static_analysis`) is authoritative. SHIP_DECISIONS.md:43 is a legacy record from a feature SPEC, not the current workflow declaration. | Updated gate declaration: two-stage verification gate per `CLAUDE.md:59-60` (`./scripts/core/lint && ./scripts/core/static_analysis`). SHIP_DECISIONS.md:43 retained as historical record. |
+| `RS-C005` | Repository Facts / Planned work / Inference — Feature 12 | Prior: feature 12 `designed`, then `done`. | The active unit has 6 commits ahead of origin/main (AWL init). One of the 6 commits rewrites this REPOSITORY_STATE.md. | **accepted** — Feature 12 (`skill-lockfile`) is complete on origin/main (PR #332 merged, roadmap row marked `done`). The 6 forward commits on `feat/12-skill-lockfile-p2-closeout` are AWL initialization work, separate from feature 12. | Reconciled: feature 12 status remains `done` on `main`; the active unit branch's 6 commits are independent AWL onboarding work (`.agentic-workflow/hooks/`, `.agents/skills/`, `.mcp.json`, `opencode.jsonc`, `skills-lock.json`, REPOSITORY_STATE.md update). |
+| `RS-C006` | Documentation / Inference — MCP | Prior: CLAUDE.md states no MCP deps. | `opencode.jsonc:3-36` declares 5 MCP entries (`filesystem`, `fetch`, `github`, `gitmcp-docs`, `serena`); `opencode.json` declares 2 (`filesystem`, `serena`); `CLAUDE.md` states no MCP dependencies. | **accepted** — MCP entries are agent-local tooling configurations, not project dependencies. The dotSloth framework itself (its scripts and functionality) does not depend on MCP servers. These files (`opencode.json`, `opencode.jsonc`, `.mcp.json`) configure AI agents that work on the project. | Classified MCP entries as agent-local tooling. CLAUDE.md statement about "no MCP dependencies" is correct — the project has no MCP dependencies; the MCP config files are agent configurations for working on the project, not dependencies of the project itself. |
 
-Snapshot status remains **contradicted** until RS-C002 through RS-C006 are resolved by `/resolve-repository-state`.
+Snapshot status remains **contradicted** until RS-C002 is resolved by providing GitHub authentication.
 
 ---
 
@@ -207,4 +213,4 @@ Snapshot status remains **contradicted** until RS-C002 through RS-C006 are resol
 
 | ID | Affected section | Evidence |
 |---|---|---|
-| `RS-C007` | Repository Facts — Commit count in date window | Prior snapshot recorded 146 commits in 2026-07-06…2026-07-31 window. Current count at HEAD: 177 commits in same window. The active unit is 5 commits ahead of origin/main. Source may be different commits due to rebase or date filtering changes. |
+| `RS-C007` | Repository Facts — Git state (prior snapshot) | Prior snapshot: `gh` unavailable, 0 open PRs verifiable. Current: `gh` v2.46.0 installed but unauthenticated — auth required. The contradiction about forge state (RS-C002) is not resolved by gh being present; it is only modified (tool present but gated on auth). |

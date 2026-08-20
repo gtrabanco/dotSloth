@@ -11,7 +11,8 @@
     },
     "gitmcp-docs": {
       "url": "https://gitmcp.io/docs",
-      "lifecycle": "lazy"
+      "lifecycle": "lazy",
+      "directTools": true
     },
     "serena": {
       "command": "uvx",
