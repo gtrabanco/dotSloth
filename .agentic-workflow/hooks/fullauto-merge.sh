@@ -39,8 +39,8 @@ remote_head=$(printf '%s' "$pr_json" | jq -r '.headRefOid')
 remote_base=$(printf '%s' "$pr_json" | jq -r '.baseRefName')
 remote_state=$(printf '%s' "$pr_json" | jq -r '.state')
 pr_url=$(printf '%s' "$pr_json" | jq -r '.url')
-repo=$(gh repo view --json nameWithOwner,defaultBranchRef)
-default_base=$(printf '%s' "$repo" | jq -r '.defaultBranchRef.name')
+repo_owner=$(gh repo view --json nameWithOwner -q '.nameWithOwner')
+default_base=$(gh repo view --json defaultBranchRef -q '.defaultBranchRef.name')
 [ -n "$head_sha" ] && [ "$head_sha" != "null" ] || fail "PR head is unavailable"
 [ "$remote_base" = "$default_base" ] || fail "PR base is not the forge default branch"
 [ "$remote_head" = "$head_sha" ] || fail "PR head changed during validation"
@@ -56,8 +56,8 @@ printf '%s' "$pr_json" | jq -e --arg marker "$audit_marker" \
   '[.comments[]?.body | contains($marker)] | any' >/dev/null \
   || fail "fresh SHA-bound audit MERGE-READY evidence is unavailable"
 
-decision_json=$(gh api "repos/$repo/contents/docs/features/SHIP_DECISIONS.md?ref=$head_sha")
-decision_text=$(printf '%s' "$decision_json" | jq -r '.content // empty' | tr -d '\n' | base64 --decode 2>/dev/null)
+decision_json=$(gh api "repos/$repo_owner/contents/docs/features/SHIP_DECISIONS.md?ref=$head_sha")
+decision_text=$(printf '%s' "$decision_json" | jq -r '.content // empty' | tr -d '\n' | base64 -d 2>/dev/null)
 printf '%s' "$decision_text" | grep -Eqi '^merge:[[:space:]]*fullauto[[:space:]]*$' \
   || fail "PR head does not authorize merge: fullauto"
 
@@ -94,6 +94,10 @@ fi
 [ "$remote_state" = "OPEN" ] || fail "PR is not open"
 [ "$(printf '%s' "$pr_json" | jq -r '.mergeable')" != "CONFLICTING" ] || fail "PR is conflicting"
 
+fresh_head=$(gh pr view "$pr" --json headRefOid -q '.headRefOid')
+[ "$fresh_head" = "$head_sha" ] || fail "PR head changed during validation (was $head_sha, now $fresh_head)"
+remote_head="$fresh_head"
+
 check_count=$(printf '%s' "$pr_json" | jq '.statusCheckRollup | length')
 if [ "$check_count" -eq 0 ]; then
   [ "${AGENTIC_WORKFLOW_LOCAL_GATE_SHA:-}" = "$head_sha" ] || fail "no CI checks and no fresh local gate for the audited SHA"
@@ -114,7 +118,7 @@ umask 077
 attempt_marker="$marker_dir/automerge-$run_id"
 printf 'run=%s\npr=%s\nhead=%s\n' "$run_id" "$pr" "$head_sha" > "$attempt_marker"
 
-gh pr merge "$pr" "--$method" --match-head-commit "$head_sha"
+gh pr merge "$pr" "--$method" --match-head-commit "$head_sha" || fail "merge failed (check PR state and permissions)"
 
 merged_json=$(gh pr view "$pr" --json number,url,state,headRefOid,baseRefName,mergeCommit,comments)
 [ "$(printf '%s' "$merged_json" | jq -r '.state')" = "MERGED" ] || fail "forge did not report the PR as merged"
