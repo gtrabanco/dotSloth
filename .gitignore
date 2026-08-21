@@ -2,3 +2,6 @@ shell/zsh/**/**.zwc
 shell/zsh/**/**.zwc.old
 docs/features/.ship-run.log
 .worktrees/
+.loop
+node_modules
+.env

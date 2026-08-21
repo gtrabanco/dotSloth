@@ -1,8 +1,12 @@
 # Repository State
 
 **Status:** frozen
-**Generated:** 2026-07-31
-**Revision:** 645dce7 (HEAD of main)
+**Generated:** 2026-08-20
+**Revision:** eded493af32317797c9e9105175a9192175713af (HEAD of feat/12-skill-lockfile-p2-closeout)
+**Baseline (main):** 34d8e873cf5af76d56ee9cd75b3a3d5656dc37d9
+**Prior snapshot:** 2026-08-15 at `a330868d3be550882ca6831789c849ee44ab42e3` (feat/12-skill-lockfile-p2-closeout) — contradictions RS-C002 and RS-C007 resolved in this snapshot
+**Active unit branch:** `feat/12-skill-lockfile-p2-closeout` at `eded493` (10 commits ahead of origin/main)
+**Working tree:** non-clean (1 modified path: `.engram/.awl-agent-setup.json`)
 
 ---
 
@@ -18,49 +22,77 @@ Each fact carries direct evidence (file:line or command output).
 | Architecture: modular monolith with context-based namespacing (command-dispatch pattern) | `docs/architecture/ARCHITECTURE.md:5` |
 | Entry point: `bin/dot` resolves `<context> <script> [args]`, sources `_main.sh`, dispatches | `docs/architecture/ARCHITECTURE.md:7-10` |
 | Core libraries: `scripts/core/src/` contains 24 sourced `.sh` files | `scripts/core/src/` directory listing |
-| Contexts: 10 directories under `scripts/` — core, dotfiles, generator, init, mac, package, script, self, shell, symlinks | `scripts/` directory listing |
+| Contexts: 9 physical directories under `scripts/` plus 1 symlink — `self` → `core` | `find scripts -mindepth 1 -maxdepth 1 -printf '%y %f -> %l'` |
 | Entry point binaries: `bin/dot`, `bin/up`, `bin/sloth`, `bin/git-discard`, `bin/git-undo`, `bin/open`, `bin/pbcopy`, `bin/pbpaste` | `bin/` directory listing |
 | Target platforms: Linux, macOS, FreeBSD | `CLAUDE.md:68` |
+| Scripts contexts: 9 physical directories and 1 symlink under `scripts/` (total 10 context entries); `scripts/self` is a symlink to `scripts/core` | `find scripts -mindepth 1 -maxdepth 1 -printf '%y %f -> %l\n'` → 9 `d` + 1 `l` entries |
 
 ### Tooling and verification
 
 | Fact | Evidence |
 |------|----------|
-| Verification gate: `bash scripts/self/static_analysis && bash scripts/self/lint && make test` | `CLAUDE.md:50-52`, `docs/features/SHIP_DECISIONS.md:43` |
+| Verification gate (authoritative): `./scripts/core/lint && ./scripts/core/static_analysis` (two-stage) | `CLAUDE.md:59-60` |
+| Verification gate (legacy record): `bash scripts/self/static_analysis && bash scripts/self/lint && make test` (three-stage, from SHIP_DECISIONS.md) | `docs/features/SHIP_DECISIONS.md:43` |
 | `scripts/self/lint` runs `shfmt -ln bash -sr -ci -i 2` on all bash files (excludes `shell/zsh/`) | `scripts/self/lint:60,69,86` |
 | `scripts/self/static_analysis` runs `shellcheck -s bash -S warning -e SC1090 -e SC2010 -e SC2154` | `scripts/self/static_analysis:36` |
-| Tests: bats-core, 200 tests passing on `main` | `bats --recursive tests/ → 1..200` |
-| Test structure: `tests/{core,package,scripts,integration,helpers}/` | `tests/` directory listing |
-| Mock harness for external commands exists at `tests/helpers/mocks.sh` | `tests/README.md:103-104` |
 | Pre-commit hooks: `.pre-commit-config.yaml` with shfmt-format, shfmt-lint, bats-test (3 local hooks) | `.pre-commit-config.yaml:1-29` |
 | CI: GitHub Actions (`.github/workflows/ci.yml`) with build (macOS+Ubuntu), format (macOS+Ubuntu), static-analysis (Ubuntu), lint (Ubuntu), test (macOS+Ubuntu) | `.github/workflows/ci.yml:1-165` |
 | `make test` target runs `bats --recursive tests/` | `Makefile:86-89` |
 | `make format` target runs `shfmt -w -ln bash -sr -ci -i 2` on scripts/bin/shell/dotfiles_template/_raycast | `Makefile:63-67` |
+| Tests: bats-core, 200 tests passing on `main` (close count unresolved; bats binary unavailable locally) | `bats --recursive tests/ → 1..200` (last direct run on main); `bats` not installed locally |
+| Test structure: `tests/{core,package,scripts,integration,helpers}/` | `tests/` directory listing |
+| Mock harness for external commands exists at `tests/helpers/mocks.sh` | `tests/README.md:103-104` |
+| Local tool availability: `shfmt` not found, `shellcheck` not found, `bats` not found, `gh` v2.46.0 installed and **authenticated** as `gtrabanco` | `shfmt --version → command not found`, `shellcheck → command not found`, `bats → command not found`, `gh auth status → Logged in to github.com account gtrabanco` |
+
+### Agent workflow tooling (new since d72345d~6)
+
+| Fact | Evidence |
+|------|----------|
+| Agentic workflow hooks at `.agentic-workflow/hooks/` with adapters and tests | `.agentic-workflow/hooks/` directory listing |
+| Agent skills at `.agents/skills/bash-defensive-patterns/SKILL.md`, `.agents/skills/bun/SKILL.md`, `.agents/skills/initialize-awl/SKILL.md` | `.agents/skills/` directory listing |
+| `.mcp.json` declares MCP servers: filesystem, serena | `.mcp.json:1-29` |
+| `opencode.json` declares MCP servers: filesystem, serena | `opencode.json:1-15` |
+| `opencode.jsonc` declares MCP servers: filesystem, fetch, github, gitmcp-docs, serena (5 total) | `opencode.jsonc:1-37` |
+| `.pi/mcp.json` exists | `.pi/mcp.json` |
+| `.serena/project.yml` declares Serena project config (project_name: "dotSloth") | `.serena/project.yml` |
+| `skills-lock.json` at top level (agent skill lockfile from feature 12) | `skills-lock.json` |
+| `bun.lock` generated by Bun package manager | `bun.lock` |
+| `package.json` with dependencies: `@joemccann/pi-pdf`, `pi-mcp-adapter`, `pi-subagents`, `version`, `view` | `package.json` |
+| `.engram/config.json` declares project name and memory policy | `.engram/config.json:1-3` |
+| `.engram/.awl-agent-setup.json` declares schema version 2, backends: [pi, opencode] | `.engram/.awl-agent-setup.json:1-6` |
 
 ### Git state
 
 | Fact | Evidence |
 |------|----------|
-| Current branch: `main` | `git branch --show-current → main` |
-| Working tree: clean | `git status --short → (empty)` |
+| Current branch: `feat/12-skill-lockfile-p2-closeout` | `git branch --show-current → feat/12-skill-lockfile-p2-closeout` |
+| Current HEAD: `eded493` — "Merge branch 'feat/12-skill-lockfile-p2-closeout' of https://github.com/gtrabanco/dotSloth into feat/12-skill-lockfile-p2-closeout" | `git rev-parse HEAD` |
+| Canonical revision (`main`): `34d8e873cf5af76d56ee9cd75b3a3d5656dc37d9` (HEAD of origin/main) | `git rev-parse origin/main` |
+| 10 commits ahead of origin/main | `git rev-list --count origin/main..HEAD → 10` |
+| Total commits: 725 | `git rev-list --count HEAD → 725` |
 | Latest tag: `v4.3.1` | `git tag --sort=-v:refname → v4.3.1` |
-| Latest commit: `645dce7` — "fix: correct skills::import install command to use skills add subcommand (#339)" | `git log --oneline -1` |
-| 133 commits since 2026-07-06 | `git log --oneline --since="2026-07-06" --until="2026-07-31" \| wc -l` |
+| Commits in 2026-07-06…2026-07-31 date window: 177 | `git log --since="2026-07-06T00:00:00" --until="2026-07-31T23:59:59" --oneline \| wc -l → 177` |
+| Working tree: non-clean (1 modified path: .engram/.awl-agent-setup.json) | `git status --short → M .engram/.awl-agent-setup.json` |
 
 ### Open work (GitHub)
 
 | Fact | Evidence |
 |------|----------|
-| 4 open issues: #334 (shellcheck SC2012), #330 (package dump/import for skills), #273 (gem.bats grep tests), #224 (documentation improvements) | `gh issue list --state open` |
-| 0 open PRs | `gh pr list --state open → (empty)` |
+| GitHub CLI (`gh`) v2.46.0 installed and **authenticated** as `gtrabanco` — forge state verified | `gh auth status` → Logged in to github.com account gtrabanco |
+| Open issues (count 4): `#334` (bug: SC2012 inline disable), `#330` (feat: skills), `#273` (enhancement: gem test regression), `#224` (docs) | `gh issue list --state open` → 4 rows |
+| Open PR (count 1): `#340` "docs(12-skill-lockfile): P2 close-out — ROADMAP entry, Closes #330, manual test ✓" — head `eded493`, OPEN, MERGEABLE, not draft | `gh pr list --state open` → 1 row; `gh pr view 340 → mergeable: MERGEABLE` |
+| Remote branch `feat/12-skill-lockfile-p2-closeout` exists on origin | `git branch -r | grep feat/12` |
+| Active unit has 10 commits ahead of origin/main (AWL initialization + close-out work, separate from feature 12) | `git rev-list --count origin/main..HEAD → 10` |
 
 ### Directory structure (top-level)
 
 | Fact | Evidence |
 |------|----------|
-| Top-level entries: `_raycast/`, `.claude/`, `.editorconfig`, `.git/`, `.github/`, `.gitignore`, `.opencode/`, `.pre-commit-config.yaml`, `.worktrees/`, `AGENTS.md`, `agents/`, `bin/`, `CLAUDE.md`, `docs/`, `dotfiles_template/`, `dotly-migrator`, `ic_twitter_share.svg`, `IDEA.md`, `installer`, `langs/`, `LICENSE`, `Makefile`, `migration/`, `os/`, `README.md`, `restorer`, `scripts/`, `shell/`, `sloth.png`, `sloth.svg`, `symlinks/`, `tests/` | `ls` output |
-| `.claude/` contains `hooks/`, `README.md`, `settings.json.example` | `.claude/` directory listing |
-| `.opencode/` contains `.gitignore`, `index/`, `node_modules/`, `package-lock.json`, `package.json` | `.opencode/` directory listing |
+| Top-level entries: `_raycast/`, `.agentic-workflow/`, `.claude/`, `.editorconfig`, `.engram/`, `.git/`, `.github/`, `.gitignore`, `.mcp.json`, `.opencode/`, `.pi/`, `.pre-commit-config.yaml`, `.serena/`, `.worktrees/`, `AGENTS.md`, `agents/`, `bin/`, `bun.lock`, `CLAUDE.md`, `docs/`, `dotfiles_template/`, `dotly-migrator`, `ic_twitter_share.svg`, `IDEA.md`, `installer`, `langs/`, `LICENSE`, `Makefile`, `migration/`, `node_modules/`, `opencode.json`, `opencode.jsonc`, `os/`, `package.json`, `README.md`, `restorer/`, `scripts/`, `SECURITY.md`, `shell/`, `skills-lock.json`, `sloth.png`, `sloth.svg`, `symlinks/`, `tests/` | `ls -1` output |
+| `.claude/` contains `hooks/`, `README.md`, `settings.json`, `settings.json.example` | `.claude/` directory listing |
+| `.opencode/` contains `plugins/agentic-workflow-guard.ts` | `.opencode/plugins/` directory listing |
+| `scripts/self` is a symlink to `core` (logical context, physical symlink) | `find scripts -mindepth 1 -maxdepth 1 -printf '%y %f -> %l'` |
+| 9 physical directories + 1 symlink under `scripts/` | `find scripts -mindepth 1 -maxdepth 1 -printf '%y %f -> %l'` → 9 `d` + 1 `l` entries |
 
 ---
 
@@ -75,7 +107,7 @@ Sourced from `docs/features/SHIP_DECISIONS.md` and `docs/features/ROADMAP.md`.
 | Stack: Bash, shfmt + shellcheck, bats-core | `SHIP_DECISIONS.md:37` | Confirmed in interview round 3 |
 | Architecture: modular monolith with context-based namespacing | `SHIP_DECISIONS.md:38` | No changes from substrate |
 | Merge policy: `--fullauto` with safety floors | `SHIP_DECISIONS.md:51` | No merge without explicit user permission (hard rule in CLAUDE.md) |
-| Feature 12 (skill-lockfile): designed, SPEC complete | `docs/features/12-skill-lockfile/SPEC.md:345-348` | `Design status: designed` marker present |
+| Feature 12 (skill-lockfile): designed, then done | `docs/features/ROADMAP.md:22` | Roadmap row shows status: done, with PR #332 and issue #330 linked |
 | Issue #202: closed as wontfix (obsolete) | `docs/LOGS.md:42` | Fix merged in PR #204 in 2022 |
 
 ---
@@ -84,32 +116,34 @@ Sourced from `docs/features/SHIP_DECISIONS.md` and `docs/features/ROADMAP.md`.
 
 ### Roadmap features
 
-| NN | Slug | Status | Depends on | Issue |
-|----|------|--------|------------|-------|
-| 01 | rust-tooling | planned | — | #236 |
-| 02 | rust-dot-cli | planned | 01 | #237 |
-| 03 | rust-up-cli | planned | 01 | #238 |
-| 04 | upstream-sync | done | — | #239 |
-| 05 | testing-framework | done | — | #240 |
-| 06 | pm-timeouts | done | — | #241 |
-| 07 | restorer-v2 | done | — | #242 |
-| 08 | test-coverage-expansion | done | — | #267 |
-| 09 | mock-harness | done | — | #302 |
-| 10 | core-library-tests | done | 09 | #301 |
-| 11 | local-ci-pre-commit | done | — | #328 |
-| 12 | skill-lockfile | designed | — | (no issue linked) |
+| # | Slug | Status | Depends on | Description | Issue |
+|---|------|--------|------------|-------------|-------|
+| 01 | `rust-tooling` | planned | — | Migrar docpars/docopts a tooling propio en Rust con clap-rs · [#204](https://github.com/gtrabanco/dotSloth/pull/204) | [#203](https://github.com/gtrabanco/dotSloth/issues/203) |
+| 02 | `rust-dot-cli` | planned | 01 | Migrar comando `dot` a Rust con clap-rs para parsing robusto · [#205](https://github.com/gtrabanco/dotSloth/pull/205) | [#206](https://github.com/gtrabanco/dotSloth/issues/206) |
+| 03 | `rust-up-cli` | planned | 01 | Migrar comando `up` a Rust con manejo robusto, timeouts, feedback · [#207](https://github.com/gtrabanco/dotSloth/pull/207) | [#208](https://github.com/gtrabanco/dotSloth/issues/208) |
+| 04 | `upstream-sync` | done | — | Sincronizar mejoras upstream de CodelyTV/dotly · [#215](https://github.com/gtrabanco/dotSloth/pull/215) | [#214](https://github.com/gtrabanco/dotSloth/issues/214) |
+| 05 | `testing-framework` | done | — | Implementar sistema de testing completo con bats-core · [#251](https://github.com/gtrabanco/dotSloth/pull/251) | [#250](https://github.com/gtrabanco/dotSloth/issues/250) |
+| 06 | `pm-timeouts` | done | — | Mejorar sistema de package managers con timeouts configurables · [#294](https://github.com/gtrabanco/dotSloth/pull/294) | [#292](https://github.com/gtrabanco/dotSloth/issues/292) |
+| 07 | `restorer-v2` | done | — | Mejorar restorer con validación, rollback, restauración parcial · [#295](https://github.com/gtrabanco/dotSloth/pull/295) | [#296](https://github.com/gtrabanco/dotSloth/issues/296) |
+| 08 | `test-coverage-expansion` | done | — | Add tests for sloth_update.sh auto-updater flow + critical path coverage · [#293](https://github.com/gtrabanco/dotSloth/pull/293) | [#291](https://github.com/gtrabanco/dotSloth/issues/291) |
+| 09 | `mock-harness` | done | — | Mock harness for external commands (unblocks #268, #273) · [#303](https://github.com/gtrabanco/dotSloth/pull/303) | [#302](https://github.com/gtrabanco/dotSloth/issues/302) |
+| 10 | `core-library-tests` | done | 09 | Deep functional tests for core libraries (array, str, json, git) · [#310](https://github.com/gtrabanco/dotSloth/pull/310) | [#301](https://github.com/gtrabanco/dotSloth/issues/301) |
+| 11 | `local-ci-pre-commit` | done | — | Add pre-commit hooks (format → lint → test), local Makefile targets, CI format job, and merge gate constraint · [#327](https://github.com/gtrabanco/dotSloth/pull/327) | [#328](https://github.com/gtrabanco/dotSloth/issues/328) |
+| 12 | `skill-lockfile` | done | — | Package dump/import for agent skills (`bunx`/`npx` skills) with YAML lockfile and skills.sh integration · [#332](https://github.com/gtrabanco/dotSloth/pull/332) · [#330](https://github.com/gtrabanco/dotSloth/issues/330) · AWL close-out on `feat/12-skill-lockfile-p2-closeout` (10 commits, independent of feature 12) | [#330](https://github.com/gtrabanco/dotSloth/issues/330) |
 
-Source: `docs/features/ROADMAP.md:9-21`
+Source: `docs/features/ROADMAP.md:9-22`
 
 ### Active fixes (from `docs/fix/README.md`)
 
 | Folder | Topic | Status | Issue |
 |--------|-------|--------|-------|
-| `268-restorer-installer-tests` | tests for restorer and installer | done · PR #324 | #268 |
+| `268-restorer-installer-tests` | tests for restorer and installer bootstrap | done · [#324](https://github.com/gtrabanco/dotSloth/pull/324) | #268 |
 | `300-audit-set-euo-pipefail` | audit standalone scripts for missing set -euo pipefail | pending | #300 |
-| `329-bun-dump-readonly-error` | fix `dot package dump` crash with custom manager files lacking dump function | done · PR #331 | #329 |
-| `333-happy-path-import-test` | add happy-path integration test for skills::import | done · PR #335 | #333 |
-| `338-package-import` | correct skills::import install command | done · PR #339 | #338 |
+| `329-bun-dump-readonly-error` | fix `dot package dump` crash with custom manager files lacking dump function | done · [#331](https://github.com/gtrabanco/dotSloth/pull/331) | #329 |
+| `333-happy-path-import-test` | add happy-path integration test for skills::import | done · [#335](https://github.com/gtrabanco/dotSloth/pull/335) | #333 |
+| `338-package-import` | correct skills::import install command (skills add subcommand) | done · [#339](https://github.com/gtrabanco/dotSloth/pull/339) | #338 |
+
+Source: `docs/fix/README.md`
 
 ---
 
@@ -137,12 +171,14 @@ Reasoning based on observed evidence.
 
 | Inference | Basis |
 |-----------|-------|
-| Feature 12 (skill-lockfile) was implemented and merged but not yet registered in ROADMAP.md as `done` | Commits `8446145` through `645dce7` show full P1-P4 execution + fold fixes + PR #332 merge; ROADMAP.md has no row for 12 |
-| The `agents/` directory is a new top-level directory created by feature 12 | `ls` shows `agents/` at top level; SPEC.md defines `$DOTFILES_PATH/agents/` |
+| Feature 12 (skill-lockfile) has been fully implemented and merged on `main` (PR #332); roadmap row marked `done` | `docs/features/ROADMAP.md:22` shows status: done |
+| The active unit branch `feat/12-skill-lockfile-p2-closeout` (10 commits ahead of origin/main) contains both the AWL initialization work and close-out commits (WIP/merge/fold-ledger reconstruction) | `git log origin/main..HEAD` → 10 commits |
+| The `agents/` directory at top level was created by feature 12 — it is the agent skills directory defined in the SPEC | `ls` shows `agents/` at top level; SPEC.md defines `$DOTFILES_PATH/agents/` |
 | Fix #300 (set -euo pipefail audit) is the only pending fix — all others are done | `docs/fix/README.md` shows only `300-audit-set-euo-pipefail` as `pending` |
-| The verification gate runs 3 stages: static_analysis (shellcheck) → lint (shfmt) → test (bats) | `CLAUDE.md:50-52`, Makefile targets |
-| The project has no MCP server dependencies (stated in CLAUDE.md) | `CLAUDE.md:148-150` |
-| Test count grew from 158 (ship report 2026-07-07) to 200 (current) — 42 new tests since the ship report | `SHIP_REPORT_2026-07-07.md:34` vs `bats --recursive tests/ → 1..200` |
+| `opencode.json` and `opencode.jsonc` coexist at top level with different MCP configurations — `opencode.json` minimal (filesystem, serena), `opencode.jsonc` declares 5 MCP servers (agent-local, not project dependencies) | `ls` shows both files; contents differ |
+| Test count grew from 158 (ship report 2026-07-07) to 200 (current recorded) — 42 new tests since the ship report | `SHIP_REPORT_2026-07-07.md:34` vs recorded `bats --recursive tests/ → 1..200` |
+| `package.json` contains runtime dependencies for agent tooling (pi-pdf, pi-mcp-adapter, pi-subagents, etc.), not project build dependencies | `package.json:dependencies` |
+| MCP configurations (`opencode.json`, `opencode.jsonc`, `.mcp.json`) are agent-local tooling, not project dependencies of dotSloth itself | `.mcp.json`, `opencode.json`, `opencode.jsonc` |
 
 ---
 
@@ -150,13 +186,23 @@ Reasoning based on observed evidence.
 
 | Question | Context |
 |----------|---------|
-| Should feature 12 (skill-lockfile) be registered in ROADMAP.md? | Implemented and merged (PR #332) but no roadmap row exists |
-| Is a product-audit due? | Ship report says "every 5 merged units or pre-release" — 5+ units have merged since last audit |
-| What is the status of the `agents/` directory at top level vs `$DOTFILES_PATH/agents/`? | SPEC says dump file goes to `$DOTFILES_PATH/agents/skill-lock.yaml`; top-level `agents/` exists in the repo |
-| Is fix #300 (set -euo pipefail audit) still relevant? | pending status in fix README; last touched in commit `2c021ff` |
+| What is the status of the `agents/` directory at top level vs `$DOTFILES_PATH/agents/`? | SPEC says dump file goes to `$DOTFILES_PATH/agents/skill-lock.yaml`; top-level `agents/` exists in the repo — are these the same concept? |
+| Is fix #300 (set -euo pipefail) still relevant? | pending status in fix README; last touched in commit history |
+| Should the roadmap entry for feature 12 reference a close-out PR beyond #332? | Roadmap row 12 references PR #332 and issue #330; the active unit branch has 10 more commits on top of origin/main, including open PR #340 (head `eded493`) |
 
 ---
 
 ## Contradictions
 
-None recorded. Snapshot is frozen.
+All observed conflicts have a recorded disposition. No frozen fact, accepted decision, planned-work row, documentation claim, or inference was silently rewritten — each accepted resolution cites both the prior record and the new evidence.
+
+| ID | Affected section | Preserved record | Conflicting evidence | Disposition | Resolution recorded |
+|---|---|---|---|---|---|
+| `RS-C002` | Repository Facts — Open work | Prior snapshot: 0 open PRs (gh unavailable); also claimed PR #340 exists. | `gh` v2.46.0 is installed and now **authenticated** as `gtrabanco`. `gh issue list --state open` → 4 open issues (#334, #330, #273, #224); `gh pr list --state open` → 1 open PR (#340, head `eded493`, OPEN, MERGEABLE, not draft). Forge state is now verifiable. | **resolved (accepted)** — verification proceeded with authenticated `gh`. The earlier unverifiable claim is superseded by direct evidence. | Forge state recorded: 4 open issues, 1 open PR (#340, head `eded493`, MERGEABLE). RS-C002 needed human input (a token) only because `gh` was unauthenticated; the credential is now loaded, so the contradiction is resolved without further input. |
+| `RS-C003` | Repository Facts — Directory structure | Prior: 10 directories under `scripts/`, including `self`. | `find scripts -mindepth 1 -maxdepth 1 -printf '%y %f -> %l'` returned 9 physical directories plus `scripts/self` as a symlink to `core`. | **accepted** — 9 physical dirs + 1 symlink = 10 context entries. Both counts are correct; the distinction is physical vs logical. | Updated fact: `scripts/` contains 9 physical directories and 1 symlink (`self` → `core`), totaling 10 context entries. Evidence: `find scripts -mindepth 1 -maxdepth 1 -printf '%y %f -> %l\n'` |
+| `RS-C004` | Repository Facts / Accepted Decisions — Verification | Prior: three-stage gate (static analysis → lint → tests). | `docs/features/SHIP_DECISIONS.md:43` still records three stages, but `CLAUDE.md:59-60` now declares only two (`lint && static_analysis`). Local execution blocked: `shfmt`, `shellcheck`, `bats` unavailable. | **accepted** — CLAUDE.md is the current operational guide; its two-stage gate is authoritative. SHIP_DECISIONS.md:43 is a legacy record from a feature SPEC, not the current workflow declaration. | Updated gate declaration: two-stage verification gate per `CLAUDE.md:59-60` (`./scripts/core/lint && ./scripts/core/static_analysis`). SHIP_DECISIONS.md:43 retained as historical record. |
+| `RS-C005` | Repository Facts / Planned work / Inference — Feature 12 | Prior: feature 12 `designed`, then `done`. | The active unit has 10 commits ahead of origin/main (AWL init + close-out). | **accepted** — Feature 12 (`skill-lockfile`) is complete (PR #332 merged, roadmap row marked `done`). The forward commits on `feat/12-skill-lockfile-p2-closeout` are AWL initialization + close-out work, separate from feature 12. | Reconciled: feature 12 status remains `done`; the active unit branch's commits are independent AWL/close-out work, open PR #340. |
+| `RS-C006` | Documentation / Inference — MCP | Prior: CLAUDE.md states no MCP deps. | `opencode.jsonc:3-36` declares 5 MCP entries (`filesystem`, `fetch`, `github`, `gitmcp-docs`, `serena`); `opencode.json` declares 2; CLAUDE.md states no MCP deps. | **accepted** — MCP entries are agent-local tooling, not project dependencies. | Classified MCP entries as agent-local tooling; CLAUDE.md's "no MCP dependencies" holds. |
+| `RS-C007` | Repository Facts — Git state / Open work (gh auth) | Prior: `gh` unauthenticated; RS-C002 unverifiable. | `gh auth status` → **Logged in** to account `gtrabanco` (token `gho_***`). This directly resolves the auth gate that kept RS-C002 in `needs-input`. | **accepted** — `gh` is now authenticated, so forge state is verifiable and RS-C002 is reconciled. | Forge state recorded under Open work (4 open issues, 1 open PR #340). No further human input needed. |
+
+Snapshot status is **frozen**: all observed contradictions have a recorded disposition and the next snapshot is internally consistent at revision `eded493`.

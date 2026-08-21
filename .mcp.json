@@ -9,19 +9,18 @@
       ],
       "disabled": false
     },
-    "gitmcp-docs": {
-      "url": "https://gitmcp.io/docs",
-      "lifecycle": "lazy",
-      "directTools": true
-    },
     "serena": {
       "command": "uvx",
       "args": [
         "--from",
-        "git+https://github.com/oraios/serena",
+        "serena-agent==1.5.3",
         "serena",
         "start-mcp-server",
-        "--project-from-cwd"
+        "--project-from-cwd",
+        "--context",
+        "agent",
+        "--enable-web-dashboard",
+        "false"
       ],
       "lifecycle": "lazy",
       "directTools": true

@@ -7,6 +7,8 @@
 > Copy this folder to `docs/features/NN-<feature-slug>/` and register the feature
 > in `docs/features/ROADMAP.md` before starting.
 
+Closes #330
+
 ## Goal
 
 Add agent skill management to dotSloth's `dot package` system — dump and import

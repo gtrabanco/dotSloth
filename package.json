@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "@joemccann/pi-pdf": "^1.0.1",
+    "pi-mcp-adapter": "^2.26.1",
+    "pi-subagents": "^0.51.0",
+    "version": "^0.1.2",
+    "view": "^1.1.1"
+  }
+}

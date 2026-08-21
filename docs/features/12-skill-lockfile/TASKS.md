@@ -73,7 +73,7 @@
 **Completion gate**:
 - [x] `bash scripts/self/static_analysis` passes
 - [x] `bash scripts/core/lint` passes
-- [ ] Manual test: `skills::dump` on populated `$HOME/.agents/skills/` produces valid YAML
+- [x] Manual test: `skills::dump` on populated `$HOME/.agents/skills/` produces valid YAML
 
 ## P3 — Import flow
 

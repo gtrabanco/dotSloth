@@ -11,9 +11,12 @@ The single most important table: it tells an agent which doc owns what, so it re
 | Task | Required docs |
 |---|---|
 | Any code change | `docs/architecture/ARCHITECTURE.md` |
-| New feature / planning / sequencing | `docs/features/ROADMAP.md`, `docs/features/_TEMPLATE/SPEC.md` |
-| A fix | `docs/fix/_TEMPLATE/SPEC.md`, `docs/fix/README.md` |
+| New feature / planning / sequencing | `docs/features/ROADMAP.md`, `docs/features/_TEMPLATE/SPEC.md`, `docs/features/_TEMPLATE/ACCEPTANCE.md` |
+| Feature design — capability and integration closure | `docs/CAPABILITIES.md` |
+| Integrating an external provider | `docs/providers/<provider>.md` |
+| A fix | `docs/fix/_TEMPLATE/SPEC.md`, `docs/fix/_TEMPLATE/ACCEPTANCE.md`, `docs/fix/README.md` |
 | Session journal / resuming work | `docs/LOGS.md` (written by `/log-session` + the `.claude/` hooks) |
+| Frozen repository knowledge | `docs/workflow/REPOSITORY_STATE.md` (written by discovery/resolution; consumed by workflow roles) |
 
 ## Workflow conventions (the skills read this)
 
@@ -21,9 +24,15 @@ The single source of truth for what every agentic-workflow skill does first and 
 
 **Discovery (always first).** Before acting, read: this guide + the documentation map above, the roadmap (`docs/features/ROADMAP.md`), and the template(s) or recent artifacts for the task at hand. Never assume paths or formats; if a doc is missing, say so and fall back to these conventions rather than guessing.
 
+**Normalized Repository State.** When `docs/workflow/REPOSITORY_STATE.md` exists, consume its frozen, evidence-backed facts and accepted decisions before rediscovering them. Keep facts, planned work, documentation, and inference separate. A missing fact may be inspected directly; conflicting evidence becomes a contradiction for `/resolve-repository-state`, never a silent overwrite.
+
 **Forge (issue/PR tracker):** GitHub (`gh`) — the CLI the skills use for issues and PRs. The auto-close convention (`Closes #N` in the PR body) must hold.
 
+**Forge bodies are Markdown, not shell.** Write issue, PR, and comment bodies to a plain Markdown file and pass `--body-file <path>`; never hand-escape Markdown or interpolate a multi-line body into an inline shell argument. Verify the rendered body after creation. A bare non-Markdown one-liner such as `Closes #12` may remain inline.
+
 **Git workflow:** worktrees — parallel units in separate checkouts. Every skill that creates a branch uses `git worktree add` to isolate work; the working tree is always the unit you're on. Worktrees are created under `../dotSloth-<branch-name>` (sibling of the repo root).
+
+**Agent safety hooks:** Claude Code and OpenCode. Repository adapters call `.agentic-workflow/hooks/guard-command.sh` before shell/read tools. Direct environment dumps, `.env` reads, and merge commands are blocked. Hooks are defense-in-depth; forge branch protection remains required.
 
 **Hard rules (always honored).**
 
@@ -49,6 +58,17 @@ The single source of truth for what every agentic-workflow skill does first and 
 
 # Verification gate (must pass before every commit):
 ./scripts/core/lint && ./scripts/core/static_analysis
+```
+
+## Performance commands
+
+The performance review runs declared commands and cites measured results. `none` means the project has no maintained command for that slot.
+
+```text
+- bench: SLOTH_PATH="$PWD" ./bin/dot shell bash test_performance
+- profile: none
+- complexity-lint: none
+- noise-band: ±5%
 ```
 
 ## Architecture
@@ -95,7 +115,11 @@ Features are planned before they are coded. Flow:
 
 Phases are labelled `P1, P2, …` ("phases") everywhere — `PLAN.md`, `TASKS.md`, `progress.md`, commits — never `S1`/"Steps". The label is `execute-phase`'s argument (`execute-phase NN P2`), so it must stay uniform.
 
+**One phase = one session.** Execute each phase in a fresh conversation so persisted SPEC/TASKS/progress evidence, rather than compacted chat context, carries the unit forward.
+
 Start a new feature by copying `docs/features/_TEMPLATE/SPEC.md` to `docs/features/<NN>-<slug>/SPEC.md` and registering it in `docs/features/ROADMAP.md` (the source of truth for numbering, order, and dependencies).
+
+**Fix-now fold ledger.** `review-change` and `audit-pr` persist fix-now findings in the unit's `review-findings.md`, using the shared schema `| id | file:line | axis | severity | class | route | folded |`. `fold-findings` marks repaired rows `folded: yes`; feature and fix units use the same convention.
 
 ## Fix workflow
 
@@ -107,6 +131,8 @@ A fix is lighter than a feature: only a `SPEC.md` (from `docs/fix/_TEMPLATE/SPEC
 
 - `/log-session` (manual, rich) — summary, decisions, next step. Run it before `/clear` or before closing for the day.
 - `.claude/` hooks (automatic, free) — append a mechanical entry on `/clear` and exit; an opt-in hook re-injects the last entry to resume context. Copy `.claude/settings.json.example` to enable; see `.claude/README.md`.
+
+**Context hygiene:** at the end of a unit or phase, persist the state with `/log-session` and start a new conversation. Compact only mid-phase when unpersisted state cannot yet be committed or journaled.
 
 ## PR & branch workflow
 
