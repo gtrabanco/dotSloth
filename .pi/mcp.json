@@ -2,29 +2,37 @@
   "mcpServers": {
     "filesystem": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-filesystem", "$PWD"],
-      "disabled": false
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "$PWD"
+      ],
+      "exposure": "codemode"
     },
     "fetch": {
       "command": "uvx",
-      "args": ["mcp-server-fetch"],
-      "lifecycle": "lazy"
+      "args": [
+        "mcp-server-fetch"
+      ],
+      "exposure": "codemode"
     },
     "github": {
-      "disabled": false
+      "exposure": "codemode"
     },
     "gitmcp-docs": {
       "url": "https://gitmcp.io/docs",
-      "lifecycle": "lazy"
+      "exposure": "codemode"
     },
     "serena": {
       "command": "uvx",
       "args": [
-        "--from", "git+https://github.com/oraios/serena",
-        "serena", "start-mcp-server",
+        "--from",
+        "git+https://github.com/oraios/serena",
+        "serena",
+        "start-mcp-server",
         "--project-from-cwd"
       ],
-      "lifecycle": "lazy"
+      "exposure": "codemode"
     }
   }
 }
